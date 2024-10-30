@@ -273,8 +273,8 @@
   .footer-one .footer-title {font-size: 20px; margin-bottom: 18px;}
   .footer-three .footer-title,.footer-four .footer-title {font-size: 20px; margin-bottom: 15px;}
   .hero-banner-two .line-bg:before {top:91px;}
-  .layout-two .input-box-one.border-left {border-right: none; border-bottom: 1px solid #eeecec; padding: 10px 0; margin: 0 15px;}
-  .dark-bg.layout-two .input-box-one.border-left {border-bottom: 1px solid rgba(255, 255, 255, 0.18);}
+  .layout-two .input-box-one.border-left {border-right: none; border-bottom: 1px solid #f6f1f1; padding: 10px 0; margin: 0 15px;}
+  .dark-bg.layout-two .input-box-one.border-left {border-bottom: 1px solid rgb(0, 0, 0);}
   .layout-two .input-box-one .label,.layout-two .input-box-one .nice-select,
   .layout-two .input-box-one .type-input {padding: 0;}
   .layout-two.search-wrapper-one .bg-wrapper .search-btn-two {width: 100%; height: 55px;}
@@ -406,7 +406,7 @@
   .hero-banner-six .hero-heading {font-size: 40px; line-height: 1.25em;}
   .hero-banner-seven {height: 750px;}
   .fs-24 {font-size: 20px;}
-  .layout-one .input-box-one.border-left {border-right: none; border-bottom: 1px solid #eeecec; padding: 10px 0; margin: 0 15px;}
+  .layout-one .input-box-one.border-left {border-right: none; border-bottom: 1px solid #ffffff; padding: 10px 0; margin: 0 15px;}
   .layout-one .input-box-one .label,.layout-one .input-box-one .nice-select {padding: 0;}
   .feedback-block-one blockquote {font-size: 24px; line-height: 1.62em;}
   .card-style-one .icon {width: 100px;}
@@ -593,7 +593,7 @@
   .block-feature-two .block-two {border-radius: 30px; margin-top: 40px;}
   .block-feature-two .block-one {min-height: 480px;}
   .location-card-one {height: 350px;}
-  .fancy-banner-one .property-item .border-right {border-right: none; border-bottom: 1px solid #d6d6d6;}
+  .fancy-banner-one .property-item .border-right {border-right: none; border-bottom: 1px solid #ffffff;}
   .category-section-one .section-btn {position: static;}
   .listing-card-three .wrapper .property-name,
   .listing-card-three .wrapper .property-info {width: 100%; height: auto !important;}
@@ -744,7 +744,7 @@
 @media (max-width: 991px) { 
   .dashboard-body .dash-card-one:before {display: none;}
   .dashboard-body .dashboard-header .user-data .user-avatar {width: 50px; height: 50px; border-width: 3px;}
-  .dashboard-body .message-wrapper .open-email-container {background: #fff9f6; margin: 20px 10px; border-radius: 0 0 10px 10px;}
+  .dashboard-body .message-wrapper .open-email-container {background: #ffffff; margin: 20px 10px; border-radius: 0 0 10px 10px;}
   .dashboard-body .message-wrapper .message-sidebar {border-right: none; border-bottom: 1px solid #e3e1e1; max-height: 600px; overflow-y: auto;}
   .dashboard-body .message-wrapper .message-sidebar .email-list-item {padding-top: 15px; padding-bottom: 15px;}
   .dashboard-body .message-wrapper .message-sidebar .email-list-item .email-short-preview .sender-name,
@@ -757,7 +757,7 @@
   .dash-aside-navbar {transform: translateX(-100%); opacity: 0; visibility: hidden; transition: all 0.3s ease;}
   .dash-aside-navbar.show {transform: translateX(0); box-shadow: 15px 0 25px rgba(35,35,35,0.09); opacity: 1; visibility: visible;}
   .dashboard-body {margin: 0; border-radius: 0;}
-  .dashboard-body .dashboard-header {left: 0; right: 0; border-bottom: 1px solid #e5e5e5; padding: 12px 15px;}
+  .dashboard-body .dashboard-header {left: 0; right: 0; border-bottom: 1px solid #ffffff; padding: 12px 15px;}
   .dashboard-body .dashboard-header .search-form {width: auto;}
   .dashboard-body .dashboard-header .job-post-btn {width: 110px; line-height: 40px; font-size: 14px;}
   .compose-mail-offcanvas {left: 15px; width: auto;}
