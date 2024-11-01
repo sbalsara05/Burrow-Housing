@@ -21,7 +21,7 @@ const HeaderThree = () => {
                   <div className="d-flex align-items-center">
                      <div className="logo order-lg-0">
                         <Link to="/" className="d-flex align-items-center">
-                           <img src="/assets/images/logo/favicon.ico" alt="" />
+                           <img src="/assets/images/logo/icon.ico" alt="" />
                         </Link>
                      </div>
 
