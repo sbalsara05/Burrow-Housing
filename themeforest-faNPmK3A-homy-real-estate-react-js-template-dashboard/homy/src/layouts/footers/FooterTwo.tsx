@@ -50,7 +50,7 @@ const FooterTwo = () => {
                      <div className="footer-intro position-relative z-1 pt-70 pb-150 lg-pb-20">
                         <div className="logo mb-15">
                            <Link to="/">
-                              <img src="/assets/images/logo/logo_05.svg" alt="" />
+                              <img src="/assets/images/logo/textlogo.png" alt="" style={{width: "250px", height: "auto"}}/>
                            </Link>
                         </div>
                         <p className="mb-45 lg-mb-30 pe-2 pe-lg-5">{desc_2}</p>
