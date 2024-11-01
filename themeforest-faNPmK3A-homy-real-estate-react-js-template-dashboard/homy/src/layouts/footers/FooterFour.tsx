@@ -11,10 +11,10 @@ const FooterFour = () => {
                      <div className="footer-intro">
                         <div className="logo mb-20">
                            <Link to="/">
-                              <img src="/assets/images/logo/logo_06.svg" alt="" />
+                              <img src="/assets/images/logo/textlogo.png" alt="" />
                            </Link>
                         </div>
-                        <p className="mb-30 xs-mb-20">11910 Clyde Rapid Suite 210, Willyand, Virginia, United States</p>
+                        <p className="mb-30 xs-mb-20">12345 Clyde Rapid Suite 210, Willyand, Virginia, United States</p>
                         <Link to="#" className="email tran3s mb-60 md-mb-30">homyreal@demo.com</Link>
                         <ul className="style-none d-flex align-items-center social-icon">
                            <li><Link to="#"><i className="fa-brands fa-facebook-f"></i></Link></li>
