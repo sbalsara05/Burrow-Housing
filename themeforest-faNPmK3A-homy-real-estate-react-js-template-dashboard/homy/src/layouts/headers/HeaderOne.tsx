@@ -22,7 +22,7 @@ const HeaderOne = ({ style }: any) => {
                   <div className="d-flex align-items-center justify-content-between">
                      <div className="logo order-lg-0">
                         <Link to="/" className="d-flex align-items-center">
-                           <img src="/assets/images/logo/favicon.ico" alt="Burrow Logo" />
+                           <img src="/assets/images/logo/logo.png" alt="Burrow Logo" style={{ width: "100px", height: "auto" }}/>
                         </Link>
                      </div>
                      <div className="right-widget ms-auto ms-lg-0 me-3 me-lg-0 order-lg-3">
