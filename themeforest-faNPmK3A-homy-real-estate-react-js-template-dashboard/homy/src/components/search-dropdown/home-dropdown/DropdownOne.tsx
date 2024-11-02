@@ -31,16 +31,30 @@ const DropdownOne = ({ style }: any) => {
             </div>
             <div className={`${style ? "col-xl-3" : "col-xl-4"} col-lg-4`}>
                <div className="input-box-one border-left">
-                  <div className="label">Location</div>
+                  <div className="label">Neighborhood</div>
                   <NiceSelect className={`nice-select location ${style ? "fw-normal" : ""}`}
                      options={[
-                        { value: "germany", text: "Berlin, Germany" },
-                        { value: "dhaka", text: "Dhanmondi, Dhaka" },
-                        { value: "mexico", text: "Acapulco, Mexico" },
-                        { value: "france", text: "Cannes, France" },
-                        { value: "india", text: "Delhi, India" },
-                        { value: "giza", text: "Giza, Egypt" },
-                        { value: "cuba", text: "Havana, Cuba" },
+                        { value: "allston", text: "Allston" },
+                        { value: "back bay", text: "Back Bay" },
+                        { value: "beacon hill", text: "Beacon Hill" },
+                        { value: "brighton", text: "Brighton" },
+                        { value: "charlestown", text: "Charlestown" },
+                        { value: "chinatown", text: "Chinatown" },
+                        { value: "dorchester", text: "Dorchester" },
+                         { value: "fenway", text: "Fenway" },
+                         { value: "hyde park", text: "Hyde Park" },
+                         { value: "jamaica plain", text: "Jamaica Plain" },
+                         { value: "mattapan", text: "Mattapan" },
+                         { value: "mission hill", text: "Mission Hill" },
+                         { value: "north end", text: "North End" },
+                         { value: "roslindale", text: "Roslindale" },
+                         { value: "roxbury", text: "Roxbury" },
+                          { value: "south boston", text: "South Boston" },
+                          { value: "south end", text: "South End" },
+                          { value: "west end", text: "West End" },
+                         { value: "west roxbury", text: "West Roxbury" },
+                         { value: "wharf district", text: "Wharf District" },
+
                      ]}
                      defaultCurrent={0}
                      onChange={selectHandler}

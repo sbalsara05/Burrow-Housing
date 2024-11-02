@@ -17,14 +17,14 @@ const HomeThree = () => {
       <HeaderTwo style_1={true} style_2={false} />
       <HeroBanner />
       <Category style={false} />
-      <BLockFeatureOne />
+      {/*<BLockFeatureOne />*/}
       <PropertyOne />
       <PropertyTwo style={false} />
-      <BLockFeatureTwo />
-      <FancyBannerOne />
+      {/*<BLockFeatureTwo />*/}
+      {/*<FancyBannerOne />*/}
       <Feedback style={false} />
-      <Brand />
-      <FancyBannerTwo />
+      {/*<Brand />*/}
+      {/*<FancyBannerTwo />*/}
       <FooterTwo />
     </>
   )
