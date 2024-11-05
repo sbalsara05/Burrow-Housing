@@ -105,7 +105,7 @@ const FooterTwo = () => {
                      <li><Link to="/faq">Cookies</Link></li>
                      <li><Link to="/contact">Contact Us</Link></li>
                   </ul>
-                  <p className="mb-15 text-center text-lg-start order-md-first">Copyright @2024 Homy inc.</p>
+                  <p className="mb-15 text-center text-lg-start order-md-first">Copyright @2024 Burrow Housing</p>
                </div>
             </div>
          </div>
