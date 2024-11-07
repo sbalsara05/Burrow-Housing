@@ -15,10 +15,12 @@ const FooterOne = ({ style }: any) => {
                         <div className="bg-wrapper">
                            <div className="logo mb-20">
                               <Link to="/">
-                                 <img src={style ? "/assets/images/logo/logo_03.svg" : "/assets/images/logo/logo_01.svg"} alt="" />
-                              </Link>
-                           </div>
-                           <p className="mb-60 lg-mb-40 md-mb-20">11910 Clyde Rapid Suite 70, Willyand, Virginia, United States</p>
+
+                                 <img src="/assets/images/logo/textlogo.png" alt="" style={{width: "250px", height: "auto"}}/>
+
+                           </Link>
+                        </div>
+                        <p className="mb-60 lg-mb-40 md-mb-20">11910 Clyde Rapid Suite 70, Willyand, Virginia, United States</p>
                            <h6>CONTACT</h6>
                            <Link to="#" className={`email tran3s mb-70 lg-mb-50 ${style ? "font-garamond" : "fs-24 text-decoration-underline"}`}>homyreal@demo.com</Link>
                            <ul className="style-none d-flex align-items-center social-icon">
