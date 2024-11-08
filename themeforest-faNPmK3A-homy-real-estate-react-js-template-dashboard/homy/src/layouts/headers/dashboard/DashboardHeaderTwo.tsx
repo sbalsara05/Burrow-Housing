@@ -32,7 +32,7 @@ const DashboardHeaderTwo = ({ title }: any) => {
                </div>
                <div className="user-data position-relative">
                   <button className="user-avatar online position-relative rounded-circle dropdown-toggle" type="button" id="profile-dropdown" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
-                     <img src="/assets/images/dashboard/avatar_01.jpg" alt="" className="lazy-img" />
+                     <img src="/assets/images/dashboard/no-profile-pic.png" alt="" className="lazy-img" />
                   </button>
                   <Profile />
                </div>
