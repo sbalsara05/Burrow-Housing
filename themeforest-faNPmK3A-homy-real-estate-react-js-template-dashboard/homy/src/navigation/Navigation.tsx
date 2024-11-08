@@ -1,4 +1,4 @@
-import { Route, BrowserRouter as Router, Routes } from 'react-router-dom';
+import { Route, BrowserRouter as Router, Routes, Navigate } from 'react-router-dom';
 import ScrollToTop from '../components/common/ScrollToTop';
 import { ToastContainer } from 'react-toastify';
 import Home from '../pages/Home';
@@ -73,6 +73,7 @@ const AppNavigation = () => {
       <ScrollToTop />
       <ToastContainer position="top-center" />
       <Routes>
+        <Route path="/" element={<Navigate to="/home-three" replace />} />
         {/*<Route path="/" element={<Home />} />*/}
         {/*<Route path="/home-two" element={<HomeTwo />} />*/}
         <Route path="/home-three" element={<HomeThree />} />
