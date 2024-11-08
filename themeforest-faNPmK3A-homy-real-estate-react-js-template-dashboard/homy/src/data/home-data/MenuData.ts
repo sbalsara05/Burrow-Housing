@@ -22,9 +22,10 @@ const menu_data: MenuItem[] = [
 
     {
         id: 1,
-        has_dropdown: true,
+        has_dropdown: false,
+        class_name: "mega-dropdown-sm",
         title: "Home",
-        link: "#",
+        link: "/home-three",
         sub_menus: [
             { link: "/", title: "Home 01" },
             { link: "/home-two", title: "Home 02" },
@@ -35,62 +36,62 @@ const menu_data: MenuItem[] = [
             { link: "/home-seven", title: "Home 07" },
         ],
     },
-    {
-        id: 2,
-        has_dropdown: true,
-        title: "Listing",
-        class_name:"mega-dropdown-sm",
-        link: "#",
-        menu_column: [
-            {
-                id: 1,
-                mega_title: "Listing Type",
-                mega_menus: [
-                    { link: "/listing_01", title: "Grid Sidebar-1" },
-                    { link: "/listing_05", title: "Grid Sidebar-2" },
-                    { link: "/listing_02", title: "List Sidebar-1" },
-                    { link: "/listing_06", title: "List Sidebar-2" },
-                    { link: "/listing_03", title: "Grid Top Filter-1" },
-                    { link: "/listing_07", title: "Grid Top Filter-2" },
-                    { link: "/listing_04", title: "List Top Filter-1" },
-                    { link: "/listing_08", title: "List Top Filter-2" },
-                    { link: "/listing_09", title: "Grid Banner Filter-1" },
-                ]
-            },
-            {
-                id: 2,
-                mega_title: "Listing Type",
-                mega_menus: [
-                    { link: "/listing_11", title: "Grid Banner Filter-2" },
-                    { link: "/listing_10", title: "List Banner Filter-1" },
-                    { link: "/listing_12", title: "List Banner Filter-2" },
-                    { link: "/listing_13", title: "Grid Fullwidth" },
-                    { link: "/listing_14", title: "Grid Fullwidth Map-1" },
-                    { link: "/listing_16", title: "Grid Fullwidth Map-2" },
-                    { link: "/listing_15", title: "List Fullwidth Map-1" },
-                    { link: "/listing_17", title: "List Fullwidth Map-2" },
-                ]
-            },
-            {
-                id: 3,
-                mega_title: "Single Listing",
-                mega_menus: [
-                    { link: "/listing_details_01", title: "Listing Details-1" },
-                    { link: "/listing_details_02", title: "Listing Details-2" },
-                    { link: "/listing_details_03", title: "Listing Details-3" },
-                    { link: "/listing_details_04", title: "Listing Details-4" },
-                    { link: "/listing_details_05", title: "Listing Details-5" },
-                    { link: "/listing_details_06", title: "Listing Details-6" },
-                ]
-            },
-        ]
-    },
+    // {
+    //     id: 2,
+    //     has_dropdown: false,
+    //     title: "Listing",
+    //     class_name:"mega-dropdown-lg",
+    //     link: "#",
+    //     menu_column: [
+    //         {
+    //             id: 1,
+    //             mega_title: "Listing Type",
+    //             mega_menus: [
+    //                 { link: "/listing_01", title: "Grid Sidebar-1" },
+    //                 { link: "/listing_05", title: "Grid Sidebar-2" },
+    //                 { link: "/listing_02", title: "List Sidebar-1" },
+    //                 { link: "/listing_06", title: "List Sidebar-2" },
+    //                 { link: "/listing_03", title: "Grid Top Filter-1" },
+    //                 { link: "/listing_07", title: "Grid Top Filter-2" },
+    //                 { link: "/listing_04", title: "List Top Filter-1" },
+    //                 { link: "/listing_08", title: "List Top Filter-2" },
+    //                 { link: "/listing_09", title: "Grid Banner Filter-1" },
+    //             ]
+    //         },
+    //         {
+    //             id: 2,
+    //             mega_title: "Listing Type",
+    //             mega_menus: [
+    //                 { link: "/listing_11", title: "Grid Banner Filter-2" },
+    //                 { link: "/listing_10", title: "List Banner Filter-1" },
+    //                 { link: "/listing_12", title: "List Banner Filter-2" },
+    //                 { link: "/listing_13", title: "Grid Fullwidth" },
+    //                 { link: "/listing_14", title: "Grid Fullwidth Map-1" },
+    //                 { link: "/listing_16", title: "Grid Fullwidth Map-2" },
+    //                 { link: "/listing_15", title: "List Fullwidth Map-1" },
+    //                 { link: "/listing_17", title: "List Fullwidth Map-2" },
+    //             ]
+    //         },
+    //         {
+    //             id: 3,
+    //             mega_title: "Single Listing",
+    //             mega_menus: [
+    //                 { link: "/listing_details_01", title: "Listing Details-1" },
+    //                 { link: "/listing_details_02", title: "Listing Details-2" },
+    //                 { link: "/listing_details_03", title: "Listing Details-3" },
+    //                 { link: "/listing_details_04", title: "Listing Details-4" },
+    //                 { link: "/listing_details_05", title: "Listing Details-5" },
+    //                 { link: "/listing_details_06", title: "Listing Details-6" },
+    //             ]
+    //         },
+    //     ]
+    // },
     {
         id: 3,
-        has_dropdown: true,
-        title: "Pages",
+        has_dropdown: false,
+        title: "About Us",
         class_name:"mega-dropdown-sm",
-        link: "#",
+        link: "/about_us_01",
         menu_column: [
             {
                 id: 1,
@@ -132,17 +133,17 @@ const menu_data: MenuItem[] = [
             },
         ]
     },
-    {
-        id: 4,
-        has_dropdown: true,
-        title: "Blog",
-        link: "#",
-        sub_menus: [
-            { link: "/blog_01", title: "Blog Grid" },
-            { link: "/blog_02", title: "Blog List" },
-            { link: "/blog_03", title: "Blog 2 column" },
-            { link: "/blog_details", title: "Blog Details" },
-        ],
-    },
+    // {
+    //     id: 4,
+    //     has_dropdown: false,
+    //     title: "Blog",
+    //     link: "#",
+    //     sub_menus: [
+    //         { link: "/blog_01", title: "Blog Grid" },
+    //         { link: "/blog_02", title: "Blog List" },
+    //         { link: "/blog_03", title: "Blog 2 column" },
+    //         { link: "/blog_details", title: "Blog Details" },
+    //     ],
+    // },
 ];
 export default menu_data;
