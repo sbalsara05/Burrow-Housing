@@ -13,7 +13,7 @@ const ProfileBody = () => {
 
             <div className="bg-white card-box border-20">
                <div className="user-avatar-setting d-flex align-items-center mb-30">
-                  <img src="/assets/images/dashboard/avatar_02.jpg" alt="" className="lazy-img user-img" />
+                  <img src="/assets/images/dashboard/no-profile-pic.png" alt="" className="lazy-img user-img" />
                   <div className="upload-btn position-relative tran3s ms-4 me-3">
                      Upload new photo
                      <input type="file" id="uploadImg" name="uploadImg" placeholder="" />
