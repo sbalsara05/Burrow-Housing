@@ -15,7 +15,7 @@ const DashboardHeaderOne = ({ isActive, setIsActive }: any) => {
          <div className="position-relative">
             <div className="logo d-md-block d-flex align-items-center justify-content-between plr bottom-line pb-30">
                <Link to="/dashboard-index">
-                  <img src="/assets/images/logo/logo_01.svg" alt="" />
+                  <img src="/assets/images/logo/textlogo.png" alt="" style={{marginLeft: 0, width: 200, height: "auto"}} />
                </Link>
                <button onClick={() => setIsActive(false)} className="close-btn d-block d-md-none"><i className="fa-light fa-circle-xmark"></i></button>
             </div>
@@ -47,12 +47,12 @@ const DashboardHeaderOne = ({ isActive, setIsActive }: any) => {
                         <span>Account Settings</span>
                      </Link>
                   </li>
-                  <li className="plr">
-                     <Link to="/dashboard/membership" className={`d-flex w-100 align-items-center ${pathname === '/dashboard/membership' ? 'active' : ''}`} onClick={() => handleNavigation('/dashboard/membership')}>
-                        <img src={pathname === '/dashboard/membership' ? "/assets/images/dashboard/icon/icon_5_active.svg" : "/assets/images/dashboard/icon/icon_5.svg"} alt="" />
-                        <span>Membership</span>
-                     </Link>
-                  </li>
+                  {/*<li className="plr">*/}
+                  {/*   <Link to="/dashboard/membership" className={`d-flex w-100 align-items-center ${pathname === '/dashboard/membership' ? 'active' : ''}`} onClick={() => handleNavigation('/dashboard/membership')}>*/}
+                  {/*      <img src={pathname === '/dashboard/membership' ? "/assets/images/dashboard/icon/icon_5_active.svg" : "/assets/images/dashboard/icon/icon_5.svg"} alt="" />*/}
+                  {/*      <span>Membership</span>*/}
+                  {/*   </Link>*/}
+                  {/*</li>*/}
                   <li className="bottom-line pt-30 lg-pt-20 mb-40 lg-mb-30"></li>
                   <li><div className="nav-title">Listing</div></li>
                   <li className="plr">
@@ -79,12 +79,12 @@ const DashboardHeaderOne = ({ isActive, setIsActive }: any) => {
                         <span>Saved Search</span>
                      </Link>
                   </li>
-                  <li className="plr">
-                     <Link to="/dashboard/review" className={`d-flex w-100 align-items-center ${pathname === '/dashboard/review' ? 'active' : ''}`} onClick={() => handleNavigation('/dashboard/review')}>
-                        <img src={pathname === '/dashboard/review' ? "/assets/images/dashboard/icon/icon_10_active.svg" : "/assets/images/dashboard/icon/icon_10.svg"} alt="" />
-                        <span>Reviews</span>
-                     </Link>
-                  </li>
+                  {/*<li className="plr">*/}
+                  {/*   <Link to="/dashboard/review" className={`d-flex w-100 align-items-center ${pathname === '/dashboard/review' ? 'active' : ''}`} onClick={() => handleNavigation('/dashboard/review')}>*/}
+                  {/*      <img src={pathname === '/dashboard/review' ? "/assets/images/dashboard/icon/icon_10_active.svg" : "/assets/images/dashboard/icon/icon_10.svg"} alt="" />*/}
+                  {/*      <span>Reviews</span>*/}
+                  {/*   </Link>*/}
+                  {/*</li>*/}
                </ul>
             </nav>
             <div className="profile-complete-status bottom-line pb-35 plr">

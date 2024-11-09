@@ -1,11 +1,25 @@
-import Overview from "./Overview"
-import ListingDetails from "./ListingDetails"
-import SelectAmenities from "./SelectAmenities"
-import AddressAndLocation from "../profile/AddressAndLocation"
-import DashboardHeaderTwo from "../../../layouts/headers/dashboard/DashboardHeaderTwo"
-import { Link } from "react-router-dom"
+import React, { useState } from "react";
+import Overview from "./Overview";
+import ListingDetails from "./ListingDetails";
+import SelectAmenities from "./SelectAmenities";
+import AddressAndLocation from "../profile/AddressAndLocation";
+import DashboardHeaderTwo from "../../../layouts/headers/dashboard/DashboardHeaderTwo";
+import { Link } from "react-router-dom";
 
 const AddPropertyBody = () => {
+   const [attachedFiles, setAttachedFiles] = useState([]);
+
+   // Handle file upload
+   const handleFileChange = (event) => {
+      const files = Array.from(event.target.files);
+      setAttachedFiles((prevFiles) => [...prevFiles, ...files]);
+   };
+
+   // Handle file removal
+   const removeFile = (fileName) => {
+      setAttachedFiles((prevFiles) => prevFiles.filter((file) => file.name !== fileName));
+   };
+
    return (
       <div className="dashboard-body">
          <div className="position-relative">
@@ -19,22 +33,31 @@ const AddPropertyBody = () => {
                <div className="dash-input-wrapper mb-20">
                   <label htmlFor="">File Attachment*</label>
 
-                  <div className="attached-file d-flex align-items-center justify-content-between mb-15">
-                     <span>PorpertyImage_01.jpg</span>
-                     <Link to="#" className="remove-btn"><i className="bi bi-x"></i></Link>
-                  </div>
-                  <div className="attached-file d-flex align-items-center justify-content-between mb-15">
-                     <span>PorpertyImage_02.jpg</span>
-                     <Link to="#" className="remove-btn"><i className="bi bi-x"></i></Link>
-                  </div>
+                  {attachedFiles.map((file, index) => (
+                     <div key={index} className="attached-file d-flex align-items-center justify-content-between mb-15">
+                        <span>{file.name}</span>
+                        <Link to="#" className="remove-btn" onClick={() => removeFile(file.name)}>
+                           <i className="bi bi-x"></i>
+                        </Link>
+                     </div>
+                  ))}
                </div>
+
                <div className="dash-btn-one d-inline-block position-relative me-3">
                   <i className="bi bi-plus"></i>
                   Upload File
-                  <input type="file" id="uploadCV" name="uploadCV" placeholder="" />
+                  <input
+                     type="file"
+                     id="uploadCV"
+                     name="uploadCV"
+                     onChange={handleFileChange}
+                     multiple
+                     accept=".jpg, .png, .mp4"
+                  />
                </div>
                <small>Upload file .jpg, .png, .mp4</small>
             </div>
+
             <SelectAmenities />
             <AddressAndLocation />
 
@@ -44,7 +67,7 @@ const AddPropertyBody = () => {
             </div>
          </div>
       </div>
-   )
-}
+   );
+};
 
-export default AddPropertyBody
+export default AddPropertyBody;

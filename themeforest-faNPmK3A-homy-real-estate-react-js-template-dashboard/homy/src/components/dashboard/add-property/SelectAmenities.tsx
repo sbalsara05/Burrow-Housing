@@ -1,4 +1,4 @@
-const amenities: string[] = ["A/C & Heating", "Garages", "Swimming Pool", "Parking", "Lake View", "Garden", "Disabled Access", "Pet Friendly", "Ceiling Height", "Outdoor Shower", "Refrigerator", "Fireplace", "Wifi", "TV Cable", "Barbeque", "Laundry", "Dryer", "Lawn", "Elevator"];
+const amenities: string[] = ["A/C & Heating", "Balcony","Driveway", "Disabled Access", "Refrigerator", "Wifi", "Washer & Dryer", "Lawn"];
 
 const SelectAmenities = () => {
    return (
