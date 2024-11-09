@@ -13,7 +13,7 @@ interface ContentType {
 const footer_content: ContentType = {
    title: "Our Newsletter",
    desc_1: "Get instant news by subscribe to our newsletter",
-   desc_2: "11910 Clyde Rapid Suite 210, Wil, Virginia, USA",
+   desc_2: "Northeastern University",
    email: "homyreal@demo.com",
    number: "+757 699-4478",
    icon: ["facebook-f", "twitter", "instagram"],
@@ -26,24 +26,24 @@ const FooterTwo = () => {
       <div className="footer-two">
          <div className="container container-large">
             <div className="bg-wrapper position-relative z-1">
-               <div className="news-letter-area">
-                  <div className="row align-items-center">
-                     <div className="col-lg-6">
-                        <div className="text-center text-lg-start md-mb-20">
-                           <h2>{title}</h2>
-                           <p className="fs-20 m0">{desc_1}</p>
-                        </div>
-                     </div>
-                     <div className="col-lg-6">
-                        <div className="form-wrapper me-auto ms-auto me-lg-0">
-                           <form onSubmit={(e) => e.preventDefault()}>
-                              <input type="email" placeholder="Your email address" />
-                              <button><i className="fa-light fa-arrow-right-long"></i></button>
-                           </form>
-                        </div>
-                     </div>
-                  </div>
-               </div>
+               {/*<div className="news-letter-area">*/}
+               {/*   <div className="row align-items-center">*/}
+                     {/*<div className="col-lg-6">*/}
+                     {/*   <div className="text-center text-lg-start md-mb-20">*/}
+                     {/*      <h2>{title}</h2>*/}
+                     {/*      <p className="fs-20 m0">{desc_1}</p>*/}
+                     {/*   </div>*/}
+                     {/*</div>*/}
+                     {/*<div className="col-lg-6">*/}
+                     {/*   <div className="form-wrapper me-auto ms-auto me-lg-0">*/}
+                     {/*      <form onSubmit={(e) => e.preventDefault()}>*/}
+                     {/*         <input type="email" placeholder="Your email address" />*/}
+                     {/*         <button><i className="fa-light fa-arrow-right-long"></i></button>*/}
+                     {/*      </form>*/}
+                     {/*   </div>*/}
+                     {/*</div>*/}
+               {/*   </div>*/}
+               {/*</div>*/}
 
                <div className="row justify-content-between">
                   <div className="col-xl-3">

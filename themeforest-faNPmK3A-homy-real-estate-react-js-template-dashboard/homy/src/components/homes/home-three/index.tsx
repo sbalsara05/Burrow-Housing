@@ -16,7 +16,7 @@ const HomeThree = () => {
     <>
       <HeaderTwo style_1={true} style_2={false} />
       <HeroBanner />
-      <Category style={false} />
+      {/*<Category style={false} />*/}
       {/*<BLockFeatureOne />*/}
       <PropertyOne />
       <PropertyTwo style={false} />
