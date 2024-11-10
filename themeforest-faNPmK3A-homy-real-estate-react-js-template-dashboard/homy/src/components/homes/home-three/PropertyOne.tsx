@@ -74,7 +74,7 @@ const PropertyOne = () => {
                                              <li key={index}><Link to="#"><i className={`fa-light fa-${icon}`}></i></Link></li>
                                           ))}
                                        </ul>
-                                       <Link to="/listing_details_05" className="btn-ten xs-mt-20"><span>Full Details</span> <i className="bi bi-arrow-up-right"></i></Link>
+                                       <Link to="/listing_details_03" className="btn-ten xs-mt-20"><span>Full Details</span> <i className="bi bi-arrow-up-right"></i></Link>
                                     </div>
                                  </div>
                               </div>
@@ -96,7 +96,7 @@ const PropertyOne = () => {
                                              <h5 className="text-white">{item.title}</h5>
                                              <p className="m0 text-white">{item.address}</p>
                                           </div>
-                                          <Link to="/listing_details_05" className="btn-four rounded-circle inverse stretched-link"><i className="bi bi-arrow-up-right"></i></Link>
+                                          <Link to="/listing_details_03" className="btn-four rounded-circle inverse stretched-link"><i className="bi bi-arrow-up-right"></i></Link>
                                        </div>
                                     </div>
                                  </div>

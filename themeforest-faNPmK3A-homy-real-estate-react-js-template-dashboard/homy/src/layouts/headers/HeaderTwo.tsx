@@ -23,7 +23,7 @@ const HeaderTwo = ({ style_1, style_2 }: any) => {
                   <div className="d-flex align-items-center">
                      <div className="logo order-lg-0">
                         <Link to="/" className="d-flex align-items-center">
-                           <img src={style_2 ? "/assets/images/logo/logo.png" : style_1 ? "/assets/images/logo/logo.png" : "/assets/images/logo/logo_02.svg"} alt="" style={{ width: "80px", height: "auto" }}/>
+                           <img src={style_2 ? "/assets/images/logo/logo.png" : style_1 ? "/assets/images/logo/logo.png" : "/assets/images/icon/texticon.png"} alt="" style={{ width: "80px", height: "auto" }}/>
                         </Link>
                      </div>
 
