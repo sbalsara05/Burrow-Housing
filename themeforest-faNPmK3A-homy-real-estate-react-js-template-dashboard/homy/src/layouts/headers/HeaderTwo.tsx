@@ -40,9 +40,9 @@ const HeaderTwo = ({ style_1, style_2 }: any) => {
                                  </Link>
                               </li>
                               <li className="d-none d-xl-block">
-                                 <button onClick={() => setOffCanvas(true)} style={{ cursor: "pointer" }} className="sidenavbtn rounded-circle tran3s" type="button">
-                                    <i className="fa-sharp fa-light fa-bars-filter"></i>
-                                 </button>
+                                 {/*<button onClick={() => setOffCanvas(true)} style={{ cursor: "pointer" }} className="sidenavbtn rounded-circle tran3s" type="button">*/}
+                                 {/*   <i className="fa-sharp fa-light fa-bars-filter"></i>*/}
+                                 {/*</button>*/}
                               </li></>) : (<>
                                  <li className="d-none d-md-flex align-items-center login-btn-one me-4 me-xxl-5">
                                     <i className="fa-regular fa-phone-volume"></i>
