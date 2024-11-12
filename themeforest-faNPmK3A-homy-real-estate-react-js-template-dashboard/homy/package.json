@@ -9,7 +9,6 @@
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
     "start": "react-scripts start"
-
   },
   "dependencies": {
     "@emailjs/browser": "^4.3.3",
@@ -18,6 +17,7 @@
     "@reduxjs/toolkit": "^2.2.5",
     "bootstrap": "^5.3.3",
     "isotope-layout": "^3.0.6",
+    "next": "^15.0.3",
     "or": "^0.2.0",
     "react": "^18.2.0",
     "react-chartjs-2": "^5.2.0",

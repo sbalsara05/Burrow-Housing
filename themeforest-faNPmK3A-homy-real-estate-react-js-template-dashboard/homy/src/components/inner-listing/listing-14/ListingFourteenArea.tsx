@@ -6,10 +6,7 @@ import { Link } from "react-router-dom";
 import NiceSelect from "../../../ui/NiceSelect";
 import Fancybox from "../../common/Fancybox";
 
-const select_type: string[] = ["All", "Apartments", "Villa", "Mortgage", "Loft", "Home", "Flat", "Building", "Office", "Factory", "Industry"];
-
 const ListingFourteenArea = () => {
-
    const itemsPerPage = 4;
    const page = "listing_7";
 
@@ -65,25 +62,6 @@ const ListingFourteenArea = () => {
             </div>
          </div>
 
-         {/*<div className="listing-type-filter border-0">*/}
-         {/*   <div className="wrapper">*/}
-         {/*      <ul className="style-none d-flex flex-wrap align-items-center justify-content-center justify-content-xxl-between">*/}
-         {/*         <li>Select Type:</li>*/}
-         {/*         {select_type.map((select, i) => (*/}
-         {/*            <li key={i}>*/}
-         {/*               <Link*/}
-         {/*                  to="#"*/}
-         {/*                  className={selectedType === select ? "active" : ""}*/}
-         {/*                  onClick={() => handleTypeClick(select)}*/}
-         {/*               >*/}
-         {/*                  {select}*/}
-         {/*               </Link>*/}
-         {/*            </li>*/}
-         {/*         ))}*/}
-         {/*      </ul>*/}
-         {/*   </div>*/}
-         {/*</div>*/}
-
          <div className="row gx-0">
             <div className="col-xxl-6 col-lg-5">
                <div id="google-map-area" className="h-100">
@@ -96,6 +74,7 @@ const ListingFourteenArea = () => {
                   </div>
                </div>
             </div>
+
             <div className="col-xxl-6 col-lg-7">
                <div className="bg-light pl-40 pr-40 pt-35 pb-60">
                   <div className="listing-header-filter d-sm-flex justify-content-between align-items-center mb-40 lg-mb-30">
@@ -186,4 +165,4 @@ const ListingFourteenArea = () => {
    )
 }
 
-export default ListingFourteenArea
+export default ListingFourteenArea;
