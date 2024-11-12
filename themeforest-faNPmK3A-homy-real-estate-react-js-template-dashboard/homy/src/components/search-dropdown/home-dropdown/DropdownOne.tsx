@@ -15,18 +15,18 @@ const DropdownOne = ({ style }: any) => {
             <div className="col-xl-3 col-lg-4">
                <div className="input-box-one border-left">
                   <div className="label">Search By...</div>
-                  {/*<NiceSelect className={`nice-select ${style ? "fw-normal" : ""}`}*/}
-                  {/*   options={[*/}
-                  {/*      { value: "apartments", text: "Buy Apartments" },*/}
-                  {/*      { value: "condos", text: "Rent Condos" },*/}
-                  {/*      { value: "houses", text: "Sell Houses" },*/}
-                  {/*      { value: "industrial", text: "Rent Industrial" },*/}
-                  {/*      { value: "villas", text: "Sell Villas" },*/}
-                  {/*   ]}*/}
-                  {/*   defaultCurrent={0}*/}
-                  {/*   onChange={selectHandler}*/}
-                  {/*   name=""*/}
-                  {/*   placeholder="" />*/}
+                  <NiceSelect className={`nice-select ${style ? "fw-normal" : ""}`}
+                     options={[
+                        { value: "1", text: "Single Room" },
+                        { value: "2", text: "Apartment" },
+                        { value: "3", text: "Suite" },
+                        { value: "4", text: "Townhouse" },
+
+                     ]}
+                     defaultCurrent={0}
+                     onChange={selectHandler}
+                     name=""
+                     placeholder="" />
                </div>
             </div>
             <div className={`${style ? "col-xl-3" : "col-xl-4"} col-lg-4`}>

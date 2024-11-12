@@ -23,14 +23,13 @@ const DropdownSeven = ({
             <div className="row gx-0 align-items-center">
                <div className="col-xxl-2 col-xl-3 col-sm-6">
                   <div className="input-box-one border-left">
-                     <div className="label">I’m looking to...</div>
+                     <div className="label">Search by...</div>
                      <NiceSelect className="nice-select fw-normal"
                         options={[
-                           { value: "apartments", text: "Buy Apartments" },
-                           { value: "condos", text: "Rent Condos" },
-                           { value: "houses", text: "Sell Houses" },
-                           { value: "industrial", text: "Rent Industrial" },
-                           { value: "villas", text: "Sell Villas" },
+                            { value: "1", text: "Single Room" },
+                            { value: "2", text: "Apartment" },
+                            { value: "3", text: "Suite" },
+                            { value: "4", text: "Townhouse" },
                         ]}
                         defaultCurrent={0}
                         onChange={handleStatusChange}
@@ -43,13 +42,27 @@ const DropdownSeven = ({
                      <div className="label">Location</div>
                      <NiceSelect className="nice-select location fw-normal"
                         options={[
-                           { value: "washington", text: "Washington DC" },
-                           { value: "mexico", text: "Acapulco, Mexico" },
-                           { value: "germany", text: "Berlin, Germany" },
-                           { value: "france", text: "Cannes, France" },
-                           { value: "india", text: "Delhi, India" },
-                           { value: "giza", text: "Giza, Egypt" },
-                           { value: "cuba", text: "Havana, Cuba" },
+                            { value: "any", text: "Any" },
+                            { value: "allston", text: "Allston" },
+                            { value: "back bay", text: "Back Bay" },
+                            { value: "beacon hill", text: "Beacon Hill" },
+                            { value: "brighton", text: "Brighton" },
+                            { value: "charlestown", text: "Charlestown" },
+                            { value: "chinatown", text: "Chinatown" },
+                            { value: "dorchester", text: "Dorchester" },
+                            { value: "fenway", text: "Fenway" },
+                            { value: "hyde park", text: "Hyde Park" },
+                            { value: "jamaica plain", text: "Jamaica Plain" },
+                            { value: "mattapan", text: "Mattapan" },
+                            { value: "mission hill", text: "Mission Hill" },
+                            { value: "north end", text: "North End" },
+                            { value: "roslindale", text: "Roslindale" },
+                            { value: "roxbury", text: "Roxbury" },
+                            { value: "south boston", text: "South Boston" },
+                            { value: "south end", text: "South End" },
+                            { value: "west end", text: "West End" },
+                            { value: "west roxbury", text: "West Roxbury" },
+                            { value: "wharf district", text: "Wharf District" },
                         ]}
                         defaultCurrent={0}
                         onChange={handleLocationChange}
@@ -59,13 +72,15 @@ const DropdownSeven = ({
                </div>
                <div className="col-xl-3 col-sm-4">
                   <div className="input-box-one border-left">
-                     <div className="label">Price Range</div>
+                     <div className="label">Rent per Month</div>
                      <NiceSelect
                         className="nice-select fw-normal"
                         options={[
-                           { value: "1", text: "$10,000 - $200,000" },
-                           { value: "2", text: "$20,000 - $300,000" },
-                           { value: "3", text: "$30,000 - $400,000" },
+                            { value: "1", text: "$500 - $1000" },
+                            { value: "2", text: "$1000 - $1500" },
+                            { value: "3", text: "$1500 - $2000" },
+                            { value: "4", text: "$2000 - $2500" },
+                            { value: "5", text: "$3000+" },
                         ]}
                         defaultCurrent={0}
                         onChange={(event) => handlePriceDropChange(event.target.value)}
@@ -108,17 +123,17 @@ const DropdownSeven = ({
                         placeholder="" />
                   </div>
                </div>
-               <div className="col-xxl-2 col-xl-1">
-                  <div className="input-box-one lg-mt-20">
-                     <div className="d-flex align-items-center justify-content-center justify-content-xl-end">
-                        <Link to="#" data-bs-toggle="modal" data-bs-target="#advanceFilterModal"
-                           className="search-modal-btn tran3s text-uppercase fw-500 d-inline-flex align-items-center">
-                           <span className="me-3 d-xl-none d-xxl-block">ADVANCE Search</span>
-                           <i className="fa-light fa-sliders-up"></i>
-                        </Link>
-                     </div>
-                  </div>
-               </div>
+               {/*<div className="col-xxl-2 col-xl-1">*/}
+               {/*   <div className="input-box-one lg-mt-20">*/}
+               {/*      /!*<div className="d-flex align-items-center justify-content-center justify-content-xl-end">*!/*/}
+               {/*         /!*<Link to="#" data-bs-toggle="modal" data-bs-target="#advanceFilterModal"*!/*/}
+               {/*         /!*   className="search-modal-btn tran3s text-uppercase fw-500 d-inline-flex align-items-center">*!/*/}
+               {/*         /!*   <span className="me-3 d-xl-none d-xxl-block">ADVANCE Search</span>*!/*/}
+               {/*         /!*   <i className="fa-light fa-sliders-up"></i>*!/*/}
+               {/*         /!*</Link>*!/*/}
+               {/*      /!*</div>*!/*/}
+               {/*   </div>*/}
+               {/*</div>*/}
             </div>
          </form>
          <ListingDropdownModal

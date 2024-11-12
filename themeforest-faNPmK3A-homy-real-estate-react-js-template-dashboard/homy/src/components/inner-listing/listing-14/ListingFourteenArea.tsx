@@ -65,24 +65,24 @@ const ListingFourteenArea = () => {
             </div>
          </div>
 
-         <div className="listing-type-filter border-0">
-            <div className="wrapper">
-               <ul className="style-none d-flex flex-wrap align-items-center justify-content-center justify-content-xxl-between">
-                  <li>Select Type:</li>
-                  {select_type.map((select, i) => (
-                     <li key={i}>
-                        <Link
-                           to="#"
-                           className={selectedType === select ? "active" : ""}
-                           onClick={() => handleTypeClick(select)}
-                        >
-                           {select}
-                        </Link>
-                     </li>
-                  ))}
-               </ul>
-            </div>
-         </div>
+         {/*<div className="listing-type-filter border-0">*/}
+         {/*   <div className="wrapper">*/}
+         {/*      <ul className="style-none d-flex flex-wrap align-items-center justify-content-center justify-content-xxl-between">*/}
+         {/*         <li>Select Type:</li>*/}
+         {/*         {select_type.map((select, i) => (*/}
+         {/*            <li key={i}>*/}
+         {/*               <Link*/}
+         {/*                  to="#"*/}
+         {/*                  className={selectedType === select ? "active" : ""}*/}
+         {/*                  onClick={() => handleTypeClick(select)}*/}
+         {/*               >*/}
+         {/*                  {select}*/}
+         {/*               </Link>*/}
+         {/*            </li>*/}
+         {/*         ))}*/}
+         {/*      </ul>*/}
+         {/*   </div>*/}
+         {/*</div>*/}
 
          <div className="row gx-0">
             <div className="col-xxl-6 col-lg-5">

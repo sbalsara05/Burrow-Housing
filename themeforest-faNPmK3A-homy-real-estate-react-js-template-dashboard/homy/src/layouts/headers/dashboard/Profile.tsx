@@ -4,6 +4,7 @@ import DeleteModal from "../../../modals/DeleteModal"
 const Profile = () => {
    return (
       <>
+
          <div className="user-name-data">
             <ul className="dropdown-menu" aria-labelledby="profile-dropdown">
                <li>

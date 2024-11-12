@@ -32,14 +32,13 @@ const ListingDropdownModal = ({
                                  <div className="row gx-lg-5">
                                     <div className="col-md-6">
                                        <div className="input-box-one mb-35">
-                                          <div className="label">I’m looking to...</div>
+                                          <div className="label">Search by...</div>
                                           <NiceSelect className="nice-select fw-normal"
                                              options={[
-                                                { value: "apartments", text: "Buy Apartments" },
-                                                { value: "condos", text: "Rent Condos" },
-                                                { value: "houses", text: "Sell Houses" },
-                                                { value: "industrial", text: "Rent Industrial" },
-                                                { value: "villas", text: "Sell Villas" },
+                                                { value: "1", text: "Single Room" },
+                                                { value: "2", text: "Apartment" },
+                                                { value: "3", text: "Suite" },
+                                                { value: "4", text: "Townhouse" },
                                              ]}
                                              defaultCurrent={0}
                                              onChange={handleStatusChange}
