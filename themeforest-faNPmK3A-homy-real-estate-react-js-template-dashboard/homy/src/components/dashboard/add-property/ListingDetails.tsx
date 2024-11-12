@@ -46,7 +46,7 @@ const ListingDetails = () => {
                      placeholder="" />
                </div>
             </div>
-            <div className="col-md-6">
+            {/*<div className="col-md-6">*/}
                {/*<div className="dash-input-wrapper mb-30">*/}
                {/*   <label htmlFor="">Kitchens*</label>*/}
                {/*   <NumberNiceSelect className="nice-select"*/}
@@ -61,8 +61,8 @@ const ListingDetails = () => {
                {/*      name=""*/}
                {/*      placeholder="" />*/}
                {/*</div>*/}
-            </div>
-            <div className="col-md-6">
+            {/*</div>*/}
+            {/*<div className="col-md-6">*/}
                {/*<div className="dash-input-wrapper mb-30">*/}
                {/*   <label htmlFor="">Garages</label>*/}
                {/*   <NumberNiceSelect className="nice-select"*/}
@@ -77,7 +77,7 @@ const ListingDetails = () => {
                {/*      name=""*/}
                {/*      placeholder="" />*/}
                {/*</div>*/}
-            </div>
+            {/*</div>*/}
             {/*<div className="col-md-6">*/}
             {/*   <div className="dash-input-wrapper mb-30">*/}
             {/*      <label htmlFor="">Garage Size</label>*/}
@@ -106,12 +106,12 @@ const ListingDetails = () => {
                      placeholder="" />
                </div>
             </div>
-            <div className="col-12">
-               <div className="dash-input-wrapper">
-                  <label htmlFor="">Description*</label>
-                  <textarea className="size-lg" placeholder="Write about property..."></textarea>
-               </div>
-            </div>
+            {/*<div className="col-12">*/}
+            {/*   <div className="dash-input-wrapper">*/}
+            {/*      <label htmlFor="">Description*</label>*/}
+            {/*      <textarea className="size-lg" placeholder="Write about property..."></textarea>*/}
+            {/*   </div>*/}
+            {/*</div>*/}
          </div>
       </div>
    )

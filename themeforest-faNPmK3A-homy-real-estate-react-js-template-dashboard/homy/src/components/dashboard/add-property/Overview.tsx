@@ -7,10 +7,10 @@ const Overview = () => {
    return (
       <div className="bg-white card-box border-20">
          <h4 className="dash-title-three">Overview</h4>
-         <div className="dash-input-wrapper mb-30">
-            <label htmlFor="">Property Title*</label>
-            <input type="text" placeholder="Your Property Name" />
-         </div>
+         {/*<div className="dash-input-wrapper mb-30">*/}
+         {/*   <label htmlFor="">Property Title*</label>*/}
+         {/*   <input type="text" placeholder="Your Property Name" />*/}
+         {/*</div>*/}
          {/*<div className="dash-input-wrapper mb-30">*/}
          {/*   <label htmlFor="">Description*</label>*/}
          {/*   <textarea className="size-lg" placeholder="Write about property..."></textarea>*/}
