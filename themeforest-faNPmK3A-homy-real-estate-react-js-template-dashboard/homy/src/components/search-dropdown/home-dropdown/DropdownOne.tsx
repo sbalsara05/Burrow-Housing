@@ -44,9 +44,27 @@ const DropdownOne = ({ style }: any) => {
                      className={`nice-select location ${style ? "fw-normal" : ""}`}
                      options={[
                         { value: "any", text: "Any" },
-                        { value: "allston", text: "Allston" },
-                        { value: "back bay", text: "Back Bay" },
-                        // Add other neighborhoods as needed
+                            { value: "allston", text: "Allston" },
+                            { value: "back bay", text: "Back Bay" },
+                            { value: "beacon hill", text: "Beacon Hill" },
+                            { value: "brighton", text: "Brighton" },
+                            { value: "charlestown", text: "Charlestown" },
+                            { value: "chinatown", text: "Chinatown" },
+                            { value: "dorchester", text: "Dorchester" },
+                            { value: "fenway", text: "Fenway" },
+                            { value: "hyde park", text: "Hyde Park" },
+                            { value: "jamaica plain", text: "Jamaica Plain" },
+                            { value: "mattapan", text: "Mattapan" },
+                            { value: "mission hill", text: "Mission Hill" },
+                            { value: "north end", text: "North End" },
+                            { value: "roslindale", text: "Roslindale" },
+                            { value: "roxbury", text: "Roxbury" },
+                            { value: "south boston", text: "South Boston" },
+                            { value: "south end", text: "South End" },
+                            { value: "west end", text: "West End" },
+                            { value: "west roxbury", text: "West Roxbury" },
+                            { value: "wharf district", text: "Wharf District" },
+
                      ]}
                      defaultCurrent={0}
                      onChange={selectHandler(setNeighborhood)}
