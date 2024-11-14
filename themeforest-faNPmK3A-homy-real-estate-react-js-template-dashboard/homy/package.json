@@ -15,6 +15,7 @@
     "@fancyapps/ui": "^5.0.36",
     "@hookform/resolvers": "^3.4.2",
     "@reduxjs/toolkit": "^2.2.5",
+    "axios": "^1.7.7",
     "bootstrap": "^5.3.3",
     "isotope-layout": "^3.0.6",
     "next": "^15.0.3",
