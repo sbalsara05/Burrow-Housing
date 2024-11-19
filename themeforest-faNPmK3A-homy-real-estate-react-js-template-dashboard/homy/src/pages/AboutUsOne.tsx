@@ -5,7 +5,7 @@ import AboutUsOneMain from '../components/inner-pages/about-us/about-us-one';
 const AboutUsOne = () => {
    return (
       <Wrapper>
-         <SEO pageTitle={'About Us One Homy'} />
+         <SEO pageTitle={'About Us'} />
          <AboutUsOneMain />
       </Wrapper>
    );

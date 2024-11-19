@@ -13,7 +13,7 @@ const AboutUsOne = () => {
    return (
       <>
          <HeaderOne style={true} />
-         <BreadcrumbOne title="About Agency" sub_title="About us" style={false} />
+         <BreadcrumbOne title="About Our Platform" sub_title="About us" style={false} />
          <BLockFeatureOne />
          <VideoBanner />
          <BLockFeatureFive style={true} />
