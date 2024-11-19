@@ -23,7 +23,7 @@ const ProfileBody = () => {
                <UserAvatarSetting />
             </div>
             <SocialMediaLink />
-            <AddressAndLocation />
+            {/*<AddressAndLocation />*/}
 
             <div className="button-group d-inline-flex align-items-center mt-30">
                <Link to="#" className="dash-btn-two tran3s me-3">Save</Link>
