@@ -27,7 +27,7 @@ router.post('/users', async (req, res) => {
     const { username, first_name, last_name, email, majors_minors, school_attending, phone, about, role } = req.body;
 
     // Hash the password before saving
-    const hashedPassword = await bcrypt.hash(password, 10);
+   // const hashedPassword = await bcrypt.hash(password, 10);
 
     const newUser = new User({
       username,
