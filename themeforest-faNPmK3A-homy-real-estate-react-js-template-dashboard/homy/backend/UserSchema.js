@@ -24,8 +24,6 @@ const UserSchema = new mongoose.Schema(
         },
         about: String,
         avatar: { type: String, default: 'default-avatar.png' },
-        smoker: { type: Boolean, default: false },
-        allergies: [String],
         password: { type: String, required: true },
         role: { type: String, enum: ['user', 'admin'], default: 'user' },
     },
