@@ -16,11 +16,11 @@ const AboutUsOne = () => {
          <BreadcrumbOne title="About Our Platform" sub_title="About us" style={false} />
          <BLockFeatureOne />
          <VideoBanner />
-         <BLockFeatureFive style={true} />
-         <Feedback style={true} />
+         {/*<BLockFeatureFive style={true} />*/}
+         {/*<Feedback style={true} />*/}
          <AgentArea style={false} />
-         <Brand />
-         <FancyBanner style={false} />
+         {/*<Brand />*/}
+         {/*<FancyBanner style={false} />*/}
          <FooterFour />
       </>
    )
