@@ -35,7 +35,7 @@ const HeaderTwo = ({ style_1, style_2 }: any) => {
                                  Login <span className="d-none d-sm-inline-block"> {""} / Sign up</span></a>
                            </li>
                               <li className="d-none d-md-inline-block ms-3 ms-xl-4 me-xl-4">
-                                 <Link to="dashboard/add-property" className={style_1 ? "btn-ten" : "btn-two rounded-0"} target="_blank">
+                                 <Link to="/dashboard/add-property" className={style_1 ? "btn-ten" : "btn-two rounded-0"} target="_blank">
                                     <span>Add Listing</span> <i className="fa-thin fa-arrow-up-right"></i>
                                  </Link>
                               </li>
