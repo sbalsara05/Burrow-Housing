@@ -87,6 +87,58 @@ app.post('/users', async (req, res) => {
 });
 
 
+const Property = mongoose.model('Property', propertySchema);
+
+const propertySchema = new mongoose.Schema({
+   title: { type: String, required: true },
+   description: { type: String, required: true },
+   address: { type: String, required: true },
+   location: {
+      lat: { type: Number, required: true },
+      lng: { type: Number, required: true },
+   },
+   amenities: { type: [String], default: [] },
+   files: { type: [String], default: [] },
+   price: { type: String, required: true },
+   propertyType: { type: String, required: true },
+   bedrooms: { type: Number, required: true },
+   bathrooms: { type: Number, required: true },
+   size: { type: Number, required: true },
+   isAvailable: { type: Boolean, default: true },
+});
+
+app.post('/api/properties', async (req, res) => {
+   try {
+      // Create a new property instance using the request body data
+      const property = new Property({
+         title: req.body.title,
+         description: req.body.description,
+         address: req.body.address,
+         location: {
+            lat: req.body.location.lat,
+            lng: req.body.location.lng,
+         },
+         amenities: req.body.amenities || [],
+         files: req.body.files || [],
+         price: req.body.price,
+         propertyType: req.body.propertyType,
+         bedrooms: req.body.bedrooms,
+         bathrooms: req.body.bathrooms,
+         size: req.body.size,
+         isAvailable: req.body.isAvailable,
+      });
+
+      // Save the property to the database
+      await property.save();
+
+      // Return the saved property as the response
+      res.status(201).json(property);
+   } catch (error) {
+      // Handle any errors that occur during the property creation
+      res.status(400).json({ message: error.message });
+   }
+});
+
 // For development, you might want to comment out these lines
 // // Serve static files from React build directory (uncomment when in production)
 // if (process.env.NODE_ENV === 'production') {
