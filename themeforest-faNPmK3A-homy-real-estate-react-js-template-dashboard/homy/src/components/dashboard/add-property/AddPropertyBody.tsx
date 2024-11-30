@@ -88,6 +88,7 @@ const AddPropertyBody = () => {
       amenities: [],
       files: [],
    });
+   const [selectedCityInput, setSelectedCityInput] = useState("");
 
    // Handle file upload
    const handleFileChange = (event) => {
@@ -111,6 +112,19 @@ const AddPropertyBody = () => {
       setProperty((prevProperty) => ({
          ...prevProperty,
          location,
+      }));
+   };
+
+   // Handle city input change
+   const handleCityChange = (event) => {
+      setSelectedCityInput(event.target.value);
+   };
+
+   // Handle address change
+   const handleAddressChange = (event) => {
+      setProperty((prevProperty) => ({
+         ...prevProperty,
+         address: event.target.value,
       }));
    };
 
@@ -156,7 +170,13 @@ const AddPropertyBody = () => {
             </div>
 
             <SelectAmenities />
-            <AddressAndLocation location={property.location} setLocation={updateLocation} />
+
+
+
+            <AddressAndLocation
+                location={property.location}
+                setLocation={updateLocation}
+               />
 
             <div className="button-group d-inline-flex align-items-center mt-30">
                <Link to="#" className="dash-btn-two tran3s me-3">Submit Property</Link>
