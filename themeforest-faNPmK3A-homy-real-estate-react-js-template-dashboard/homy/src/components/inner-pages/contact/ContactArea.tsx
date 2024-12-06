@@ -62,23 +62,36 @@ const ContactArea = () => {
             </div>
          </div>
 
-         <div className="bg-pink mt-150 xl-mt-120 md-mt-80">
-            <div className="row">
-               <div className="col-xl-7 col-lg-6">
-                  <div className="form-style-one">
-                     <ContactForm />
-                  </div>
-               </div>
-               <div className="col-xl-5 col-lg-6 d-flex order-lg-first">
-                  <div className="contact-map-banner w-100">
-                     <div className="gmap_canvas h-100 w-100">
-                        <iframe className="gmap_iframe h-100 w-100" src="https://maps.google.com/maps?width=600&amp;height=400&amp;hl=en&amp;q=dhaka collage&amp;t=&amp;z=12&amp;ie=UTF8&amp;iwloc=B&amp;output=embed"></iframe>
+         {/*<div className="bg-pink mt-150 xl-mt-120 md-mt-80">*/}
+         {/*   <div className="row">*/}
+         {/*      <div className="col-xxl-9 col-xl-8 col-lg-10 m-auto">*/}
+         {/*         <div className="form-style-one">*/}
+         {/*            <ContactForm />*/}
+         {/*         </div>*/}
+         {/*      </div>*/}
+
+               <div className="bg-pink mt-150 xl-mt-120 md-mt-80">
+               <div className="container">
+                  <div className="row justify-content-center">
+                     <div className="col-xl-7 col-lg-6">
+                        <div className="form-style-one text-left">
+                           <ContactForm />
+                        </div>
                      </div>
                   </div>
                </div>
-            </div>
-         </div>
-      </div>
+            {/*</div>*/}
+
+               {/*<div className="col-xl-5 col-lg-6 d-flex order-lg-first">*/}
+               {/*   <div className="contact-map-banner w-100">*/}
+               {/*      <div className="gmap_canvas h-100 w-100">*/}
+               {/*         <iframe className="gmap_iframe h-100 w-100" src="https://maps.google.com/maps?width=600&amp;height=400&amp;hl=en&amp;q=dhaka collage&amp;t=&amp;z=12&amp;ie=UTF8&amp;iwloc=B&amp;output=embed"></iframe>*/}
+               {/*      </div>*/}
+               {/*   </div>*/}
+         //       </div>
+         //    </div>
+         // </div>
+      // </div>
    )
 }
 
