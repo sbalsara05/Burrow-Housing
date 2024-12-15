@@ -42,13 +42,14 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const path = require('path');
-
+const authRoutes = require('./routes/authRoutes');
 const app = express();
 
 // Middleware
 app.use(express.json());
 const corsOptions = {
-  origin: 'http://127.0.0.1:5173', // Allow this specific origin
+  origin: ["http://localhost:5173", "http://127.0.0.1:5173"], // Allow this specific origin
+  methods: ["GET", "POST", "PUT", "DELETE"],
   optionsSuccessStatus: 200
 };
 app.use(cors(corsOptions));
@@ -67,27 +68,29 @@ app.get('/api/data', (req, res) => {
     data: [1, 2, 3, 4]
   });
 });
-app.post('/users', async (req, res) => {
-  try {
-    const { name, email, password } = req.body; // Destructure data from request body
 
-    const user = new User({
-      name,
-      email,
-      password,
-    });
+// Routes
+app.use('/api', authRoutes); // Authentication routes (register, login)
+// app.post('/users', async (req, res) => {
+//   try {
+//     const { name, email, password } = req.body; // Destructure data from request body
 
-    await user.save(); // Save the user to MongoDB
+//     const user = new User({
+//       name,
+//       email,
+//       password,
+//     });
 
-    res.status(201).json({ message: 'User created successfully' }); // Send success message
-  } catch (error) {
-    console.error('Error creating user:', error); // Log the error
-    res.status(400).json({ error: error.message }); // Send error message
-  }
-});
+//     await user.save(); // Save the user to MongoDB
+
+//     res.status(201).json({ message: 'User created successfully' }); // Send success message
+//   } catch (error) {
+//     console.error('Error creating user:', error); // Log the error
+//     res.status(400).json({ error: error.message }); // Send error message
+//   }
+// });
 
 
-const Property = mongoose.model('Property', propertySchema);
 
 const propertySchema = new mongoose.Schema({
    title: { type: String, required: true },
@@ -106,6 +109,7 @@ const propertySchema = new mongoose.Schema({
    size: { type: Number, required: true },
    isAvailable: { type: Boolean, default: true },
 });
+const Property = mongoose.model('Property', propertySchema);
 
 app.post('/api/properties', async (req, res) => {
    try {
