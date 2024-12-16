@@ -43,9 +43,13 @@ const LoginForm = () => {
 
          if (response.status === 200) {
             toast.success("Login successful!", { position: "top-center" });
-            // Redirect to home or dashboard page after successful login
+            // Store token and user data in local storage
+            localStorage.setItem("token", response.data.token);
+            localStorage.setItem("user", JSON.stringify(response.data.user));
+            localStorage.setItem("userId",response.data.user.id)
+
             // Redirect to /dashboard/profile after successful login
-            navigate("/dashboard/profile"); // Use navigate to redirect
+            navigate(`/dashboard/profile`); // Use navigate to redirect
             reset();
          }
       } catch (error: any) {

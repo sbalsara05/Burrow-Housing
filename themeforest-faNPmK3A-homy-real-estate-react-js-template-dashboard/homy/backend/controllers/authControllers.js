@@ -42,7 +42,19 @@ exports.register = async (req, res) => {
         const user = new User({ name, email, password: hashedPassword });
         await user.save();
 
-        res.status(201).json({ message: "User registered successfully!" });
+        // Generate a JWT token
+        const token = jwt.sign({ userId: user._id }, "stonepaperscissors", { expiresIn: "1h" });
+
+        // Respond with user details and token
+        res.status(201).json({
+            message: "User registered successfully!",
+            token: token,
+            user: {
+                id: user._id,
+                name: user.name,
+                email: user.email,
+            },
+        });
     } catch (error) {
         console.error("Error during registration:", error);
         res.status(500).json({ message: "Internal server error." });
@@ -79,7 +91,7 @@ exports.login = async (req, res) => {
         }
 
         // Generate a JWT token (you can also set expiration time here)
-        const token = jwt.sign({ userId: user._id }, "your_jwt_secret", { expiresIn: "1h" });
+        const token = jwt.sign({ userId: user._id }, "stonepaperscissors", { expiresIn: "1h" });
 
         // Respond with a success message and the token
         res.status(200).json({
