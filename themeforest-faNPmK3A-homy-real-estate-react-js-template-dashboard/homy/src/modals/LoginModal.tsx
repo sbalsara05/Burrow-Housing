@@ -33,7 +33,13 @@ const LoginModal = ({ loginModal, setLoginModal }: any) => {
                            <div className={`tab-pane fade ${activeTab === 0 ? 'show active' : ''}`}>
                               <div className="text-center mb-20">
                                  <h2>Welcome Back!</h2>
-                                 <p className="fs-20 color-dark">Still don&apos;t have an account? <Link to="#">Sign up</Link></p>
+                                 <p className="fs-20 color-dark">Still don&apos;t have an account? <Link to="#"
+                                 onClick={(e) => {
+                                    e.preventDefault();
+                                    setActiveTab(1); // Switch to Signup tab
+                                 }}
+                                 
+                                 >Sign up</Link></p>
                               </div>
                               <LoginForm />
                            </div>
@@ -41,7 +47,11 @@ const LoginModal = ({ loginModal, setLoginModal }: any) => {
                            <div className={`tab-pane fade ${activeTab === 1 ? 'show active' : ''}`}>
                               <div className="text-center mb-20">
                                  <h2>Register</h2>
-                                 <p className="fs-20 color-dark">Already have an account? <Link to="#">Login</Link></p>
+                                 <p className="fs-20 color-dark">Already have an account? <Link to="#"
+                                 onClick={(e) => {
+                                    e.preventDefault();
+                                    setActiveTab(0); // Switch to login tab
+                                 }}>Login</Link></p>
                               </div>
                               <RegisterForm />
                            </div>
@@ -56,15 +66,17 @@ const LoginModal = ({ loginModal, setLoginModal }: any) => {
                            <div className="col-sm-6">
                               <Link to="#" className="social-use-btn d-flex align-items-center justify-content-center tran3s w-100 mt-10">
                                  <img src="/assets/images/icon/google.png" alt="" />
-                                 <span className="ps-3">Signup with Google</span>
+                                 <span className="ps-3">
+                                 {activeTab === 0 ? "Login with Google" : "Signup with Google"}
+                                 </span>
                               </Link>
                            </div>
-                           <div className="col-sm-6">
+                           {/* <div className="col-sm-6">
                               <Link to="#" className="social-use-btn d-flex align-items-center justify-content-center tran3s w-100 mt-10">
                                  <img src="/assets/images/icon/facebook.png" alt="" />
                                  <span className="ps-3">Signup with Facebook</span>
                               </Link>
-                           </div>
+                           </div> */}
                         </div>
                      </div>
                   </div>

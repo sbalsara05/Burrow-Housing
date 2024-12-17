@@ -4,12 +4,8 @@ import axios from "axios";
 const UserAvatarSetting = () => {
     const [formData, setFormData] = useState({
         username: "",
-        first_name: "",
-        last_name: "",
-        email: "",
         majors_minors: "",
         school_attending: "",
-        phone: "",
         about: "",
     });
 
@@ -49,7 +45,7 @@ const UserAvatarSetting = () => {
                         />
                     </div>
                 </div>
-                <div className="col-sm-6">
+{/*                 <div className="col-sm-6">
                     <div className="dash-input-wrapper mb-30">
                         <label>First Name*</label>
                         <input
@@ -74,7 +70,7 @@ const UserAvatarSetting = () => {
                             required
                         />
                     </div>
-                </div>
+                </div> */}
                 <div className="col-sm-6">
                     <div className="dash-input-wrapper mb-30">
                         <label>School Email*</label>
@@ -113,7 +109,7 @@ const UserAvatarSetting = () => {
                         />
                     </div>
                 </div>
-                <div className="col-sm-6">
+                {/* <div className="col-sm-6">
                     <div className="dash-input-wrapper mb-30">
                         <label>Phone Number*</label>
                         <input
@@ -125,7 +121,7 @@ const UserAvatarSetting = () => {
                             required
                         />
                     </div>
-                </div>
+                </div> */}
                 <div className="col-12">
                     <div className="dash-input-wrapper">
                         <label>About*</label>
@@ -139,11 +135,11 @@ const UserAvatarSetting = () => {
                         ></textarea>
                     </div>
                 </div>
-                <div className="col-12">
+                {/* <div className="col-12">
                     <button type="submit" className="btn btn-orange">
                         Save Profile
                     </button>
-                </div>
+                </div> */}
             </div>
         </form>
     );

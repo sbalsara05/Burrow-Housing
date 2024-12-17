@@ -22,7 +22,7 @@ const ProfileBody = () => {
                </div>
                <UserAvatarSetting />
             </div>
-            <SocialMediaLink />
+            {/*<SocialMediaLink />*/}
             {/*<AddressAndLocation />*/}
 
             <div className="button-group d-inline-flex align-items-center mt-30">
