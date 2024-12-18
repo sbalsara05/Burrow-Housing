@@ -1,12 +1,11 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import axios from "axios";
 import Overview from "./Overview";
 import ListingDetails from "./ListingDetails";
 import SelectAmenities from "./SelectAmenities";
 import AddressAndLocation from "../profile/AddressAndLocation";
 import DashboardHeaderTwo from "../../../layouts/headers/dashboard/DashboardHeaderTwo";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import axios from "axios";
 
 const AddPropertyBody = () => {
    const navigate = useNavigate();
@@ -22,6 +21,15 @@ const AddPropertyBody = () => {
    const [selectedCityInput, setSelectedCityInput] = useState("");
    const [loading, setLoading] = useState(false);
    const [error, setError] = useState(null);
+
+   // Handle input changes
+   const handleInputChange = (event) => {
+      const { name, value } = event.target;
+      setProperty((prevProperty) => ({
+         ...prevProperty,
+         [name]: value,
+      }));
+   };
 
    // Handle file upload
    const handleFileChange = (event) => {
@@ -48,50 +56,37 @@ const AddPropertyBody = () => {
       }));
    };
 
-   // Handle city input change
-   const handleCityChange = (event) => {
-      setSelectedCityInput(event.target.value);
-   };
-
-   // Handle address change
-   const handleAddressChange = (event) => {
-      setProperty((prevProperty) => ({
-         ...prevProperty,
-         address: event.target.value,
-      }));
-   };
-
    // Submit Property
-const handleSubmit = async () => {
-   setLoading(true);
-   setError(null);
+   const handleSubmit = async () => {
+      setLoading(true);
+      setError(null);
 
-   const formData = new FormData();
-   formData.append("title", property.title);
-   formData.append("description", property.description);
-   formData.append("address", property.address);
-   formData.append("location", JSON.stringify(property.location));
-   formData.append("amenities", JSON.stringify(property.amenities));
-
-   property.files.forEach((file) => {
-      formData.append("files", file);
-   });
-
-   console.log("FormData being sent:", Object.fromEntries(formData.entries())); // Debug
-   try {
-      const response = await axios.post("/api/properties/add", formData, {
-         headers: { "Content-Type": "multipart/form-data" },
+      const formData = new FormData();
+      Object.keys(property).forEach((key) => {
+         if (key === "files") {
+            property.files.forEach((file) => {
+               formData.append("files", file);
+            });
+         } else {
+            formData.append(key, JSON.stringify(property[key]));
+         }
       });
-      console.log("Property added successfully", response.data);
-      navigate("/dashboard/properties");
-   } catch (err) {
-      console.error("Error adding property:", err.response?.data || err.message);
-      setError("Failed to submit the property. Please try again.");
-   } finally {
-      setLoading(false);
-   }
-};
 
+      try {
+         const response = await axios.post(
+            "/api/properties/add",
+            formData,
+            { headers: { "Content-Type": "multipart/form-data" } }
+         );
+         console.log("Property added successfully", response.data);
+         navigate("/dashboard/properties"); // Redirect after success
+      } catch (err) {
+         console.error("Error adding property:", err);
+         setError("Failed to submit the property. Please try again.");
+      } finally {
+         setLoading(false);
+      }
+   };
 
    return (
       <div className="dashboard-body">
