@@ -10,7 +10,7 @@ const ListingDetails = () => {
          <div className="row align-items-end">
             <div className="col-md-6">
                <div className="dash-input-wrapper mb-30">
-                  <label htmlFor="">Size in ft*</label>
+                  <label htmlFor="">Size in sqft*</label>
                   <input type="text" placeholder="Ex: 500 sqft" />
                </div>
             </div>
