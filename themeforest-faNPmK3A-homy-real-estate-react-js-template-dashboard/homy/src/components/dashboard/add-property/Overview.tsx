@@ -7,14 +7,6 @@ const Overview = () => {
    return (
       <div className="bg-white card-box border-20">
          <h4 className="dash-title-three">Overview</h4>
-         {/*<div className="dash-input-wrapper mb-30">*/}
-         {/*   <label htmlFor="">Property Title*</label>*/}
-         {/*   <input type="text" placeholder="Your Property Name" />*/}
-         {/*</div>*/}
-         {/*<div className="dash-input-wrapper mb-30">*/}
-         {/*   <label htmlFor="">Description*</label>*/}
-         {/*   <textarea className="size-lg" placeholder="Write about property..."></textarea>*/}
-         {/*</div>*/}
           <div className="row align-items-end">
               <div className="col-md-6">
                   <div className="dash-input-wrapper mb-30">
@@ -23,8 +15,6 @@ const Overview = () => {
                                   options={[
                                       {value: "1", text: "Single Room"},
                                       {value: "2", text: "Apartment"},
-                                      {value: "3", text: "Suite"},
-                                      {value: "4", text: "Townhouse"},
                                   ]}
                                   defaultCurrent={0}
                                   onChange={selectHandler}
@@ -65,24 +55,12 @@ const Overview = () => {
                                   placeholder=""/>
                   </div>
               </div>
-              <div className="col-md-6">
+              <div className="col-md-12">
                   <div className="dash-input-wrapper mb-30">
                       <label htmlFor="">Total Rent*</label>
-                      <input type="text" placeholder="Total Rent of Residence"/>
+                      <input type="text" placeholder="Rent of Residence" style={{width: "100%"}}/>
                   </div>
               </div>
-              <div className="col-md-6">
-                  <div className="dash-input-wrapper mb-30">
-                      <label htmlFor="">Avg Rent per Person*</label>
-                      <input type="text" placeholder="(Total Rent/No. of Bedrooms)"/>
-                  </div>
-              </div>
-              {/*<div className="col-md-6">*/}
-              {/*   <div className="dash-input-wrapper mb-30">*/}
-              {/*      <label htmlFor="">Yearly Tax Rate*</label>*/}
-              {/*      <input type="text" placeholder="Tax Rate" />*/}
-              {/*   </div>*/}
-              {/*</div>*/}
           </div>
       </div>
    )

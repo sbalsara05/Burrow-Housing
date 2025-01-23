@@ -4,7 +4,7 @@ const PropertySchema = new mongoose.Schema({
   overview: {
     category: {
       type: String,
-      enum: ["Single Room", "Apartment", "Suite", "Townhouse"],
+      enum: ["Single Room", "Apartment"],
       required: true
     },
     neighborhood: {

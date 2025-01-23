@@ -131,7 +131,7 @@ const AddressAndLocation = ({ location, setLocation }) => {
                   />
                </div>
             </div>
-            <div className="col-lg-3">
+            <div className="col-lg-4">
                <div className="dash-input-wrapper mb-25">
                   <label htmlFor="">State*</label>
                   <NiceSelect
@@ -142,7 +142,7 @@ const AddressAndLocation = ({ location, setLocation }) => {
                   />
                </div>
             </div>
-            <div className="col-lg-3">
+            <div className="col-lg-4">
                <div className="dash-input-wrapper mb-25">
                   <label htmlFor="">City*</label>
                   <input
@@ -154,7 +154,7 @@ const AddressAndLocation = ({ location, setLocation }) => {
                   />
                </div>
             </div>
-            <div className="col-lg-3">
+            <div className="col-lg-4">
                <div className="dash-input-wrapper mb-25">
                   <label htmlFor="">Zip Code*</label>
                   <input

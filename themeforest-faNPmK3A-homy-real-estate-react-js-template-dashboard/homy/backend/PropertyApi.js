@@ -2,6 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const Property = require('../backend/PropertySchema');
+const {addNewProperty} = require("./controllers/propertyController");
 
 const app = express();
 const PORT = 5000;
@@ -41,9 +42,9 @@ app.get('/api/properties/:id', async (req, res) => {
 });
 
 // Create a new property
-app.post('/api/properties', async (req, res) => {
+app.post('/api/properties/add', async (req, res) => {
    try {
-      const property = new Property(req.body);
+      const property = new addNewProperty(req.body);
       await property.save();
       res.status(201).json(property);
    } catch (error) {
