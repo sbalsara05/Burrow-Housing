@@ -21,19 +21,19 @@ const DashboardHeaderOne = ({ isActive, setIsActive }: any) => {
             </div>
             <nav className="dasboard-main-nav pt-30 pb-30 bottom-line">
                <ul className="style-none">
-                  <li className="plr">
-                     <Link to="/dashboard/dashboard-index" className={`d-flex w-100 align-items-center ${pathname === '/dashboard/dashboard-index' ? 'active' : ''}`} onClick={() => handleNavigation('/dashboard/dashboard-index')}>
-                        <img src={pathname === '/dashboard/dashboard-index' ? "/assets/images/dashboard/icon/icon_1_active.svg" : "/assets/images/dashboard/icon/icon_1.svg"} alt="" />
-                        <span>Dashboard</span>
-                     </Link>
-                  </li>
-                  <li className="plr">
-                     <Link to="/dashboard/message" className={`d-flex w-100 align-items-center ${pathname === '/dashboard/message' ? 'active' : ''}`} onClick={() => handleNavigation('/dashboard/message')}>
-                        <img src={pathname === '/dashboard/message' ? "/assets/images/dashboard/icon/icon_2_active.svg" : "/assets/images/dashboard/icon/icon_2.svg"} alt="" />
-                        <span>Message</span>
-                     </Link>
-                  </li>
-                  <li className="bottom-line pt-30 lg-pt-20 mb-40 lg-mb-30"></li>
+                  {/*<li className="plr">*/}
+                  {/*   <Link to="/dashboard/dashboard-index" className={`d-flex w-100 align-items-center ${pathname === '/dashboard/dashboard-index' ? 'active' : ''}`} onClick={() => handleNavigation('/dashboard/dashboard-index')}>*/}
+                  {/*      <img src={pathname === '/dashboard/dashboard-index' ? "/assets/images/dashboard/icon/icon_1_active.svg" : "/assets/images/dashboard/icon/icon_1.svg"} alt="" />*/}
+                  {/*      <span>Dashboard</span>*/}
+                  {/*   </Link>*/}
+                  {/*</li>*/}
+                  {/*<li className="plr">*/}
+                  {/*   <Link to="/dashboard/message" className={`d-flex w-100 align-items-center ${pathname === '/dashboard/message' ? 'active' : ''}`} onClick={() => handleNavigation('/dashboard/message')}>*/}
+                  {/*      <img src={pathname === '/dashboard/message' ? "/assets/images/dashboard/icon/icon_2_active.svg" : "/assets/images/dashboard/icon/icon_2.svg"} alt="" />*/}
+                  {/*      <span>Message</span>*/}
+                  {/*   </Link>*/}
+                  {/*</li>*/}
+                  {/*<li className="bottom-line pt-30 lg-pt-20 mb-40 lg-mb-30"></li>*/}
                   <li><div className="nav-title">Profile</div></li>
                   <li className="plr">
                      <Link to="/dashboard/profile" className={`d-flex w-100 align-items-center ${pathname === '/dashboard/profile' ? 'active' : ''}`} onClick={() => handleNavigation('/dashboard/profile')}>
@@ -55,12 +55,12 @@ const DashboardHeaderOne = ({ isActive, setIsActive }: any) => {
                   {/*</li>*/}
                   <li className="bottom-line pt-30 lg-pt-20 mb-40 lg-mb-30"></li>
                   <li><div className="nav-title">Listing</div></li>
-                  <li className="plr">
-                     <Link to="/dashboard/properties-list" className={`d-flex w-100 align-items-center ${pathname === '/dashboard/properties-list' ? 'active' : ''}`} onClick={() => handleNavigation('/dashboard/properties-list')}>
-                        <img src={pathname === '/dashboard/properties-list' ? "/assets/images/dashboard/icon/icon_6_active.svg" : "/assets/images/dashboard/icon/icon_6.svg"} alt="" />
-                        <span>My Properties</span>
-                     </Link>
-                  </li>
+                  {/*<li className="plr">*/}
+                  {/*   <Link to="/dashboard/properties-list" className={`d-flex w-100 align-items-center ${pathname === '/dashboard/properties-list' ? 'active' : ''}`} onClick={() => handleNavigation('/dashboard/properties-list')}>*/}
+                  {/*      <img src={pathname === '/dashboard/properties-list' ? "/assets/images/dashboard/icon/icon_6_active.svg" : "/assets/images/dashboard/icon/icon_6.svg"} alt="" />*/}
+                  {/*      <span>My Properties</span>*/}
+                  {/*   </Link>*/}
+                  {/*</li>*/}
                   <li className="plr">
                      <Link to="/dashboard/add-property" className={`d-flex w-100 align-items-center ${pathname === '/dashboard/add-property' ? 'active' : ''}`} onClick={() => handleNavigation('/dashboard/add-property')}>
                         <img src={pathname === '/dashboard/add-property' ? "/assets/images/dashboard/icon/icon_7_active.svg" : "/assets/images/dashboard/icon/icon_7.svg"} alt="" />
@@ -87,8 +87,8 @@ const DashboardHeaderOne = ({ isActive, setIsActive }: any) => {
                   {/*</li>*/}
                </ul>
             </nav>
-            <div className="plr">
-               <Link to="#" className="d-flex w-100 align-items-center logout-btn">
+            <div className="plr pt-6">
+               <Link to="#" className="d-flex w-100 pt-30 align-items-center logout-btn">
                   <div className="icon tran3s d-flex align-items-center justify-content-center rounded-circle"><img src="/assets/images/dashboard/icon/icon_41.svg" alt="" /></div>
                   <span>Logout</span>
                </Link>
