@@ -17,9 +17,36 @@ const PropertySchema = new mongoose.Schema({
       ],
       required: true
     },
-    totalRent: { type: Number, required: true },
-    avgRentPerPerson: { type: Number, required: true },
+    Rent: { type: Number, required: true },
+
   },
+  listingDetails: {
+    sqft: {type: Number, required: true },
+  bedrooms: {type: Number, enum: [1, 2, 3, 4, 5], required: true },
+  bathrooms: {type: Number, enum: [1, 2, 3], required: true },
+  floorNo: {type: Number, enum: [0, 1, 2,3 ],required: true },
+  },
+  amenities: {
+    type: "array",
+    items: {
+      type: "string",
+      enum: [
+        "A/C & Heating",
+        "Balcony",
+        "Driveway",
+        "Disabled Access",
+        "Refrigerator",
+        "Wifi",
+        "Washer & Dryer",
+        "Lawn"
+      ]
+    }
+  },
+
+  addressAndLocation:{
+    address: {type: String, required: true},
+
+  }
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now }
 });
