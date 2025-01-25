@@ -66,6 +66,7 @@ import DashboardAddProperty from '../pages/DashboardAddProperty';
 import DashboardFavourites from '../pages/DashboardFavourites';
 import DashboardSavedSearch from '../pages/DashboardSavedSearch';
 import DashboardReview from '../pages/DashboardReview';
+import PasswordChange from '../components/dashboard/account-settings/password-change';
 
 const AppNavigation = () => {
   return (
@@ -132,6 +133,7 @@ const AppNavigation = () => {
         <Route path="/dashboard/message" element={<DashboardMessage />} />
         <Route path="/dashboard/profile" element={<DashboardProfile />} />
         <Route path="/dashboard/account-settings" element={<DashboardAccountSettings />} />
+        <Route path="/dashboard/account-settings/password-change" element={<PasswordChange/>}/>
         <Route path="/dashboard/membership" element={<DashboardMembership />} />
         <Route path="/dashboard/properties-list" element={<DashboardPropertiesList />} />
         <Route path="/dashboard/add-property" element={<DashboardAddProperty />} />

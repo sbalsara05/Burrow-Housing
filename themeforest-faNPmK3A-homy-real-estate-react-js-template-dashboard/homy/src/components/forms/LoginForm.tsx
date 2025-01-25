@@ -45,8 +45,6 @@ const LoginForm = () => {
             toast.success("Login successful!", { position: "top-center" });
             // Store token and user data in local storage
             localStorage.setItem("token", response.data.token);
-            localStorage.setItem("user", JSON.stringify(response.data.user));
-            localStorage.setItem("userId",response.data.user.id)
 
             // Redirect to /dashboard/profile after successful login
             navigate(`/dashboard/profile`); // Use navigate to redirect
