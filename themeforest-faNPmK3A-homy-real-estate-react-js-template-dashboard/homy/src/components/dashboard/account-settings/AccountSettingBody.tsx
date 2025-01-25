@@ -19,7 +19,7 @@ const AccountSettingBody = () => {
 
    const fetchUserData = async () => {
       try {
-         const response = await fetch("http://localhost:3000/api/profile", {
+         const response = await fetch("http://localhost:3000/api/user", {
             method: "GET",
             headers: {
                "Content-Type": "application/json",
@@ -59,7 +59,7 @@ const AccountSettingBody = () => {
 
    const handleSave = async () => {
       try {
-         const response = await fetch("http://localhost:3000/api/updateProfile", {
+         const response = await fetch("http://localhost:3000/api/updateUser", {
             method: "PUT",
             headers: {
                "Content-Type": "application/json",

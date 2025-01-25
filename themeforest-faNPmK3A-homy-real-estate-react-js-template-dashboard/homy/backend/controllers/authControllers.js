@@ -48,12 +48,7 @@ exports.register = async (req, res) => {
         // Respond with user details and token
         res.status(201).json({
             message: "User registered successfully!",
-            token: token,
-            user: {
-                id: user._id,
-                name: user.name,
-                email: user.email,
-            },
+            token: token
         });
     } catch (error) {
         console.error("Error during registration:", error);
@@ -96,12 +91,7 @@ exports.login = async (req, res) => {
         // Respond with a success message and the token
         res.status(200).json({
             message: "Login successful!",
-            token: token,
-            user: {
-                id: user._id,
-                name: user.name,
-                email: user.email,
-            },
+            token: token
         });
     } catch (error) {
         console.error("Error during login:", error);
