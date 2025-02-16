@@ -18,11 +18,15 @@ const HomeThree = () => {
       <HeroBanner />
       {/*<Category style={false} />*/}
       {/*<BLockFeatureOne />*/}
-      <PropertyOne />
-      <PropertyTwo style={false} />
+
+        // Possible use for new listings section
+      {/*<PropertyOne />*/}
+        // Possible use for new listings section
+      {/*<PropertyTwo style={false} />*/}
       {/*<BLockFeatureTwo />*/}
       {/*<FancyBannerOne />*/}
-      <Feedback style={false} />
+        // Make this a review section?
+      {/*<Feedback style={false} />*/}
       {/*<Brand />*/}
       {/*<FancyBannerTwo />*/}
       <FooterTwo />
