@@ -44,6 +44,7 @@ const cors = require('cors');
 const path = require('path');
 const authRoutes = require('./routes/authRoutes');
 const profileRoutes = require('./routes/profileRoutes');
+const propertyRoutes = require('./routes/propertyRoutes');
 const app = express();
 
 // Middleware
@@ -73,6 +74,7 @@ app.get('/api/data', (req, res) => {
 // Routes
 app.use('/api', authRoutes); // Authentication routes (register, login)
 app.use('/api',profileRoutes); // Fetch Profile details
+app.use('/api',propertyRoutes);
 // app.post('/users', async (req, res) => {
 //   try {
 //     const { name, email, password } = req.body; // Destructure data from request body
