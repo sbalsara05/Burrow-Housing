@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Overview from "./Overview";
 import ListingDetails from "./ListingDetails";
 import SelectAmenities from "./SelectAmenities";
@@ -6,21 +6,85 @@ import AddressAndLocation from "../profile/AddressAndLocation";
 import DashboardHeaderTwo from "../../../layouts/headers/dashboard/DashboardHeaderTwo";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { toast } from "react-toastify"; // Added toast import
 
 const AddPropertyBody = () => {
    const navigate = useNavigate();
 
    const [property, setProperty] = useState({
-      title: "",
-      description: "",
+      overview: {
+         category: "",
+         neighborhood: "",
+         rent: 0
+      },
+      listingDetails: {
+         size: 0,
+         bedrooms: 0,
+         bathrooms: 0,
+         floorNo: 0
+      },
+      image: null,
       address: "",
       location: { lat: 0, lng: 0 },
       amenities: [],
       files: [],
    });
+   const [previewImage, setPreviewImage] = useState("/assets/images/dashboard/no-profile-pic.png");
+   const [initialData, setInitialData] = useState(null); // For cancel functionality
    const [selectedCityInput, setSelectedCityInput] = useState("");
    const [loading, setLoading] = useState(false);
    const [error, setError] = useState(null);
+
+   useEffect(() => {
+       const fetchProfile = async () => {
+         try {
+           const response = await fetch("http://localhost:3000/api/properties", {
+             method: "GET",
+             headers: {
+               "Content-Type": "application/json",
+               Authorization: `Bearer ${localStorage.getItem("token")}`,
+             },
+           });
+           if (response.ok) {
+             const data = await response.json();
+             if (!data || !data.data) {
+               console.error("Invalid data structure:", data);
+               return;
+             }
+             setProperty({
+               overview: {
+                 category: data.data.category || "",
+                 neighborhood: data.data.neighborhood || "",
+                 rent: Number(data.data.rent) || 0,
+               },
+               listingDetails: {
+                 size: Number(data.data.size) || 0,
+                 bedrooms: Number(data.data.bedrooms) || 0,
+                 bathrooms: Number(data.data.bathrooms) || 0,
+                 floorNo: Number(data.data.floorNo) || 0,
+               },
+               image: data.data.image || null,
+               amenities: data.data.amenities || [],
+               address: data.data.address || "",
+               location: data.data.location || { lat: 0, lng: 0 },
+               files: [] // Ensure files is initialized
+             });
+             setInitialData(data);
+             setPreviewImage(
+               data.data.image
+                 ? URL.createObjectURL(data.data.image)
+                 : "/assets/images/dashboard/no-profile-pic.png"
+             );
+           } else {
+             toast.error("Failed to fetch user data.");
+           }
+         } catch (error) {
+           console.error("Error fetching user data:", error);
+         }
+       };
+
+       fetchProfile();
+     }, []);
 
    // Handle input changes
    const handleInputChange = (event) => {
@@ -30,6 +94,17 @@ const AddPropertyBody = () => {
          [name]: value,
       }));
    };
+
+   const handleImageChange = (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        setProperty((prevData) => ({
+          ...prevData,
+          image: file,
+        }));
+        setPreviewImage(URL.createObjectURL(file));
+      }
+    };
 
    // Handle file upload
    const handleFileChange = (event) => {
@@ -73,10 +148,11 @@ const AddPropertyBody = () => {
       });
 
       try {
-         const response = await axios.post(
-            "/api/properties/add",
-            formData,
-            { headers: { "Content-Type": "multipart/form-data" } }
+         const response = await axios.post("http://localhost:3000/api/properties/add", formData, {
+            headers: {
+              "Content-Type": "multipart/form-data",
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },}
          );
          console.log("Property added successfully", response.data);
          navigate("/dashboard/properties"); // Redirect after success

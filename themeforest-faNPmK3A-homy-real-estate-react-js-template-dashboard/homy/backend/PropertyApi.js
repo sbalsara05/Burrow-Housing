@@ -42,7 +42,7 @@ app.get('/api/properties/:id', async (req, res) => {
 });
 
 // Create a new property
-app.post('/api/properties/add', async (req, res) => {
+app.post('/properties/add', async (req, res) => {
    try {
       const property = new addNewProperty(req.body);
       await property.save();
