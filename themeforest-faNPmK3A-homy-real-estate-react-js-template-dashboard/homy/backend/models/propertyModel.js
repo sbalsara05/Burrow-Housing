@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 
 const PropertySchema = new mongoose.Schema({
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true }, // Reference to the User schema
   overview: {
     category: {
       type: String,
@@ -17,11 +18,11 @@ const PropertySchema = new mongoose.Schema({
       ],
       required: true
     },
-    Rent: { type: Number, required: true },
+    rent: { type: Number, required: true },
 
   },
   listingDetails: {
-    sqft: {type: Number, required: true },
+  size: {type: Number, required: true },
   bedrooms: {type: Number, enum: [1, 2, 3, 4, 5], required: true },
   bathrooms: {type: Number, enum: [1, 2, 3], required: true },
   floorNo: {type: Number, enum: [0, 1, 2,3 ],required: true },
@@ -44,18 +45,13 @@ const PropertySchema = new mongoose.Schema({
   },
 
   addressAndLocation:{
-    address: {type: String, required: true},
-
-
-  }
+    address: {type: String, required: true}
+  },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now }
 });
 
-// Middleware to update `updatedAt` field on save
-PropertySchema.pre('save', function(next) {
-  this.updatedAt = Date.now();
-  next();
-});
+const Property= mongoose.model('Property', PropertySchema);
 
-module.exports = mongoose.model('Property', PropertySchema);
+
+module.exports = Property;
