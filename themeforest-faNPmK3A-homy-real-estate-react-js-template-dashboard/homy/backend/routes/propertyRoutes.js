@@ -10,5 +10,5 @@ router.put('/api/properties/:propertyId', authenticateToken, updateProperty); //
 
 module.exports = router;
 
-router.get('/properties', authenticateToken,  getMyProperties); // getiing the property data
-router.post('/add',authenticateToken ,addNewProperty); // adding a new property
+router.get('/properties', authenticateToken,  getMyProperties); // getting the property data
+router.post('/api/properties/add',authenticateToken ,addNewProperty); // adding a new property
