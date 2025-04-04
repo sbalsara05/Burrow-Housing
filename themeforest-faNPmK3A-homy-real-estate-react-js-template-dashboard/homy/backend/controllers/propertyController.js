@@ -1,11 +1,13 @@
 const express = require("express");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const Property = require("../models/propertyModel");
 
 
 // controllers/propertyController.js
 
 const User = require('../models/userModel'); // User model
+const { json } = require("stream/consumers");
 
 /**
  * Controller to get the properties of a user
@@ -16,7 +18,7 @@ exports.getMyProperties = async (req, res) => {
         console.log('Fetching properties for user ID: ', userId);
 
         // Fetch the user's properties
-        // const user = await User.findById(userId).select('properties'); // Assuming 'properties' is a field in the User model
+        const user = await User.findById(userId).select('properties'); // Assuming 'properties' is a field in the User model
 
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
@@ -44,18 +46,28 @@ exports.getMyProperties = async (req, res) => {
 
 // Define the function to add a new property
 exports.addNewProperty = async (req, res) => {
-  const {
-    overview, // Overview should include category, neighborhood, totalRent, avgRentPerPerson
-  } = req.body; // Extract property data from the request body
-  const userId = req.user.userId; // Extract user ID from the authenticated token
-
   try {
-    // Validate input
-    if (!overview || !overview.category || !overview.neighborhood || !overview.totalRent || !overview.avgRentPerPerson) {
+    const overview = JSON.parse(req.body.overview || "{}");
+    const listingDetails = JSON.parse(req.body.listingDetails || "{}");
+    const amenities = JSON.parse(req.body.amenities || "[]");
+    const addressAndLocation = JSON.parse(req.body.addressAndLocation || "{}");
+    const userId = req.user.userId; // Extract user ID from the authenticated token
+    console.log('Add property for userId:', userId);
+    console.log('Add property:', JSON.stringify(req.body));
+    
+
+    // Find the user by ID
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(400).json({ message: "User not found" });
+    }
+    console.log('Entered prop controller for request: ', overview.category, overview.neighborhood, overview.rent, userId);
+    //Validate input
+    if (!overview || !overview.category || !overview.neighborhood || !overview.rent) {
       return res.status(400).json({ message: "All required fields in the overview must be provided" });
     }
 
-    // Validate `overview.category` and `overview.neighborhood`
+    //Validate `overview.category` and `overview.neighborhood`
     const validCategories = ["Single Room", "Apartment"];
     const validNeighborhoods = [
       "Any", "Allston", "Back Bay", "Beacon Hill", "Brighton", "Charlestown",
@@ -72,19 +84,15 @@ exports.addNewProperty = async (req, res) => {
       return res.status(400).json({ message: "Invalid neighborhood in overview" });
     }
 
-    // Find the user by ID
-    const user = await User.findById(userId);
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-
     console.log(`Adding property for user ${userId}`);
 
     // Create a new property document
     const newProperty = new Property({
+      userId,
       overview,
-      createdAt: Date.now(),
-      updatedAt: Date.now(),
+      listingDetails,
+      amenities,
+      addressAndLocation
     });
 
     // Save the new property document to the database

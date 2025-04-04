@@ -1,18 +1,56 @@
-// const mongoose = require('mongoose');
-// const propertySchema = new mongoose.Schema({
-//    title: { type: String, required: true },
-//    description: { type: String, required: true },
-//    address: { type: String, required: true },
-//    location: {
-//       lat: { type: Number, required: true },
-//       lng: { type: Number, required: true },
-//    },
-//    amenities: { type: [String], default: [] },
-//    files: { type: [String], default: [] },
-//    price: { type: String, required: true },
-//    propertyType: { type: String, required: true },
-//    bedrooms: { type: Number, required: true },
-//    bathrooms: { type: Number, required: true },
-//    size: { type: Number, required: true },
-//    isAvailable: { type: Boolean, default: true },
-// });
+const mongoose = require('mongoose');
+
+const PropertySchema = new mongoose.Schema({
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+
+  overview: {
+    category: {
+      type: String,
+      enum: ["Single Room", "Apartment"],
+      required: true
+    },
+    neighborhood: {
+      type: String,
+      enum: [
+        "Any", "Allston", "Back Bay", "Beacon Hill", "Brighton", "Charlestown", 
+        "Chinatown", "Dorchester", "Fenway", "Hyde Park", "Jamaica Plain", 
+        "Mattapan", "Mission Hill", "North End", "Roslindale", "Roxbury", 
+        "South Boston", "South End", "West End", "West Roxbury", "Wharf District"
+      ],
+      required: true
+    },
+    Rent: { type: Number, required: true },
+  },
+  listingDetails: {
+    sqft: {type: Number, required: true },
+    bedrooms: {type: Number, enum: [1, 2, 3, 4, 5], required: true },
+    bathrooms: {type: Number, enum: [1, 2, 3], required: true },
+    floorNo: {type: Number, enum: [0, 1, 2,3 ], required: true },
+  },
+  amenities: {
+    type: [String],
+    enum: [
+      "A/C & Heating",
+      "Balcony",
+      "Driveway",
+      "Disabled Access",
+      "Refrigerator",
+      "Wifi",
+      "Washer & Dryer",
+      "Lawn"
+    ],
+  },
+  addressAndLocation: {
+    address: {type: String, required: true},
+  },
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now }
+});
+
+// Middleware to update `updatedAt` field on save
+PropertySchema.pre('save', function(next) {
+  this.updatedAt = Date.now();
+  next();
+});
+
+module.exports = mongoose.model('Property', PropertySchema);
