@@ -12,6 +12,11 @@ const PropertySchema = new mongoose.Schema({
 			enum: ["Single Room", "Apartment"],
 			required: true,
 		},
+        roomType: {
+			type: String,
+			enum: ["Shared Room", "Single Room"],
+			required: true,
+		},
 		neighborhood: {
 			type: String,
 			enum: [
