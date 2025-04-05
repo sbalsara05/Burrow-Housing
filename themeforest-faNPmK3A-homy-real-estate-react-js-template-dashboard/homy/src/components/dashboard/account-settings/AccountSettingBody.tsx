@@ -30,13 +30,13 @@ const AccountSettingBody = () => {
             const data = await response.json();
             setUserData({
                firstName: data.name.split(" ")[0] || "",
-               lastName: data.name.split(" ")[1] || "",
+               lastName: data.name.split(" ").slice(1).join(" ") || "",
                email: data.email || "",
                phone: data.phone || "",
             });
             setOriginalData({
                firstName: data.name.split(" ")[0] || "",
-               lastName: data.name.split(" ")[1] || "",
+               lastName: data.name.split(" ").slice(1).join(" ") || "",
                email: data.email || "",
                phone: data.phone || "",
             });
