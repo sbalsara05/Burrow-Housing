@@ -62,14 +62,39 @@ const Overview = () => {
             </div>
             <div className="col-md-6">
                <div className="dash-input-wrapper mb-30">
-                  <label htmlFor="">Monthly Rent*</label>
+                  <label htmlFor="">Total Rent*</label>
                   <input type="text" placeholder="Rent of Residence" />
                </div>
             </div>
             <div className="col-md-6">
                <div className="dash-input-wrapper mb-30">
                   <label htmlFor="">Lease Length*</label>
-                  <input placeholder="Lease Length" />
+                  <NiceSelect className="nice-select"
+                     options={[
+                        {value: "12", text: "12 Months"},
+                        {value: "9", text: "9 Months"},
+                        {value: "6", text: "6 Months"},
+                        {value: "3", text: "3 Months"},
+                        {value: "1", text: "Month to Month"},
+                     ]}
+                     defaultCurrent={0}
+                     onChange={selectHandler}
+                     name=""
+                     placeholder=""/>
+               </div>
+            </div>
+            <div className="col-md-6">
+               <div className="dash-input-wrapper mb-30">
+                  <label htmlFor="">Room Type*</label>
+                  <NiceSelect className="nice-select"
+                     options={[
+                        {value: "single", text: "Single Room (Private)"},
+                        {value: "shared", text: "Shared Room"},
+                     ]}
+                     defaultCurrent={0}
+                     onChange={selectHandler}
+                     name=""
+                     placeholder=""/>
                </div>
             </div>
          </div>
