@@ -1,7 +1,6 @@
 import NumberNiceSelect from "../../../ui/NumberNiceSelect";
 
 const ListingDetails = () => {
-
    const selectHandler = () => { };
 
    return (
@@ -11,7 +10,8 @@ const ListingDetails = () => {
             <div className="col-md-6">
                <div className="dash-input-wrapper mb-30">
                   <label htmlFor="">Size in sqft*</label>
-                  <input type="text" placeholder="Ex: 500 sqft" />
+                  <input type="text" placeholder="Ex: 500 sqft or N/A if unknown" />
+                  <small className="text-muted"></small>
                </div>
             </div>
             <div className="col-md-6">
@@ -23,7 +23,7 @@ const ListingDetails = () => {
                         { value: 2, text: 2 },
                         { value: 3, text: 3 },
                         { value: 4, text: 4 },
-                         { value: 5, text: 5},
+                        { value: 5, text: 5},
                      ]}
                      defaultCurrent={0}
                      onChange={selectHandler}
@@ -46,72 +46,22 @@ const ListingDetails = () => {
                      placeholder="" />
                </div>
             </div>
-            {/*<div className="col-md-6">*/}
-               {/*<div className="dash-input-wrapper mb-30">*/}
-               {/*   <label htmlFor="">Kitchens*</label>*/}
-               {/*   <NumberNiceSelect className="nice-select"*/}
-               {/*      options={[*/}
-               {/*         { value: 1, text: 0 },*/}
-               {/*         { value: 2, text: 1 },*/}
-               {/*         { value: 3, text: 2 },*/}
-               {/*         { value: 4, text: 3 },*/}
-               {/*      ]}*/}
-               {/*      defaultCurrent={0}*/}
-               {/*      onChange={selectHandler}*/}
-               {/*      name=""*/}
-               {/*      placeholder="" />*/}
-               {/*</div>*/}
-            {/*</div>*/}
-            {/*<div className="col-md-6">*/}
-               {/*<div className="dash-input-wrapper mb-30">*/}
-               {/*   <label htmlFor="">Garages</label>*/}
-               {/*   <NumberNiceSelect className="nice-select"*/}
-               {/*      options={[*/}
-               {/*         { value: 1, text: 1 },*/}
-               {/*         { value: 2, text: 2 },*/}
-               {/*         { value: 3, text: 3 },*/}
-               {/*         { value: 4, text: 4 },*/}
-               {/*      ]}*/}
-               {/*      defaultCurrent={0}*/}
-               {/*      onChange={selectHandler}*/}
-               {/*      name=""*/}
-               {/*      placeholder="" />*/}
-               {/*</div>*/}
-            {/*</div>*/}
-            {/*<div className="col-md-6">*/}
-            {/*   <div className="dash-input-wrapper mb-30">*/}
-            {/*      <label htmlFor="">Garage Size</label>*/}
-            {/*      <input type="text" placeholder="Ex: 1,230 sqft" />*/}
-            {/*   </div>*/}
-            {/*</div>*/}
-            {/*<div className="col-md-6">*/}
-            {/*   <div className="dash-input-wrapper mb-30">*/}
-            {/*      <label htmlFor="">Year Built*</label>*/}
-            {/*      <input type="text" placeholder="Type Year" />*/}
-            {/*   </div>*/}
-            {/*</div>*/}
             <div className="col-md-6">
                <div className="dash-input-wrapper mb-30">
-                  <label htmlFor="">Floors No.</label>
-                  <NumberNiceSelect className="nice-select"
-                     options={[
-                        { value: 1, text: 0 },
-                        { value: 2, text: 1 },
-                        { value: 3, text: 2 },
-                        { value: 4, text: 3 },
-                     ]}
-                     defaultCurrent={0}
-                     onChange={selectHandler}
-                     name=""
-                     placeholder="" />
+                  <label htmlFor="">Floor No.</label>
+                  <input type="number" min="0" placeholder="Enter floor number" />
                </div>
             </div>
-            {/*<div className="col-12">*/}
-            {/*   <div className="dash-input-wrapper">*/}
-            {/*      <label htmlFor="">Description*</label>*/}
-            {/*      <textarea className="size-lg" placeholder="Write about property..."></textarea>*/}
-            {/*   </div>*/}
-            {/*</div>*/}
+            <div className="col-12 mt-10">
+               <div className="dash-input-wrapper">
+                  <label htmlFor="">Property Description</label>
+                  <textarea
+                     className="size-lg"
+                     rows="5"
+                     placeholder="Write details about your property, highlight key features, nearby amenities, etc."
+                  ></textarea>
+               </div>
+            </div>
          </div>
       </div>
    )
