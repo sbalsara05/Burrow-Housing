@@ -26,6 +26,7 @@ const UserSchema = new mongoose.Schema(
         avatar: { type: String, default: 'default-avatar.png' },
         password: { type: String, required: true },
         role: { type: String, enum: ['user', 'admin'], default: 'user' },
+        isVerified: { type: Boolean, default: false },
     },
     { timestamps: true }
 );

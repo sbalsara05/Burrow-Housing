@@ -1,0 +1,113 @@
+/* OTP Form Styles */
+.otp-verification-form {
+    padding: 10px 0;
+    
+    .otp-inputs-container {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin: 20px 0;
+    }
+    
+    .otp-input {
+      width: 45px;
+      height: 45px;
+      border: 1px solid #E9E9E9;
+      border-radius: 6px;
+      font-size: 18px;
+      font-weight: 600;
+      text-align: center;
+      
+      &:focus {
+        border-color: #2C3E50;
+        box-shadow: 0 0 0 2px rgba(44, 62, 80, 0.1);
+        outline: none;
+        animation: pulse 0.3s ease-in-out;
+      }
+    }
+    
+    .otp-info {
+      text-align: center;
+      margin-bottom: 20px;
+      
+      .email-highlight {
+        font-weight: 600;
+        color: #2C3E50;
+      }
+    }
+    
+    .resend-button {
+      background: none;
+      border: none;
+      color: #2C3E50;
+      text-decoration: underline;
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.3s ease;
+      
+      &:hover {
+        color: #1a2530;
+      }
+      
+      &:disabled {
+        color: #999;
+        text-decoration: none;
+        cursor: not-allowed;
+      }
+    }
+    
+    .btn-outline-dark {
+      background: none;
+      border: 1px solid #2C3E50;
+      color: #2C3E50;
+      padding: 9px 25px;
+      border-radius: 8px;
+      font-weight: 500;
+      transition: all 0.3s ease;
+      
+      &:hover {
+        background: #f7f7f7;
+      }
+    }
+    
+    .timer {
+      display: block;
+      margin-top: 5px;
+      font-size: 14px;
+      color: #777;
+    }
+    
+    .form-actions {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 20px;
+    }
+  }
+  
+  /* Animation for OTP input focus */
+  @keyframes pulse {
+    0% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.05);
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
+  
+  /* Responsive styles */
+  @media (max-width: 576px) {
+    .otp-verification-form {
+      .otp-input {
+        width: 40px;
+        height: 40px;
+        font-size: 16px;
+      }
+      
+      .otp-inputs-container {
+        gap: 6px;
+      }
+    }
+  }
