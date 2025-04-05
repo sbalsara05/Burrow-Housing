@@ -11,11 +11,24 @@ interface FormData {
    password: string;
 }
 
-const LoginForm = () => {
-   // Validation Schema
+interface LoginFormProps {
+   onOtpRequired?: (email: string) => void;
+}
+
+const LoginForm = ({ onOtpRequired }: LoginFormProps) => {
+   // Validation Schema with .edu email check
    const schema = yup
       .object({
-         email: yup.string().required().email().label("Email"),
+         email: yup
+            .string()
+            .required("Email is required")
+            .email("Must be a valid email")
+            .test(
+               "is-edu",
+               "Email must end with .edu domain",
+               (value) => value?.toLowerCase().endsWith(".edu") || false
+            )
+            .label("Email"),
          password: yup.string().required().label("Password"),
       })
       .required();
@@ -30,7 +43,8 @@ const LoginForm = () => {
    });
 
    const [isPasswordVisible, setPasswordVisibility] = useState(false);
-   const navigate = useNavigate();  // Initialize the navigate function
+   const [isSubmitting, setIsSubmitting] = useState(false);
+   const navigate = useNavigate();
 
    const togglePasswordVisibility = () => {
       setPasswordVisibility(!isPasswordVisible);
@@ -38,6 +52,7 @@ const LoginForm = () => {
 
    const onSubmit = async (data: FormData) => {
       try {
+         setIsSubmitting(true);
          // Send login request to API
          const response = await axios.post("http://localhost:3000/api/login", data);
 
@@ -47,15 +62,28 @@ const LoginForm = () => {
             localStorage.setItem("token", response.data.token);
 
             // Redirect to /dashboard/profile after successful login
-            navigate(`/dashboard/profile`); // Use navigate to redirect
+            navigate(`/dashboard/profile`);
             reset();
          }
       } catch (error: any) {
-         if (error.response && error.response.data) {
-            toast.error(error.response.data.message || "Login failed!", { position: "top-center" });
+         if (error.response) {
+            // Check if login failed because email is not verified
+            if (error.response.status === 403 && error.response.data.requiresVerification) {
+               // Use the parent component's OTP handler if provided
+               if (onOtpRequired) {
+                  onOtpRequired(data.email);
+               } else {
+                  // Fallback behavior if no handler is provided
+                  toast.info("Please verify your email to continue", { position: "top-center" });
+               }
+            } else if (error.response.data) {
+               toast.error(error.response.data.message || "Login failed!", { position: "top-center" });
+            } 
          } else {
             toast.error("Something went wrong. Please try again.", { position: "top-center" });
          }
+      } finally {
+         setIsSubmitting(false);
       }
    };
 
@@ -65,7 +93,7 @@ const LoginForm = () => {
             <div className="col-12">
                <div className="input-group-meta position-relative mb-25">
                   <label>Email*</label>
-                  <input type="email" {...register("email")} placeholder="Youremail@gmail.com" />
+                  <input type="email" {...register("email")} placeholder="youremail@university.edu" />
                   <p className="form_error">{errors.email?.message}</p>
                </div>
             </div>
@@ -96,8 +124,12 @@ const LoginForm = () => {
                </div>
             </div>
             <div className="col-12">
-               <button type="submit" className="btn-two w-100 text-uppercase d-block mt-20">
-                  Login
+               <button 
+                  type="submit" 
+                  className="btn-two w-100 text-uppercase d-block mt-20"
+                  disabled={isSubmitting}
+               >
+                  {isSubmitting ? "PROCESSING..." : "LOGIN"}
                </button>
             </div>
          </div>
