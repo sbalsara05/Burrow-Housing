@@ -28,8 +28,6 @@ const DropdownOne = ({ style }: any) => {
                      options={[
                         { value: "Single Room", text: "Single Room" },
                         { value: "Apartment", text: "Apartment" },
-                        { value: "Suite", text: "Suite" },
-                        { value: "Townhouse", text: "Townhouse" },
                      ]}
                      defaultCurrent={0}
                      onChange={selectHandler(setRoomType)}

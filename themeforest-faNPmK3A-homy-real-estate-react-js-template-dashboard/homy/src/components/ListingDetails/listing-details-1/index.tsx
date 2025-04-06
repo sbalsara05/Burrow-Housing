@@ -8,7 +8,7 @@ const ListingDetailsOne = () => {
     <>
       <HeaderOne style={true} />
       <ListingDetailsOneArea />
-      <FancyBanner />
+      {/*<FancyBanner />*/}
       <FooterFour />
     </>
   )

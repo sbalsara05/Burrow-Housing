@@ -4,11 +4,11 @@ const CommonBanner = ({ style_3 }: any) => {
    return (
       <div className="row">
          <div className="col-lg-6">
-            <h3 className="property-titlee">Studio Apartment.</h3>
+            <h3 className="property-titlee">Building Name (If Applicable)</h3>
             <div className="d-flex flex-wrap mt-10">
                <div className={`list-type text-uppercase mt-15 me-3 ${style_3 ? "bg-white text-dark fw-500" : "text-uppercase border-20"}`}>Summer Sublet</div>
-               {/*<div className="address mt-15"><i className="bi bi-geo-alt"></i> 41 Calumet Street, Mission Hill*/}
-               {/*</div>*/}
+               <div className="address mt-15"><i className="bi bi-geo-alt"></i> 41 Calumet Street, Mission Hill
+               </div>
             </div>
          </div>
          <div className="col-lg-6 text-lg-end">

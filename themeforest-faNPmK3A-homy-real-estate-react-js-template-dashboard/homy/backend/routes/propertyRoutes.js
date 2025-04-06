@@ -22,4 +22,4 @@ module.exports = router;
 router.get("/properties", authenticateToken, getMyProperties); // getiing the property data
 router.post("/properties/add", authenticateToken, upload, addNewProperty); // adding a new property
 // Get all properties route
-router.get("/properties/all", authenticateToken, getAllProperties);
+router.get("/properties/all", getAllProperties);
