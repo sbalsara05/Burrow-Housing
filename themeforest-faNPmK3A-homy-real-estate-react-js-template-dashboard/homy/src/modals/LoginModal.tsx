@@ -1,89 +1,165 @@
-import { useState } from "react"
+// frontend/modals/LoginModal.tsx
+import React, { useState, useEffect } from "react"; // Import React
 import LoginForm from "../components/forms/LoginForm";
 import RegisterForm from "../components/forms/RegisterForm";
 import OtpVerificationForm from "../components/forms/OtpVerificationForm";
 import { Link } from "react-router-dom";
-import { GoogleLogin } from '@react-oauth/google';
 import { CustomGoogleButton } from '../components/common/CustomGoogleButton';
+import { useDispatch } from 'react-redux';
+import { resetVerificationFlag, clearAuthError } from '../redux/slices/authSlice'; // Import actions
+import { AppDispatch } from '../redux/store';
 
-const tab_title: string[] = ["Login", "Signup",];
+const tab_title: string[] = ["Login", "Signup"];
 
-const LoginModal = ({ loginModal, setLoginModal }: any) => {
+interface LoginModalProps {
+    loginModal: boolean;
+    setLoginModal: (isOpen: boolean) => void;
+}
+
+const LoginModal: React.FC<LoginModalProps> = ({ loginModal, setLoginModal }) => {
+    const dispatch = useDispatch<AppDispatch>();
     const [activeTab, setActiveTab] = useState(0);
     const [showOtpForm, setShowOtpForm] = useState(false);
     const [otpEmail, setOtpEmail] = useState("");
-    const [previousTab, setPreviousTab] = useState(0);
+    const [previousTab, setPreviousTab] = useState(0); // To remember the tab before OTP
 
-    const handleTabClick = (index: any) => {
+    // Reset state when modal opens or closes
+    useEffect(() => {
+        if (!loginModal) {
+            // Reset everything when modal is hidden
+            setShowOtpForm(false);
+            setOtpEmail("");
+            setActiveTab(0);
+            dispatch(clearAuthError());
+            dispatch(resetVerificationFlag());
+        } else {
+            // Reset errors and flags when modal opens, but keep activeTab
+            setShowOtpForm(false); // Ensure OTP form isn't shown initially
+            setOtpEmail("");
+            dispatch(clearAuthError());
+            dispatch(resetVerificationFlag());
+        }
+    }, [loginModal, dispatch]); // Depend on loginModal
+
+
+    const handleTabClick = (index: number) => {
+        if (showOtpForm) return; // Prevent tab switching during OTP
         setActiveTab(index);
+        dispatch(clearAuthError()); // Clear errors when switching tabs
+        dispatch(resetVerificationFlag()); // Also clear OTP flag if switching away
     };
 
     const handleOtpRequired = (email: string) => {
-        setPreviousTab(activeTab); // Store current tab
+        console.log("OTP Required for:", email); // Debug log
+        setPreviousTab(activeTab); // Store the current tab index
         setOtpEmail(email);
-        setShowOtpForm(true);
+        setShowOtpForm(true); // Set state to show OTP form
     };
 
     const handleOtpGoBack = () => {
         setShowOtpForm(false);
-        // Return to the previously active tab
-        setActiveTab(previousTab);
+        setOtpEmail("");
+        setActiveTab(previousTab); // Return to the previous tab (Login or Signup)
+        dispatch(clearAuthError());
+        dispatch(resetVerificationFlag()); // Reset flag on going back
     };
 
+    // Called by OtpVerificationForm on successful verification
     const handleVerificationSuccess = () => {
         setShowOtpForm(false);
-        setLoginModal(false); // Close the modal on successful verification
+        setOtpEmail("");
+        setLoginModal(false); // Close the modal
+        // Navigation happens within the verifyOtp thunk or related component logic
+    };
+
+    // Called by CustomGoogleButton on successful Google sign-in
+    const handleGoogleSuccess = () => {
+        setLoginModal(false); // Close modal
+    }
+
+    const closeModal = () => {
+        setLoginModal(false);
+        // State reset happens in the useEffect listening to loginModal
     };
 
     return (
         <div className={loginModal ? "login-modal-visible" : ""}>
-            <div className="modal fade" id="loginModal" tabIndex={-1} aria-hidden="true">
+            {/* Bootstrap Modal Structure */}
+            <div className={`modal fade ${loginModal ? "show" : ""}`} style={{ display: loginModal ? 'block' : 'none' }} id="loginModal" tabIndex={-1} aria-hidden={!loginModal} aria-modal={loginModal}>
                 <div className="modal-dialog modal-fullscreen modal-dialog-centered">
                     <div className="container">
                         <div className="user-data-form modal-content">
-                            <button onClick={() => setLoginModal(false)} type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            {/* Close Button */}
+                            <button onClick={closeModal} type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+
+                            {/* Content Area */}
                             <div className="form-wrapper m-auto">
                                 {!showOtpForm ? (
                                     <>
-                                        <ul className="nav nav-tabs w-100">
+                                        {/* Tabs: Login / Signup */}
+                                        <ul className="nav nav-tabs w-100" role="tablist">
                                             {tab_title.map((tab, index) => (
-                                                <li key={index} onClick={() => handleTabClick(index)} className="nav-item">
-                                                    <button className={`nav-link ${activeTab === index ? "active" : ""}`}>{tab}</button>
+                                                <li key={index} className="nav-item" role="presentation">
+                                                    <button
+                                                        className={`nav-link ${activeTab === index ? "active" : ""}`}
+                                                        onClick={() => handleTabClick(index)}
+                                                        type="button" role="tab" aria-selected={activeTab === index}
+                                                    >
+                                                        {tab}
+                                                    </button>
                                                 </li>
                                             ))}
                                         </ul>
+
+                                        {/* Tab Content */}
                                         <div className="tab-content mt-30">
-                                            <div className={`tab-pane fade ${activeTab === 0 ? 'show active' : ''}`}>
+                                            {/* Login Form Pane */}
+                                            <div className={`tab-pane fade ${activeTab === 0 ? 'show active' : ''}`} role="tabpanel">
                                                 <div className="text-center mb-20">
                                                     <h2>Welcome Back!</h2>
-                                                    <p className="fs-20 color-dark">Still don&apos;t have an account? <Link to="#"
-                                                        onClick={(e) => {
-                                                            e.preventDefault();
-                                                            setActiveTab(1); // Switch to Signup tab
-                                                        }}
-                                                    >Sign up</Link></p>
+                                                    <p className="fs-20 color-dark">
+                                                        Still don't have an account?{" "}
+                                                        <Link to="#" onClick={(e) => { e.preventDefault(); handleTabClick(1); }}>
+                                                            Sign up
+                                                        </Link>
+                                                    </p>
                                                 </div>
                                                 <LoginForm onOtpRequired={handleOtpRequired} />
                                             </div>
 
-                                            <div className={`tab-pane fade ${activeTab === 1 ? 'show active' : ''}`}>
+                                            {/* Register Form Pane */}
+                                            <div className={`tab-pane fade ${activeTab === 1 ? 'show active' : ''}`} role="tabpanel">
                                                 <div className="text-center mb-20">
                                                     <h2>Register</h2>
-                                                    <p className="fs-20 color-dark">Already have an account? <Link to="#"
-                                                        onClick={(e) => {
-                                                            e.preventDefault();
-                                                            setActiveTab(0); // Switch to login tab
-                                                        }}>Login</Link></p>
+                                                    <p className="fs-20 color-dark">
+                                                        Already have an account?{" "}
+                                                        <Link to="#" onClick={(e) => { e.preventDefault(); handleTabClick(0); }}>
+                                                            Login
+                                                        </Link>
+                                                    </p>
                                                 </div>
                                                 <RegisterForm onOtpRequired={handleOtpRequired} />
                                             </div>
                                         </div>
+
+                                        {/* OR Separator & Social Login */}
+                                        <div className="d-flex align-items-center mt-30 mb-10">
+                                            <div className="line"></div>
+                                            <span className="pe-3 ps-3 fs-6">OR</span>
+                                            <div className="line"></div>
+                                        </div>
+                                        <div className="row">
+                                            <div className="col-12">
+                                                <CustomGoogleButton activeTab={activeTab} onSuccess={handleGoogleSuccess} />
+                                            </div>
+                                        </div>
                                     </>
                                 ) : (
+                                    // OTP Verification Form
                                     <OtpVerificationForm
-                                        email={otpEmail}
-                                        goBack={handleOtpGoBack}
-                                        onSuccess={handleVerificationSuccess}
+                                        email={otpEmail} // Pass the email that needs verification
+                                        goBack={handleOtpGoBack} // Pass the function to go back
+                                        onSuccess={handleVerificationSuccess} // Pass the function for success
                                     />
                                 )}
                             </div>
@@ -91,9 +167,15 @@ const LoginModal = ({ loginModal, setLoginModal }: any) => {
                     </div>
                 </div>
             </div>
-            <div onClick={() => setLoginModal(false)} className={`offcanvas-backdrop fade ${loginModal ? "show" : ""}`}></div>
-        </div>
-    )
-}
 
-export default LoginModal
+            {/* Modal Backdrop */}
+            <div
+                onClick={closeModal}
+                className={`modal-backdrop fade ${loginModal ? "show" : ""}`}
+                style={{ display: loginModal ? 'block' : 'none' }} // Ensure backdrop visibility matches modal
+            ></div>
+        </div>
+    );
+};
+
+export default LoginModal;
