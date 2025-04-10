@@ -12,14 +12,16 @@ const {
 	getMyProperties,
 	addNewProperty,
     getAllProperties,
-} = require("../controllers/propertyController"); // Middleware for authentication
+    getPropertyById
+} = require("../controllers/propertyController");
 
 // Define property-specific routes
 router.put("/api/properties/:propertyId", authenticateToken, updateProperty); // Update a specific property
-
-module.exports = router;
-
+ 
 router.get("/properties", authenticateToken, getMyProperties); // getiing the property data
 router.post("/properties/add", authenticateToken, upload, addNewProperty); // adding a new property
 // Get all properties route
 router.get("/properties/all", getAllProperties);
+router.get('/properties/id/:id', getPropertyById);
+
+module.exports = router;

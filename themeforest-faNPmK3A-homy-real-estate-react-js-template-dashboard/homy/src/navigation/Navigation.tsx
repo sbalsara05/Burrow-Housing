@@ -118,7 +118,7 @@ const AppNavigation = () => {
         <Route path="/listing_15" element={<ListingFifteen />} />
         <Route path="/listing_16" element={<ListingSixteen />} />
         <Route path="/listing_17" element={<ListingSeventeen />} />
-        <Route path="/listing_details_01" element={<ListingDetailsOne />} />
+        <Route path="/listing_details_01/:id" element={<ListingDetailsOne />} />
         <Route path="/listing_details_02" element={<ListingDetailsTwo />} />
         <Route path="/listing_details_03" element={<ListingDetailsThree />} />
         <Route path="/listing_details_04" element={<ListingDetailsFour />} />

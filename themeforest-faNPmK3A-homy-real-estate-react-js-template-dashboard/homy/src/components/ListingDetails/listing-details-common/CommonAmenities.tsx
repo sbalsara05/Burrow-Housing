@@ -1,18 +1,37 @@
-const ammenities_data: string[] = ["A/C & Heating", "Garages", "Garden", "Disabled Access", "Swimming Pool", "Parking", "Wifi", "Pet Friendly", "Ceiling Height", "Fireplace", "Play Ground", "Elevator"]
+// frontend/components/ListingDetails/listing-details-common/CommonAmenities.tsx
+import React from 'react';
 
-const CommonAmenities = () => {
-   return (
-      <>
-         <h4 className="mb-20">Amenities</h4>
-         <p className="fs-20 lh-lg pb-25">Risk management & compliance, when approached strategically, have the
-            potential</p>
-         <ul className="style-none d-flex flex-wrap justify-content-between list-style-two">
-            {ammenities_data.map((list, i) => (
-               <li key={i}>{list}</li>
-            ))}
-         </ul>
-      </>
-   )
+// No need to import Property if only amenities array is passed
+interface CommonAmenitiesProps {
+    amenities?: string[]; // Accept amenities array (optional)
 }
 
-export default CommonAmenities
+// Static list for fallback or determining display order/icons if needed later
+// const all_possible_amenities: string[] = [ "A/C & Heating", "Garages", ... ];
+
+const CommonAmenities: React.FC<CommonAmenitiesProps> = ({ amenities }) => {
+    const amenitiesToShow = amenities && amenities.length > 0 ? amenities : []; // Use provided or empty array
+
+    return (
+        <>
+            <h4 className="mb-20">Amenities</h4>
+            {amenitiesToShow.length > 0 ? (
+                <>
+                    <p className="fs-20 lh-lg pb-25">
+                        This property includes the following amenities.
+                    </p>
+                    <ul className="style-none d-flex flex-wrap justify-content-between list-style-two">
+                        {/* Map over the amenities from the property prop */}
+                        {amenitiesToShow.map((item, index) => (
+                            <li key={index}>{item}</li>
+                        ))}
+                    </ul>
+                </>
+            ) : (
+                <p className="fs-20 lh-lg">No specific amenities listed for this property.</p>
+            )}
+        </>
+    );
+};
+
+export default CommonAmenities;
