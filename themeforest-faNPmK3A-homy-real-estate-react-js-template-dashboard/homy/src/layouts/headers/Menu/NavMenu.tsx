@@ -23,20 +23,20 @@ const NavMenu = () => {
     return (
         <ul className="navbar-nav align-items-lg-center">
             <li className="d-block d-lg-none"><div className="logo"><Link to="/" className="d-block"><img src="/assets/images/logo/textlogo.png" alt="" style={{marginLeft: 0, width: 290, height: "auto"}}/></Link></div></li>
-            <li className="nav-item dashboard-menu">
+            {/* <li className="nav-item dashboard-menu">
                 <Link onClick={() => setNavClick(!navClick)} className="nav-link" to="/dashboard/dashboard-index" target="_blank">Dashboard</Link>
-            </li>
+            </li> */}
             {menu_data.map((menu: any) => (
                 <li onClick={() => openMobileMenu(menu.title)} key={menu.id} className={`nav-item dropdown ${menu.class_name}`}>
-                    <Link onClick={() => setNavClick(!navClick)} to={menu.link} className={`nav-link dropdown-toggle ${navTitle === menu.title ? "show" : ""}`}>
+                    <Link onClick={() => setNavClick(!navClick)} to={menu.link} className={`nav-link ${navTitle === menu.title ? "show" : ""}`}>
                         {menu.title}
                     </Link>
                     {menu.has_dropdown && (
                         <>
-                            <ul className={`dropdown-menu ${navTitle === menu.title ? "show" : ""}`}>
+                            <ul className={` ${navTitle === menu.title ? "show" : ""}`}>
                                 {menu.sub_menus && menu.sub_menus.map((sub_m: any, i: any) => (
                                     <li key={i}>
-                                        <Link onClick={() => setNavClick(!navClick)} to={sub_m.link} className={`dropdown-item`}>
+                                        <Link onClick={() => setNavClick(!navClick)} to={sub_m.link} className={``}>
                                             <span>{sub_m.title}</span>
                                         </Link>
                                     </li>
@@ -49,7 +49,7 @@ const NavMenu = () => {
                                                     <h6 className="mega-menu-title">{item.mega_title}</h6>
                                                     <ul className="style-none mega-dropdown-list">
                                                         {item.mega_menus.map((mega_m: any, i: any) => (
-                                                            <li key={i}><Link onClick={() => setNavClick(!navClick)} to={mega_m.link} className={`dropdown-item`}><span>{mega_m.title}</span></Link></li>))}
+                                                            <li key={i}><Link onClick={() => setNavClick(!navClick)} to={mega_m.link} className={``}><span>{mega_m.title}</span></Link></li>))}
                                                     </ul>
                                                 </div>
                                             </div>

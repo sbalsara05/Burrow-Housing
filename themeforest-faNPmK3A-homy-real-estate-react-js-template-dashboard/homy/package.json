@@ -42,6 +42,7 @@
     "react-timer-hook": "^3.0.7",
     "react-toastify": "^10.0.5",
     "react-use": "^17.5.0",
+    "redux-persist": "^6.0.0",
     "sass": "^1.77.3",
     "slick-carousel": "^1.8.1",
     "wowjs": "^1.1.3",

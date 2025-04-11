@@ -1,27 +1,43 @@
-import FeatureListing from "../listing-details-sidebar/FeatureListing"
-import MortgageCalculator from "../listing-details-sidebar/MortgageCalculator"
-import ScheduleForm from "../listing-details-sidebar/ScheduleForm"
-import SidebarInfo from "../listing-details-sidebar/SidebarInfo"
+// frontend/components/ListingDetails/listing-details-1/Sidebar.tsx
+import React from 'react';
+import FeatureListing from "../listing-details-sidebar/FeatureListing"; // Needs modification if dynamic
+import MortgageCalculator from "../listing-details-sidebar/MortgageCalculator"; // Needs modification
+import ScheduleForm from "../listing-details-sidebar/ScheduleForm"; // Needs modification
+import SidebarInfo from "../listing-details-sidebar/SidebarInfo"; // Needs modification if agent is linked
+import { Property } from '../../../redux/slices/propertySlice'; // Adjust path
 
-const Sidebar = () => {
-   return (
-      <div className="col-xl-4 col-lg-8 me-auto ms-auto">
-         <div className="theme-sidebar-one dot-bg p-30 ms-xxl-3 lg-mt-80">
-            <div className="agent-info bg-white border-20 p-30 mb-40">
-               <SidebarInfo />
-            </div>
-            <div className="tour-schedule bg-white border-20 p-30 mb-40">
-               <h5 className="mb-40">Schedule Tour</h5>
-               <ScheduleForm />
-            </div>
-            <div className="mortgage-calculator bg-white border-20 p-30 mb-40">
-               <h5 className="mb-40">Mortgage Calculator</h5>
-               <MortgageCalculator />
-            </div>
-            <FeatureListing />
-         </div>
-      </div>
-   )
+interface SidebarProps {
+    property: Property | null;
 }
 
-export default Sidebar
+const Sidebar: React.FC<SidebarProps> = ({ property }) => {
+    return (
+        <div className="col-xl-4 col-lg-8 me-auto ms-auto">
+            {/* Use a wrapper div for styling consistency */}
+            <div className="theme-sidebar-one dot-bg p-30 ms-xxl-3 lg-mt-80">
+                {/* Agent Info (Pass agent data if available in property) */}
+                <div className="agent-info bg-white border-20 p-30 mb-40">
+                    {/* Assuming agent info is NOT directly on the property object */}
+                    {/* You might fetch agent separately based on property.userId */}
+                    <SidebarInfo agentId={property?.userId} /> {/* Example: Pass ID */}
+                </div>
+                {/* Schedule Tour Form */}
+                <div className="tour-schedule bg-white border-20 p-30 mb-40">
+                    <h5 className="mb-40">Schedule Tour</h5>
+                    {/* Pass property title/ID if needed in the message */}
+                    <ScheduleForm propertyTitle={property?.title || 'this property'} propertyId={property?._id} />
+                </div>
+                {/* Mortgage Calculator */}
+                <div className="mortgage-calculator bg-white border-20 p-30 mb-40">
+                    <h5 className="mb-40">Mortgage Calculator</h5>
+                    {/* Pass property price */}
+                    <MortgageCalculator homePrice={property?.overview.rent} />
+                </div>
+                {/* Featured Listing (Modify to fetch relevant listings) */}
+                <FeatureListing currentPropertyId={property?._id} />
+            </div>
+        </div>
+    );
+};
+
+export default Sidebar;

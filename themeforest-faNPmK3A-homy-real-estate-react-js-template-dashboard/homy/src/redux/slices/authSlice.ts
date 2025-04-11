@@ -2,6 +2,7 @@ import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import axios from 'axios';
 import { RootState } from '../store';
 import { clearProfile } from './profileSlice';
+import { clearAllPropertyData } from './propertySlice';
 
 // --- Configuration ---
 const API_URL = 'http://localhost:3000/api';
@@ -249,7 +250,8 @@ export const logoutUser = createAsyncThunk(
         if (!token) {
             console.log("Logout: No token found, clearing client state.");
             setAuthToken(null); // Ensure cleanup even if no token was in state
-            dispatch(clearProfile()); // Ensure profile slice is cleared
+            dispatch(clearProfile());
+            dispatch(clearAllPropertyData());
             return true; // Indicate completion
         }
         try {
@@ -263,9 +265,10 @@ export const logoutUser = createAsyncThunk(
             // --- ALWAYS clear client-side token and state ---
             console.log("Logout: Clearing token and dispatching clearProfile.");
             setAuthToken(null);
-            dispatch(clearProfile()); // Ensure profile slice is cleared
+            dispatch(clearProfile());
+            dispatch(clearAllPropertyData()); 
         }
-        return true; // Indicate logout process completed for the reducer
+        return true;
     }
 );
 
