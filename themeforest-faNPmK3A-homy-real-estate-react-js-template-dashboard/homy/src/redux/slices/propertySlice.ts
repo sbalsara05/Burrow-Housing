@@ -33,6 +33,33 @@ export interface Property {
     updatedAt: string; // Store as ISO string date from MongoDB
 }
 
+// Interface defining the structure expected by the thunk/backend (excluding userId)
+interface NewPropertyData {
+    overview: {
+        category: string;
+        roomType: string;
+        neighborhood: string;
+        rent: number;
+    };
+    listingDetails: {
+        size?: number;
+        bedrooms: number;
+        bathrooms: number;
+        floorNo: number;
+    };
+    amenities?: string[];
+    addressAndLocation: { // Match backend controller expectation
+        address: string;
+        // latitude?: number; // Add if needed
+        // longitude?: number;
+    };
+    buildingName?: string;
+    leaseLength: string;
+    description: string;
+    // Add other fields if needed by controller/model
+}
+
+
 // Pagination info structure matching the backend response
 interface PaginationInfo {
     currentPage: number;
@@ -150,20 +177,25 @@ export const fetchUserPropertyIds = createAsyncThunk(
 // Thunk to Add New Property
 export const addNewProperty = createAsyncThunk(
     'properties/addNewProperty',
-    async (propertyData: FormData, { getState, dispatch, rejectWithValue }) => {
+    // *** Thunk now expects a plain object, not FormData ***
+    async (propertyData: NewPropertyData, { getState, dispatch, rejectWithValue }) => {
         const token = (getState() as RootState).auth.token;
         if (!token) return rejectWithValue('Not authenticated');
-        console.log("Dispatching addNewProperty");
+        console.log("Dispatching addNewProperty with data:", propertyData);
         try {
-            const response = await axios.post(`${API_URL}/properties/add`, propertyData, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    'Content-Type': 'multipart/form-data',
+            const response = await axios.post(
+                `${API_URL}/properties/add`,
+                propertyData, // Send the JS object directly
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        'Content-Type': 'application/json', // Explicitly set content type
+                    }
                 }
-            });
+            );
             console.log("addNewProperty Fulfilled:", response.data);
             // Optionally refetch user properties or just add locally
-            // dispatch(fetchUserPropertyIds()); // Refetch IDs after adding
+            dispatch(fetchUserPropertyIds()); // Refetch IDs after adding is a good idea
             return response.data.property as Property;
         } catch (error: any) {
             console.error("addNewProperty Error:", error.response?.data || error.message);
@@ -287,38 +319,38 @@ const propertySlice = createSlice({
                 state.isLoading = true;
                 state.error = null;
             })
-        .addCase(addNewProperty.fulfilled, (state, action: PayloadAction<Property>) => {
-            console.log("Reducer: addNewProperty.fulfilled");
-            state.isAddingProperty = false;
-            state.isLoading = false;
-            // Add to userProperties list immediately
-            // state.userProperties.unshift(action.payload); // Or refetch IDs/Details
-            // Add the new ID to userPropertyIds
-            state.userPropertyIds.unshift(action.payload._id);
-            state.status = 'succeeded';
-        })
-        .addCase(addNewProperty.rejected, (state, action) => {
-            console.log("Reducer: addNewProperty.rejected", action.payload);
-            state.isAddingProperty = false;
-            state.isLoading = false;
-            state.error = action.payload as string;
-            state.status = 'failed';
-        })
+            .addCase(addNewProperty.fulfilled, (state, action: PayloadAction<Property>) => {
+                console.log("Reducer: addNewProperty.fulfilled");
+                state.isAddingProperty = false;
+                state.isLoading = false;
+                // Add to userProperties list immediately
+                // state.userProperties.unshift(action.payload); // Or refetch IDs/Details
+                // Add the new ID to userPropertyIds
+                state.userPropertyIds.unshift(action.payload._id);
+                state.status = 'succeeded';
+            })
+            .addCase(addNewProperty.rejected, (state, action) => {
+                console.log("Reducer: addNewProperty.rejected", action.payload);
+                state.isAddingProperty = false;
+                state.isLoading = false;
+                state.error = action.payload as string;
+                state.status = 'failed';
+            })
 
-        // --- Fetch Single Property By ID ---
-        .addCase(fetchPropertyById.pending, (state) => {
-            console.log("Reducer: fetchPropertyById.pending");
-            state.isLoading = true; state.status = 'loading'; state.error = null; state.currentProperty = null;
-        })
-        .addCase(fetchPropertyById.fulfilled, (state, action: PayloadAction<Property>) => {
-            console.log("Reducer: fetchPropertyById.fulfilled");
-            state.isLoading = false; state.currentProperty = action.payload; state.status = 'succeeded';
-        })
-        .addCase(fetchPropertyById.rejected, (state, action) => {
-            console.log("Reducer: fetchPropertyById.rejected", action.payload);
-            state.isLoading = false; state.error = action.payload as string; state.status = 'failed'; state.currentProperty = null;
-        });
-},
+            // --- Fetch Single Property By ID ---
+            .addCase(fetchPropertyById.pending, (state) => {
+                console.log("Reducer: fetchPropertyById.pending");
+                state.isLoading = true; state.status = 'loading'; state.error = null; state.currentProperty = null;
+            })
+            .addCase(fetchPropertyById.fulfilled, (state, action: PayloadAction<Property>) => {
+                console.log("Reducer: fetchPropertyById.fulfilled");
+                state.isLoading = false; state.currentProperty = action.payload; state.status = 'succeeded';
+            })
+            .addCase(fetchPropertyById.rejected, (state, action) => {
+                console.log("Reducer: fetchPropertyById.rejected", action.payload);
+                state.isLoading = false; state.error = action.payload as string; state.status = 'failed'; state.currentProperty = null;
+            });
+    },
 });
 
 // --- Export Actions and Reducer ---

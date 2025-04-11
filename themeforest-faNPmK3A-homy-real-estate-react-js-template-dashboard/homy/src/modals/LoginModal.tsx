@@ -143,7 +143,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ loginModal, setLoginModal }) =>
                                         </div>
 
                                         {/* OR Separator & Social Login */}
-                                        <div className="d-flex align-items-center mt-30 mb-10">
+                                        {/* <div className="d-flex align-items-center mt-30 mb-10">
                                             <div className="line"></div>
                                             <span className="pe-3 ps-3 fs-6">OR</span>
                                             <div className="line"></div>
@@ -152,7 +152,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ loginModal, setLoginModal }) =>
                                             <div className="col-12">
                                                 <CustomGoogleButton activeTab={activeTab} onSuccess={handleGoogleSuccess} />
                                             </div>
-                                        </div>
+                                        </div> */}
                                     </>
                                 ) : (
                                     // OTP Verification Form

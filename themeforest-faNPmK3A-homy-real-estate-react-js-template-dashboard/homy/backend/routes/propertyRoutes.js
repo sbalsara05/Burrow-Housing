@@ -19,7 +19,7 @@ const {
 router.put("/api/properties/:propertyId", authenticateToken, updateProperty); // Update a specific property
  
 router.get("/properties", authenticateToken, getMyProperties); // getiing the property data
-router.post("/properties/add", authenticateToken, upload, addNewProperty); // adding a new property
+router.post("/properties/add", authenticateToken, addNewProperty); // adding a new property
 // Get all properties route
 router.get("/properties/all", getAllProperties);
 router.get('/properties/id/:id', getPropertyById);
