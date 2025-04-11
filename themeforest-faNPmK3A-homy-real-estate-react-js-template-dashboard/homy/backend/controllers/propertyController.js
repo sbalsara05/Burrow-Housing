@@ -51,17 +51,126 @@ exports.getMyProperties = async (req, res) => {
 // Define the function to add a new property
 exports.addNewProperty = async (req, res) => {
 	try {
-		const overview = JSON.parse(req.body.overview || "{}");
-		const listingDetails = JSON.parse(
-			req.body.listingDetails || "{}"
-		);
-		const amenities = JSON.parse(req.body.amenities || "[]");
-		const addressAndLocation = JSON.parse(
-			req.body.addressAndLocation || "{}"
-		);
+		// *** Access directly from req.body ***
+		const {
+			overview,
+			listingDetails,
+			amenities,
+			addressAndLocation,
+			buildingName,
+			leaseLength,
+			description,
+		} = req.body; // Destructure directly
+
 		const userId = req.user.userId; // Extract user ID from the authenticated token
 		console.log("Add property for userId:", userId);
-		console.log("Add property:", JSON.stringify(req.body));
+		console.log(
+			"Received body for add property:",
+			JSON.stringify(req.body, null, 2)
+		); // Log the received body
+
+		// --- Validation (Keep or Enhance) ---
+		if (
+			!overview ||
+			!overview.category ||
+			!overview.roomType ||
+			!overview.neighborhood ||
+			overview.rent === undefined
+		) {
+			return res
+				.status(400)
+				.json({
+					message: "Required overview fields missing (category, roomType, neighborhood, rent).",
+				});
+		}
+		if (
+			!listingDetails ||
+			listingDetails.bedrooms === undefined ||
+			listingDetails.bathrooms === undefined ||
+			listingDetails.floorNo === undefined
+		) {
+			return res
+				.status(400)
+				.json({
+					message: "Required listingDetails fields missing (bedrooms, bathrooms, floorNo).",
+				});
+		}
+		// Ensure numeric fields are valid numbers if provided
+		if (
+			overview.rent !== undefined &&
+			isNaN(Number(overview.rent))
+		) {
+			return res
+				.status(400)
+				.json({ message: "Rent must be a number." });
+		}
+		if (
+			listingDetails.bedrooms !== undefined &&
+			isNaN(Number(listingDetails.bedrooms))
+		) {
+			return res
+				.status(400)
+				.json({
+					message: "Bedrooms must be a number.",
+				});
+		}
+		if (
+			listingDetails.bathrooms !== undefined &&
+			isNaN(Number(listingDetails.bathrooms))
+		) {
+			return res
+				.status(400)
+				.json({
+					message: "Bathrooms must be a number.",
+				});
+		}
+		if (
+			listingDetails.floorNo !== undefined &&
+			isNaN(Number(listingDetails.floorNo))
+		) {
+			return res
+				.status(400)
+				.json({
+					message: "Floor No must be a number.",
+				});
+		}
+		if (
+			listingDetails.size !== undefined &&
+			listingDetails.size !== null &&
+			isNaN(Number(listingDetails.size))
+		) {
+			return res
+				.status(400)
+				.json({ message: "Size must be a number." });
+		}
+
+		if (!addressAndLocation || !addressAndLocation.address) {
+			return res
+				.status(400)
+				.json({
+					message: "addressAndLocation object with address field is required.",
+				});
+		}
+		if (!leaseLength) {
+			return res
+				.status(400)
+				.json({ message: "Lease Length is required." });
+		}
+		if (!description) {
+			return res
+				.status(400)
+				.json({ message: "Description is required." });
+		}
+
+		// Enum Validation (Optional but Recommended)
+		// const validCategories = Property.schema.path('overview.category').enumValues;
+		// if (!validCategories.includes(overview.category)) return res.status(400).json({ message: "Invalid category" });
+		// const validRoomTypes = Property.schema.path('overview.roomType').enumValues;
+		// if (!validRoomTypes.includes(overview.roomType)) return res.status(400).json({ message: "Invalid roomType" });
+		// const validNeighborhoods = Property.schema.path('overview.neighborhood').enumValues;
+		// if (!validNeighborhoods.includes(overview.neighborhood)) return res.status(400).json({ message: "Invalid neighborhood" });
+
+		// --- End Validation ---
 
 		// Find the user by ID
 		const user = await User.findById(userId);
@@ -70,72 +179,27 @@ exports.addNewProperty = async (req, res) => {
 				.status(400)
 				.json({ message: "User not found" });
 		}
-		console.log(
-			"Entered prop controller for request: ",
-			overview.category,
-			overview.neighborhood,
-			overview.rent,
-			userId
-		);
-		//Validate input
-		if (
-			!overview ||
-			!overview.category ||
-			!overview.neighborhood ||
-			!overview.rent
-		) {
-			return res.status(400).json({
-				message: "All required fields in the overview must be provided",
-			});
-		}
-
-		//Validate `overview.category` and `overview.neighborhood`
-		const validCategories = ["Single Room", "Apartment"];
-		const validNeighborhoods = [
-			"Any",
-			"Allston",
-			"Back Bay",
-			"Beacon Hill",
-			"Brighton",
-			"Charlestown",
-			"Chinatown",
-			"Dorchester",
-			"Fenway",
-			"Hyde Park",
-			"Jamaica Plain",
-			"Mattapan",
-			"Mission Hill",
-			"North End",
-			"Roslindale",
-			"Roxbury",
-			"South Boston",
-			"South End",
-			"West End",
-			"West Roxbury",
-			"Wharf District",
-		];
-
-		if (!validCategories.includes(overview.category)) {
-			return res.status(400).json({
-				message: "Invalid category in overview",
-			});
-		}
-
-		if (!validNeighborhoods.includes(overview.neighborhood)) {
-			return res.status(400).json({
-				message: "Invalid neighborhood in overview",
-			});
-		}
 
 		console.log(`Adding property for user ${userId}`);
 
-		// Create a new property document
+		// Create a new property document using destructured data
 		const newProperty = new Property({
 			userId,
 			overview,
-			listingDetails,
-			amenities,
-			addressAndLocation,
+			listingDetails: {
+				// Ensure optional fields are handled
+				...listingDetails,
+				size:
+					listingDetails.size !== undefined
+						? listingDetails.size
+						: null, // Use null or undefined based on schema/preference
+			},
+			amenities: amenities || [], // Default to empty array if not provided
+			addressAndLocation, // Already an object
+			buildingName: buildingName || null, // Use null or undefined based on schema/preference
+			leaseLength,
+			description,
+			// image handling would go here if re-enabled
 		});
 
 		// Save the new property document to the database
@@ -143,21 +207,29 @@ exports.addNewProperty = async (req, res) => {
 
 		// Associate the property with the user
 		if (!Array.isArray(user.properties)) {
-			user.properties = []; // Initialize properties array if undefined
+			user.properties = [];
 		}
-
-		user.properties.push(savedProperty._id); // Store the property ID in the user's properties
+		user.properties.push(savedProperty._id);
 		await user.save();
 
 		// Respond with success
 		res.status(201).json({
 			message: "Property added successfully",
-			property: savedProperty,
+			property: savedProperty, // Send back the saved property
 		});
 	} catch (error) {
 		console.error("Error adding property: ", error);
+		if (error.name === "ValidationError") {
+			return res
+				.status(400)
+				.json({
+					message: "Validation failed",
+					errors: error.errors,
+				});
+		}
 		res.status(500).json({
 			message: "Server error while adding property",
+			error: error.message,
 		});
 	}
 };
@@ -169,7 +241,7 @@ exports.getAllProperties = async (req, res) => {
 	try {
 		// --- Pagination Parameters ---
 		const page = parseInt(req.query.page) || 1;
-		const limit = parseInt(req.query.limit) || 8    ;
+		const limit = parseInt(req.query.limit) || 8;
 		const skip = (page - 1) * limit;
 		console.log(req.query);
 
