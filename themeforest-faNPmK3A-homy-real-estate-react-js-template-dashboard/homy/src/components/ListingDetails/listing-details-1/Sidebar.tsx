@@ -22,19 +22,15 @@ const Sidebar: React.FC<SidebarProps> = ({ property }) => {
                     <SidebarInfo agentId={property?.userId} /> {/* Example: Pass ID */}
                 </div>
                 {/* Schedule Tour Form */}
-                <div className="tour-schedule bg-white border-20 p-30 mb-40">
-                    <h5 className="mb-40">Schedule Tour</h5>
-                    {/* Pass property title/ID if needed in the message */}
-                    <ScheduleForm propertyTitle={property?.title || 'this property'} propertyId={property?._id} />
-                </div>
-                {/* Mortgage Calculator */}
-                <div className="mortgage-calculator bg-white border-20 p-30 mb-40">
-                    <h5 className="mb-40">Mortgage Calculator</h5>
-                    {/* Pass property price */}
-                    <MortgageCalculator homePrice={property?.overview.rent} />
-                </div>
+                {/*Will keep for now, can be used later for ambassador program*/}
+                {/*<div className="tour-schedule bg-white border-20 p-30 mb-40">*/}
+                {/*    <h5 className="mb-40">Schedule Tour</h5>*/}
+                {/*    /!* Pass property title/ID if needed in the message *!/*/}
+                {/*    <ScheduleForm propertyTitle={property?.title || 'this property'} propertyId={property?._id} />*/}
+                {/*</div>*/}
+
                 {/* Featured Listing (Modify to fetch relevant listings) */}
-                <FeatureListing currentPropertyId={property?._id} />
+                {/*<FeatureListing currentPropertyId={property?._id} />*/}
             </div>
         </div>
     );

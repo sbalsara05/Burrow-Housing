@@ -28,7 +28,6 @@ import CommonNearbyList from "../listing-details-common/CommonNearbyList"; // Ne
 import CommonSimilarProperty from "../listing-details-common/CommonSimilarProperty"; // Needs 'currentPropertyId' prop
 import CommonProPertyScore from "../listing-details-common/CommonProPertyScore"; // Needs 'property' prop (or specific score data)
 import CommonLocation from "../listing-details-common/CommonLocation"; // Needs 'location' prop
-import CommonReviewForm from "../listing-details-common/CommonReviewForm"; // Needs 'propertyId' prop
 import NiceSelect from "../../../ui/NiceSelect"; // Keep for review sorting
 import Review from "../../inner-pages/agency/agency-details/Review"; // Needs 'propertyId' prop
 
@@ -90,6 +89,29 @@ const ListingDetailsOneArea = () => {
 
     // 8. Render details if property data is available
     const selectHandler = () => { }; // Placeholder for review sort dropdown
+
+    // Debug the property structure to find address and location data
+    console.log("Property data:", property);
+    console.log("Address:", property.address);
+    console.log("Location object:", property.location);
+    console.log("AddressAndLocation object:", property.addressAndLocation);
+
+    // Prepare the location data to pass to CommonLocation
+    const locationData = {
+        // Try to get address from multiple possible locations in the property object
+        address: property.address ||
+                (property.addressAndLocation?.address) ||
+                `${property.title || property.name}, ${property.neighborhood || "Boston"}, MA`,
+
+        // Try to get coordinates from multiple possible locations
+        latitude: property.location?.lat ||
+                 property.addressAndLocation?.latitude ||
+                 (property.geoLocation?.coordinates ? property.geoLocation.coordinates[1] : undefined),
+
+        longitude: property.location?.lng ||
+                  property.addressAndLocation?.longitude ||
+                  (property.geoLocation?.coordinates ? property.geoLocation.coordinates[0] : undefined)
+    };
 
     return (
         <div className="listing-details-one theme-details-one bg-pink pt-180 lg-pt-150 pb-150 xl-pb-120">
@@ -154,7 +176,10 @@ const ListingDetailsOneArea = () => {
 
                         {/* Location Map */}
                         <div className="property-location mb-50">
-                            <CommonLocation location={property.addressAndLocation} />
+                            <CommonLocation
+                                location={locationData}
+                                propertyName={property.title || property.name}
+                            />
                         </div>
 
                         {/* Reviews */}
@@ -176,11 +201,7 @@ const ListingDetailsOneArea = () => {
                             </div>
                         </div>
 
-                        {/* Review Form */}
-                        <div className="review-form bg-white shadow4 border-20 p-40">
-                            {/* Pass property ID to associate submitted review */}
-                            <CommonReviewForm propertyId={property._id} />
-                        </div>
+                        {/* Review Form section removed as requested */}
 
                     </div>
 
