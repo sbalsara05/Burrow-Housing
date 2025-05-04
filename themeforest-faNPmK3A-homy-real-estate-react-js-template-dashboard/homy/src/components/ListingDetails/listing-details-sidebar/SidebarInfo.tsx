@@ -16,7 +16,7 @@ interface StudentData {
     school?: string;
     expectedGrad: string;
     responseTime: string;
-    avatarUrl?: string; // URL for the agent's image
+    avatarUrl?: string; // URL for the students's image
     verified?: boolean; // Add verification status
     // Add social links if available
 }
