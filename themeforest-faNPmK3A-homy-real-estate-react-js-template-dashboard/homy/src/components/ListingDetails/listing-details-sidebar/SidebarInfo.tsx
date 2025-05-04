@@ -1,6 +1,7 @@
 // frontend/components/ListingDetails/listing-details-sidebar/SidebarInfo.tsx
 import React, { useEffect, useState } from 'react'; // Import React and hooks if fetching agent
 import { Link } from "react-router-dom";
+import { BadgeCheck } from 'lucide-react';
 // import axios from 'axios'; // If fetching agent data
 
 // Interface for the props
@@ -9,13 +10,14 @@ interface SidebarInfoProps {
 }
 
 // Placeholder interface for fetched agent data
-interface AgentData {
+interface StudentData {
     name: string;
-    title?: string; // e.g., 'Property Agent & Broker'
-    email: string;
-    phone: string;
-    location?: string;
+    majors?: string; // e.g., 'Computer Science'
+    school?: string;
+    expectedGrad: string;
+    responseTime: string;
     avatarUrl?: string; // URL for the agent's image
+    verified?: boolean; // Add verification status
     // Add social links if available
 }
 
@@ -32,8 +34,8 @@ const SidebarInfo: React.FC<SidebarInfoProps> = ({ agentId }) => {
     //             setIsLoading(true);
     //             setError(null);
     //             try {
-    //                 // TODO: Replace with your actual API endpoint for fetching agent details
-    //                 // const response = await axios.get(`/api/agents/${agentId}`);
+    //                 // TODO: Replace with your actual API endpoint for fetching student details
+    //                 // const response = await axios.get(`/api/agents/${studentID}`);
     //                 // setAgentData(response.data);
     //
     //                 // --- Placeholder Fetch ---
@@ -72,14 +74,14 @@ const SidebarInfo: React.FC<SidebarInfoProps> = ({ agentId }) => {
     // Use fetched agentData if available, otherwise fallback to static/default
     // const displayData = agentData || { // Fallback to static data for now
     const displayData = { // Using static data directly until fetch is implemented
-        name: "Rashed Kabir",
-        title: "Property Agent & Broker",
-        email: "akabirr770@gmail.com",
-        phone: "+12347687565",
-        location: "Spain, Barcelona",
-        avatarUrl: "/assets/images/agent/img_06.jpg"
+        name: "Sarah Johnson",
+        majors: "Biochemistry Student",
+        school: "Northeastern University",
+        expectedGrad: "Spring 2026",
+        responseTime: "< 1 hour",
+        avatarUrl: "https://randomuser.me/api/portraits/women/65.jpg",
+        verified: true, // Set verification status
     };
-
 
     return (
         <>
@@ -87,27 +89,34 @@ const SidebarInfo: React.FC<SidebarInfoProps> = ({ agentId }) => {
                 src={displayData.avatarUrl || "/assets/images/dashboard/no-profile-pic.png"} // Use fetched or default avatar
                 alt={`${displayData.name || 'Agent'} Avatar`}
                 className="lazy-img rounded-circle ms-auto me-auto mt-3 avatar"
-                style={{ width: '100px', height: '100px', objectFit: 'cover' }} // Ensure consistent size
+                style={{width: '100px', height: '100px', objectFit: 'cover'}} // Ensure consistent size
             />
+
             <div className="text-center mt-25">
-                <h6 className="name">{displayData.name || 'Agent Name Unavailable'}</h6>
-                <p className="fs-16">{displayData.title || 'Real Estate Agent'}</p> {/* Use fetched title */}
-                {/* Keep static social icons for now */}
-                <ul className="style-none d-flex align-items-center justify-content-center social-icon">
-                    <li><Link to="#"><i className="fa-brands fa-facebook-f"></i></Link></li>
-                    <li><Link to="#"><i className="fa-brands fa-twitter"></i></Link></li>
-                    <li><Link to="#"><i className="fa-brands fa-instagram"></i></Link></li>
-                    <li><Link to="#"><i className="fa-brands fa-linkedin"></i></Link></li>
-                </ul>
+                <div className="d-flex align-items-center justify-content-center">
+                    <h6 className="name mb-0">{displayData.name || 'Student Name Unavailable'}</h6>
+                    {displayData.verified && (
+                        <BadgeCheck className="ms-1 text-primary" size={20} color="#1E88E5" />
+                    )}
+                </div>
+                <p className="fs-16">{displayData.majors || 'Student'}</p> {/* Use fetched title */}
             </div>
+
             <div className="divider-line mt-40 mb-45 pt-20">
                 <ul className="style-none">
-                    {displayData.location && <li>Location: <span>{displayData.location}</span></li>}
-                    <li>Email: <span><Link to={`mailto:${displayData.email || '#'}`}>{displayData.email || 'N/A'}</Link></span></li>
-                    <li>Phone: <span><Link to={`tel:${displayData.phone || '#'}`}>{displayData.phone || 'N/A'}</Link></span></li>
+                    {displayData.school && <li>School: <span>{displayData.school}</span></li>}
+                    <li>Response Time: <span>{displayData.responseTime || "N/A"}</span></li>
                 </ul>
             </div>
-            <Link to="/contact" className="btn-nine text-uppercase rounded-3 w-100 mb-10">CONTACT AGENT</Link>
+
+            <div className="d-flex justify-content-between gap-2 mt-3">
+                <Link to="/contact" className="btn flex-grow-1 text-center py-3 text-white"
+                      style={{backgroundColor: '#f16040'}}>Contact</Link>
+                <Link to="/request" className="btn flex-grow-1 text-center py-3 text-white"
+                      style={{backgroundColor: '#f16040'}}>Request Ambassador</Link>
+                <Link to="#" className="btn flex-grow-1 text-center py-3 text-white"
+                      style={{backgroundColor: '#f16040'}}>Save</Link>
+            </div>
         </>
     );
 };
