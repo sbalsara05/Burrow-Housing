@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: burrow-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: burrow
+  template:
+    metadata:
+      labels:
+        app: burrow
+    spec:
+      containers:
+      - name: burrow
+        image: burrow:v1
+        ports:
+        - containerPort: 80
