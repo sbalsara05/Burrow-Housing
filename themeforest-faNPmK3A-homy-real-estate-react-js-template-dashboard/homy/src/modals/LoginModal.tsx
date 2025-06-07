@@ -7,7 +7,7 @@ import { Link } from "react-router-dom";
 import { CustomGoogleButton } from '../components/common/CustomGoogleButton';
 import { useDispatch } from 'react-redux';
 import { resetVerificationFlag, clearAuthError } from '../redux/slices/authSlice'; // Import actions
-import { AppDispatch } from '../redux/store';
+import { AppDispatch } from '../redux/slices/store.ts';
 
 const tab_title: string[] = ["Login", "Signup"];
 

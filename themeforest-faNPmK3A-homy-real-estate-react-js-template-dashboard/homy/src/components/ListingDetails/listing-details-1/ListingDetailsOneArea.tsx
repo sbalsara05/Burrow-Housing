@@ -2,7 +2,7 @@
 import React, { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { AppDispatch, RootState } from '../../../redux/store';
+import { AppDispatch, RootState } from '../../../redux/slices/store.ts';
 import {
     fetchPropertyById,
     selectPropertyFromList,

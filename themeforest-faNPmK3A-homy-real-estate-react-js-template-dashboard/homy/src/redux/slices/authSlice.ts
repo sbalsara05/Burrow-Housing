@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import axios from 'axios';
-import { RootState } from '../store';
+import { RootState } from './store.ts';
 import { clearProfile } from './profileSlice';
 import { clearAllPropertyData } from './propertySlice';
 

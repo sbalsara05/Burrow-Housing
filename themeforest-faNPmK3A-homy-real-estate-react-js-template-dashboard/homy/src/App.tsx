@@ -3,7 +3,7 @@ import React, { useEffect } from 'react';
 import { HelmetProvider } from 'react-helmet-async';
 import AppNavigation from './navigation/Navigation';
 import { useDispatch, useSelector } from "react-redux";
-import { AppDispatch, RootState } from "./redux/store";
+import { AppDispatch, RootState } from "./redux/slices/store.ts";
 // Select the token directly from the Redux state now
 import { fetchUserProfile, selectAuthStatus, selectAuthToken } from './redux/slices/authSlice';
 import { fetchProfile } from './redux/slices/profileSlice';

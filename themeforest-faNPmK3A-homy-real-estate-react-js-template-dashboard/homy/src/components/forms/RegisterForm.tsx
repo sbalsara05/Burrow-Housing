@@ -7,7 +7,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import { Link } from "react-router-dom";
 import { useDispatch, useSelector } from 'react-redux';
 import { registerUser, clearAuthError, selectAuthLoading, selectAuthError, selectIsVerificationRequired, selectOtpEmail, resetVerificationFlag } from '../../redux/slices/authSlice'; // Corrected import path
-import { AppDispatch } from '../../redux/store'; // Corrected import path
+import { AppDispatch } from '../../redux/slices/store.ts'; // Corrected import path
 
 // Define FormData interface
 interface FormData {

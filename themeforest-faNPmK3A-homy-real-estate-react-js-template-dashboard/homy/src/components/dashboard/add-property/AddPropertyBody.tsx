@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from 'react-redux';
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { AppDispatch, RootState } from '../../../redux/store';
+import { AppDispatch, RootState } from '../../../redux/slices/store.ts';
 import { addNewProperty, selectIsAddingProperty, selectPropertyError, clearPropertyError, fetchUserPropertyIds, Property } from '../../../redux/slices/propertySlice';
 
 // Import sub-components
@@ -18,7 +18,7 @@ interface NewPropertyData {
     overview: { category: string; roomType: string; neighborhood: string; rent: number; };
     listingDetails: { size?: number; bedrooms: number; bathrooms: number; floorNo: number; };
     amenities?: string[];
-    addressAndLocation: { address: string; /* lat?, lng? */ };
+    addressAndLocation: { address: string; lat: number; lng: number; }; // 👈 UPDATED: Added lat/lng
     buildingName?: string;
     leaseLength: string;
     description: string;
@@ -28,7 +28,7 @@ const initialFormData: Partial<NewPropertyData> = {
     overview: { category: '', roomType: '', neighborhood: 'Any', rent: 0 },
     listingDetails: { bedrooms: 1, bathrooms: 1, floorNo: 1, size: undefined },
     amenities: [],
-    addressAndLocation: { address: '' },
+    addressAndLocation: { address: '', lat: 0, lng: 0 }, // 👈 UPDATED: Added lat/lng
     leaseLength: '',
     description: '',
     buildingName: '',
@@ -42,6 +42,8 @@ const AddPropertyBody = () => {
 
     // --- Local State for ALL Form Fields ---
     const [formData, setFormData] = useState<Partial<NewPropertyData>>(initialFormData);
+    // 👈 ADDED: Location state to track coordinates from the map
+    const [location, setLocation] = useState({ lat: 0, lng: 0 });
 
     // Clear errors on mount
     useEffect(() => {
@@ -121,10 +123,16 @@ const AddPropertyBody = () => {
         if (!formData.listingDetails?.bathrooms) { toast.error("Please select the number of Bathrooms."); return; }
         if (formData.listingDetails?.floorNo === undefined) { toast.error("Please select the Floor Number."); return; }
         if (!formData.addressAndLocation?.address) { toast.error("Please provide the property address."); return; }
+        // 👈 ADDED: Validate coordinates
+        if (!location.lat || !location.lng || location.lat === 0 || location.lng === 0) {
+            toast.error("Please select a valid location on the map.");
+            return;
+        }
         if (!formData.leaseLength) { toast.error("Please specify the lease length."); return; }
         if (!formData.description) { toast.error("Please add a description."); return; }
 
         console.log("Submitting Property Data:", formData);
+        console.log("Location coordinates:", location); // 👈 ADDED: Log coordinates
 
         // Structure the data for the API/Thunk
         const submissionData: NewPropertyData = {
@@ -143,6 +151,8 @@ const AddPropertyBody = () => {
             amenities: formData.amenities || [],
             addressAndLocation: {
                 address: formData.addressAndLocation.address!,
+                lat: location.lat,  // 👈 ADDED: Include coordinates
+                lng: location.lng,  // 👈 ADDED: Include coordinates
             },
             buildingName: formData.buildingName || undefined,
             leaseLength: formData.leaseLength!,
@@ -155,6 +165,7 @@ const AddPropertyBody = () => {
         if (addNewProperty.fulfilled.match(resultAction)) {
             toast.success("Property added successfully!");
             setFormData(initialFormData); // Reset form state locally after success
+            setLocation({ lat: 0, lng: 0 }); // 👈 ADDED: Reset location coordinates
             // navigate('/dashboard/properties-list'); // Optional: Navigate after success
         } else if (addNewProperty.rejected.match(resultAction)) {
             toast.error(resultAction.payload as string || "Failed to add property.");
@@ -168,6 +179,13 @@ const AddPropertyBody = () => {
                 <h2 className="main-title d-block d-lg-none">Add New Property</h2>
 
                 {error && <div className="alert alert-danger mt-3">{error}</div>}
+
+                {/* 👈 ADDED: Show coordinate status */}
+                {location.lat !== 0 && location.lng !== 0 && (
+                    <div className="alert alert-success mt-3">
+                        ✅ Location selected: {location.lat.toFixed(4)}, {location.lng.toFixed(4)}
+                    </div>
+                )}
 
                 <form onSubmit={handleSubmit}>
                     {/* Overview Component */}
@@ -196,10 +214,12 @@ const AddPropertyBody = () => {
                         />
                     </div>
 
-                    {/* Address Component - Passing specific handler */}
+                    {/* 👈 UPDATED: Address Component - Now includes location coordinates */}
                     <AddressAndLocation
+                        location={location}
+                        setLocation={setLocation}
                         addressData={formData.addressAndLocation}
-                        handleAddressChange={handleAddressChange} // Pass the specific handler
+                        handleAddressChange={handleAddressChange}
                     />
 
                     {/* Additional Details Section */}

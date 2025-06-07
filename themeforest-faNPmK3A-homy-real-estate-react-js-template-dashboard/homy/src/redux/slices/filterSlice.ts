@@ -1,6 +1,6 @@
 // frontend/redux/slices/filterSlice.ts
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { RootState } from '../store';
+import { RootState } from './store.ts';
 // Import FetchPropertiesPayload if needed by selectApiFormattedFilters
 import  FetchPropertiesPayload  from './propertySlice'; // Adjust path as necessary
 

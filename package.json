@@ -1,5 +1,6 @@
 {
   "devDependencies": {
+    "@types/google.maps": "^3.58.1",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
     "@types/react-redux": "^7.1.34",

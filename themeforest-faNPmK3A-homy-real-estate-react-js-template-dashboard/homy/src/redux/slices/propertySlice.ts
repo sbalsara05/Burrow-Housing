@@ -1,7 +1,7 @@
-import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
+import {createSlice, createAsyncThunk, PayloadAction} from '@reduxjs/toolkit';
 import axios from 'axios';
-import { RootState } from '../store';
-import { clearProfile } from './profileSlice';
+import {RootState} from './store.ts';
+// import {clearProfile} from './profileSlice';
 
 // --- Configuration ---
 const API_URL = 'http://localhost:3000/api';
@@ -15,6 +15,7 @@ export interface Property {
         roomType: "Shared Room" | "Single Room";
         neighborhood: "Any" | "Allston" | "Back Bay" | "Beacon Hill" | "Brighton" | "Charlestown" | "Chinatown" | "Dorchester" | "Fenway" | "Hyde Park" | "Jamaica Plain" | "Mattapan" | "Mission Hill" | "North End" | "Roslindale" | "Roxbury" | "South Boston" | "South End" | "West End" | "West Roxbury" | "Wharf District";
         rent: number;
+        title: string; // "Title" of the listing
     };
     listingDetails: {
         size?: number; // Optional size
@@ -25,6 +26,10 @@ export interface Property {
     amenities?: string[]; // Array of amenity strings
     addressAndLocation: {
         address: string;
+        location: {
+            lat: number;
+            lng: number;
+        }
     };
     buildingName?: string; // Optional
     leaseLength: string;
@@ -40,6 +45,7 @@ interface NewPropertyData {
         roomType: string;
         neighborhood: string;
         rent: number;
+        title: string; // "Title" of the listing
     };
     listingDetails: {
         size?: number;
@@ -50,8 +56,8 @@ interface NewPropertyData {
     amenities?: string[];
     addressAndLocation: { // Match backend controller expectation
         address: string;
-        // latitude?: number; // Add if needed
-        // longitude?: number;
+        lat: number; // Add if needed (update: it was needed lol)
+        lng: number;
     };
     buildingName?: string;
     leaseLength: string;
@@ -109,19 +115,20 @@ interface FetchPropertiesPayload {
     rentRange?: string;
     // Add other potential backend filters here
 }
+
 export const fetchAllPublicProperties = createAsyncThunk(
     'properties/fetchAllPublicProperties',
     // *** Thunk now directly accepts the full payload including filters ***
-    async (fetchArgs: FetchPropertiesPayload, { rejectWithValue }) => {
+    async (fetchArgs: FetchPropertiesPayload, {rejectWithValue}) => {
         // Set defaults if not provided in args
-        const { page = 1, limit = 9, ...filters } = fetchArgs;
+        const {page = 1, limit = 9, ...filters} = fetchArgs;
 
         // Construct params directly from fetchArgs (which now contains the filters)
-        const params = { page, limit, ...filters };
+        const params = {page, limit, ...filters};
 
         console.log(`Dispatching fetchAllPublicProperties with direct params:`, params);
         try {
-            const response = await axios.get(`${API_URL}/properties/all`, { params }); // Use params directly
+            const response = await axios.get(`${API_URL}/properties/all`, {params}); // Use params directly
             console.log("fetchAllPublicProperties Fulfilled:", response.data);
             return response.data as { properties: Property[], pagination: PaginationInfo, message: string };
         } catch (error: any) {
@@ -134,13 +141,13 @@ export const fetchAllPublicProperties = createAsyncThunk(
 // Thunk to Fetch Property IDs for the Logged-in User
 export const fetchUserPropertyIds = createAsyncThunk(
     'properties/fetchUserPropertyIds',
-    async (_, { getState, rejectWithValue }) => {
+    async (_, {getState, rejectWithValue}) => {
         const token = (getState() as RootState).auth.token;
         if (!token) return rejectWithValue('Not authenticated');
         console.log("Dispatching fetchUserPropertyIds");
         try {
             const response = await axios.get(`${API_URL}/properties`, {
-                headers: { Authorization: `Bearer ${token}` }
+                headers: {Authorization: `Bearer ${token}`}
             });
             // Backend returns { message, properties: [IDs] }
             console.log("fetchUserPropertyIds Fulfilled:", response.data);
@@ -178,7 +185,7 @@ export const fetchUserPropertyIds = createAsyncThunk(
 export const addNewProperty = createAsyncThunk(
     'properties/addNewProperty',
     // *** Thunk now expects a plain object, not FormData ***
-    async (propertyData: NewPropertyData, { getState, dispatch, rejectWithValue }) => {
+    async (propertyData: NewPropertyData, {getState, dispatch, rejectWithValue}) => {
         const token = (getState() as RootState).auth.token;
         if (!token) return rejectWithValue('Not authenticated');
         console.log("Dispatching addNewProperty with data:", propertyData);
@@ -207,7 +214,7 @@ export const addNewProperty = createAsyncThunk(
 // Thunk to Fetch Single Property Details (Needs backend endpoint GET /api/properties/:id)
 export const fetchPropertyById = createAsyncThunk(
     'properties/fetchPropertyById',
-    async (propertyId: string, { rejectWithValue }) => {
+    async (propertyId: string, {rejectWithValue}) => {
         console.log(`Dispatching fetchPropertyById API call for ID: ${propertyId}`);
         try {
             const response = await axios.get(`${API_URL}/properties/id/${propertyId}`); // Call the new backend endpoint
@@ -223,7 +230,6 @@ export const fetchPropertyById = createAsyncThunk(
         }
     }
 );
-
 
 
 // --- Slice Definition ---
@@ -268,7 +274,10 @@ const propertySlice = createSlice({
                 state.status = 'loading';
                 state.error = null;
             })
-            .addCase(fetchAllPublicProperties.fulfilled, (state, action: PayloadAction<{ properties: Property[], pagination: PaginationInfo }>) => {
+            .addCase(fetchAllPublicProperties.fulfilled, (state, action: PayloadAction<{
+                properties: Property[],
+                pagination: PaginationInfo
+            }>) => {
                 console.log("Reducer: fetchAllPublicProperties.fulfilled");
                 state.isPublicPropertiesLoading = false;
                 state.isLoading = false;
@@ -340,21 +349,35 @@ const propertySlice = createSlice({
             // --- Fetch Single Property By ID ---
             .addCase(fetchPropertyById.pending, (state) => {
                 console.log("Reducer: fetchPropertyById.pending");
-                state.isLoading = true; state.status = 'loading'; state.error = null; state.currentProperty = null;
+                state.isLoading = true;
+                state.status = 'loading';
+                state.error = null;
+                state.currentProperty = null;
             })
             .addCase(fetchPropertyById.fulfilled, (state, action: PayloadAction<Property>) => {
                 console.log("Reducer: fetchPropertyById.fulfilled");
-                state.isLoading = false; state.currentProperty = action.payload; state.status = 'succeeded';
+                state.isLoading = false;
+                state.currentProperty = action.payload;
+                state.status = 'succeeded';
             })
             .addCase(fetchPropertyById.rejected, (state, action) => {
                 console.log("Reducer: fetchPropertyById.rejected", action.payload);
-                state.isLoading = false; state.error = action.payload as string; state.status = 'failed'; state.currentProperty = null;
+                state.isLoading = false;
+                state.error = action.payload as string;
+                state.status = 'failed';
+                state.currentProperty = null;
             });
     },
 });
 
 // --- Export Actions and Reducer ---
-export const { clearPropertyError, setCurrentProperty, clearAllPropertyData, clearCurrentProperty, selectPropertyFromList } = propertySlice.actions;
+export const {
+    clearPropertyError,
+    setCurrentProperty,
+    clearAllPropertyData,
+    clearCurrentProperty,
+    selectPropertyFromList
+} = propertySlice.actions;
 
 // --- Selectors ---
 export const selectPropertyState = (state: RootState) => state.properties;

@@ -4,7 +4,7 @@ import { Link } from "react-router-dom"; // Keep Link if needed elsewhere
 import UserAvatarSetting from "./UserAvatarSetting"; // Renders form fields
 import DashboardHeaderTwo from "../../../layouts/headers/dashboard/DashboardHeaderTwo";
 import { toast } from "react-toastify";
-import { AppDispatch, RootState } from '../../../redux/store';
+import { AppDispatch, RootState } from '../../../redux/slices/store.ts';
 // Import actions and selectors from profileSlice
 import { fetchProfile, updateProfile, selectProfile, selectProfileLoading, selectProfileError, clearProfileError, selectProfileStatus } from '../../../redux/slices/profileSlice';
 // Import selector from authSlice for fallback if profile is null initially

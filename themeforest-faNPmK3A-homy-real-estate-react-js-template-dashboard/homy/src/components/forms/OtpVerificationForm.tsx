@@ -4,7 +4,7 @@ import { toast } from "react-toastify";
 import { useForm } from "react-hook-form";
 import { useDispatch, useSelector } from 'react-redux';
 import { verifyOtp, resendOtp, clearAuthError, selectAuthLoading, selectAuthError, resetVerificationFlag } from '../../redux/slices/authSlice'; // Corrected import path
-import { AppDispatch } from '../../redux/store'; // Corrected import path
+import { AppDispatch } from '../../redux/slices/store.ts'; // Corrected import path
 
 interface OtpFormData {
     otp: string;

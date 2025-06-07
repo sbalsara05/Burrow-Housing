@@ -2,7 +2,7 @@
 import React, { useState } from 'react'; // Import React
 import { Link, useNavigate } from 'react-router-dom'; // Import useNavigate
 import { useDispatch } from 'react-redux'; // Import useDispatch
-import { AppDispatch } from '../../../redux/store'; // Import AppDispatch type
+import { AppDispatch } from '../../../redux/slices/store.ts'; // Import AppDispatch type
 import { logoutUser } from '../../../redux/slices/authSlice'; // Import logoutUser action
 
 interface DashboardHeaderOneProps {

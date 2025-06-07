@@ -4,7 +4,7 @@ import React from 'react'; // Import React
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from 'react-redux';
 import { googleSignIn, selectAuthLoading, selectAuthError, clearAuthError } from '../../redux/slices/authSlice'; // Corrected import path
-import { AppDispatch } from '../../redux/store'; // Corrected import path
+import { AppDispatch } from '../../redux/slices/store.ts'; // Corrected import path
 import { toast } from 'react-toastify';
 
 interface CustomGoogleButtonProps {
