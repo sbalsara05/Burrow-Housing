@@ -4,7 +4,7 @@ import ReviewBody from "./ReviewBody"
 const DashboardReview = () => {
   return (
     <>
-         <DashboardHeaderOne />
+         <DashboardHeaderOne isActive={false} setIsActive={() => {}}/>
          <ReviewBody />
     </>
   )

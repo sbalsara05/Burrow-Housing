@@ -1,7 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
-const Property = require('../backend/PropertySchema');
+const Property = require('./PropertySchema');
 const {addNewProperty} = require("./controllers/propertyController");
 
 const app = express();

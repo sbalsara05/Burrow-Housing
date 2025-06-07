@@ -6,7 +6,7 @@ import { AppDispatch } from '../../../redux/slices/store.ts'; // Import AppDispa
 import { logoutUser } from '../../../redux/slices/authSlice'; // Import logoutUser action
 
 interface DashboardHeaderOneProps {
-    isActive: boolean;
+    isActive?: boolean;
     setIsActive: (isActive: boolean) => void;
 }
 

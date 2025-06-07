@@ -1,10 +1,17 @@
 // frontend/components/dashboard/add-property/AddPropertyBody.tsx
-import React, { useState, useEffect } from "react";
-import { useDispatch, useSelector } from 'react-redux';
-import { Link, useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
-import { AppDispatch, RootState } from '../../../redux/slices/store.ts';
-import { addNewProperty, selectIsAddingProperty, selectPropertyError, clearPropertyError, fetchUserPropertyIds, Property } from '../../../redux/slices/propertySlice';
+import React, {useState, useEffect} from "react";
+import {useDispatch, useSelector} from 'react-redux';
+import {Link, useNavigate} from "react-router-dom";
+import {toast} from "react-toastify";
+import {AppDispatch} from '../../../redux/slices/store.ts';
+import {
+    addNewProperty,
+    selectIsAddingProperty,
+    selectPropertyError,
+    clearPropertyError,
+    // fetchUserPropertyIds,
+    // Property
+} from '../../../redux/slices/propertySlice';
 
 // Import sub-components
 import Overview from "./Overview";
@@ -25,10 +32,10 @@ interface NewPropertyData {
 }
 
 const initialFormData: Partial<NewPropertyData> = {
-    overview: { category: '', roomType: '', neighborhood: 'Any', rent: 0 },
-    listingDetails: { bedrooms: 1, bathrooms: 1, floorNo: 1, size: undefined },
+    overview: {category: '', roomType: '', neighborhood: 'Any', rent: 0},
+    listingDetails: {bedrooms: 1, bathrooms: 1, floorNo: 1, size: undefined},
     amenities: [],
-    addressAndLocation: { address: '', lat: 0, lng: 0 }, // 👈 UPDATED: Added lat/lng
+    addressAndLocation: {address: '', lat: 0, lng: 0}, // 👈 UPDATED: Added lat/lng
     leaseLength: '',
     description: '',
     buildingName: '',
@@ -43,7 +50,7 @@ const AddPropertyBody = () => {
     // --- Local State for ALL Form Fields ---
     const [formData, setFormData] = useState<Partial<NewPropertyData>>(initialFormData);
     // 👈 ADDED: Location state to track coordinates from the map
-    const [location, setLocation] = useState({ lat: 0, lng: 0 });
+    const [location, setLocation] = useState({lat: 0, lng: 0});
 
     // Clear errors on mount
     useEffect(() => {
@@ -95,15 +102,15 @@ const AddPropertyBody = () => {
 
     // Specific handler for amenities (checkboxes)
     const handleAmenityChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const { value, checked } = event.target;
+        const {value, checked} = event.target;
         setFormData(prev => {
             const currentAmenities = prev.amenities || [];
             if (checked) {
                 if (!currentAmenities.includes(value)) {
-                    return { ...prev, amenities: [...currentAmenities, value] };
+                    return {...prev, amenities: [...currentAmenities, value]};
                 }
             } else {
-                return { ...prev, amenities: currentAmenities.filter(a => a !== value) };
+                return {...prev, amenities: currentAmenities.filter(a => a !== value)};
             }
             return prev;
         });
@@ -115,21 +122,51 @@ const AddPropertyBody = () => {
         dispatch(clearPropertyError());
 
         // --- Validation (Client-side before sending) ---
-        if (!formData.overview?.category) { toast.error("Please select a Category."); return; }
-        if (!formData.overview?.roomType) { toast.error("Please select a Room Type."); return; }
-        if (!formData.overview?.neighborhood || formData.overview.neighborhood === 'Any') { toast.error("Please select a Neighborhood."); return; }
-        if (!formData.overview?.rent || formData.overview.rent <= 0) { toast.error("Please enter a valid Rent amount."); return; }
-        if (!formData.listingDetails?.bedrooms) { toast.error("Please select the number of Bedrooms."); return; }
-        if (!formData.listingDetails?.bathrooms) { toast.error("Please select the number of Bathrooms."); return; }
-        if (formData.listingDetails?.floorNo === undefined) { toast.error("Please select the Floor Number."); return; }
-        if (!formData.addressAndLocation?.address) { toast.error("Please provide the property address."); return; }
+        if (!formData.overview?.category) {
+            toast.error("Please select a Category.");
+            return;
+        }
+        if (!formData.overview?.roomType) {
+            toast.error("Please select a Room Type.");
+            return;
+        }
+        if (!formData.overview?.neighborhood || formData.overview.neighborhood === 'Any') {
+            toast.error("Please select a Neighborhood.");
+            return;
+        }
+        if (!formData.overview?.rent || formData.overview.rent <= 0) {
+            toast.error("Please enter a valid Rent amount.");
+            return;
+        }
+        if (!formData.listingDetails?.bedrooms) {
+            toast.error("Please select the number of Bedrooms.");
+            return;
+        }
+        if (!formData.listingDetails?.bathrooms) {
+            toast.error("Please select the number of Bathrooms.");
+            return;
+        }
+        if (formData.listingDetails?.floorNo === undefined) {
+            toast.error("Please select the Floor Number.");
+            return;
+        }
+        if (!formData.addressAndLocation?.address) {
+            toast.error("Please provide the property address.");
+            return;
+        }
         // 👈 ADDED: Validate coordinates
         if (!location.lat || !location.lng || location.lat === 0 || location.lng === 0) {
             toast.error("Please select a valid location on the map.");
             return;
         }
-        if (!formData.leaseLength) { toast.error("Please specify the lease length."); return; }
-        if (!formData.description) { toast.error("Please add a description."); return; }
+        if (!formData.leaseLength) {
+            toast.error("Please specify the lease length.");
+            return;
+        }
+        if (!formData.description) {
+            toast.error("Please add a description.");
+            return;
+        }
 
         console.log("Submitting Property Data:", formData);
         console.log("Location coordinates:", location); // 👈 ADDED: Log coordinates
@@ -165,7 +202,7 @@ const AddPropertyBody = () => {
         if (addNewProperty.fulfilled.match(resultAction)) {
             toast.success("Property added successfully!");
             setFormData(initialFormData); // Reset form state locally after success
-            setLocation({ lat: 0, lng: 0 }); // 👈 ADDED: Reset location coordinates
+            setLocation({lat: 0, lng: 0}); // 👈 ADDED: Reset location coordinates
             // navigate('/dashboard/properties-list'); // Optional: Navigate after success
         } else if (addNewProperty.rejected.match(resultAction)) {
             toast.error(resultAction.payload as string || "Failed to add property.");
@@ -175,7 +212,7 @@ const AddPropertyBody = () => {
     return (
         <div className="dashboard-body">
             <div className="position-relative">
-                <DashboardHeaderTwo title="Add New Property" />
+                <DashboardHeaderTwo title="Add New Property"/>
                 <h2 className="main-title d-block d-lg-none">Add New Property</h2>
 
                 {error && <div className="alert alert-danger mt-3">{error}</div>}
