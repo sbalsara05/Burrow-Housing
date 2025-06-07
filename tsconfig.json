@@ -1,0 +1,7 @@
+{
+  "compilerOptions": {
+    // ...existing code...
+    "esModuleInterop": true,
+    // ...existing code...
+  }
+}

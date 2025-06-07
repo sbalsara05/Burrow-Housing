@@ -5,7 +5,7 @@ import { GoogleOAuthProvider } from '@react-oauth/google';
 import './styles/index.scss'
 import { Provider } from "react-redux";
 import { PersistGate } from 'redux-persist/integration/react'; // Import PersistGate
-import store, { persistor } from './redux/store.ts'; // Import both store and persistor
+import store, { persistor } from './redux/slices/store.ts'; // Import both store and persistor
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
     <Provider store={store}>

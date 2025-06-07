@@ -1,7 +1,7 @@
 // frontend/redux/slices/profileSlice.ts
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import axios from 'axios';
-import { RootState } from '../store'; // Import RootState type
+import { RootState } from './store.ts'; // Import RootState type
 
 // --- Configuration ---
 const API_URL = 'http://localhost:3000/api'; // Ensure this matches your backend URL

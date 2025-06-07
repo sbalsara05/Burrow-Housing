@@ -4,7 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from 'react-redux'; // Import Redux hooks
 import DeleteModal from "../../../modals/DeleteModal"; // Keep if using delete modal
 import { logoutUser, selectCurrentUser } from '../../../redux/slices/authSlice'; // Import logout action and selector
-import { AppDispatch } from '../../../redux/store'; // Import AppDispatch
+import { AppDispatch } from '../../../redux/slices/store.ts'; // Import AppDispatch
 
 const Profile: React.FC = () => { // Use React.FC for type safety
     const dispatch = useDispatch<AppDispatch>();

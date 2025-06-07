@@ -5,7 +5,7 @@ import { toast } from "react-toastify";
 import { useDispatch, useSelector } from 'react-redux';
 // Use actions/selectors from authSlice for basic user details
 import { fetchUserProfile, updateUser, selectCurrentUser, selectAuthLoading, selectAuthError, clearAuthError, selectAuthStatus } from '../../../redux/slices/authSlice';
-import { AppDispatch, RootState } from '../../../redux/store';
+import { AppDispatch, RootState } from '../../../redux/slices/store.ts';
 
 const AccountSettingBody = () => {
     const dispatch = useDispatch<AppDispatch>();

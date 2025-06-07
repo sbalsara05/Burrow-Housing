@@ -7,7 +7,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import { Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from 'react-redux';
 import { loginUser, clearAuthError, selectAuthLoading, selectAuthError, selectIsVerificationRequired, resetVerificationFlag, selectOtpEmail } from '../../redux/slices/authSlice'; // Corrected import path
-import { AppDispatch, RootState } from '../../redux/store'; // Corrected import path
+import { AppDispatch, RootState } from '../../redux/slices/store.ts'; // Corrected import path
 
 // Define FormData interface locally or import if shared
 interface FormData {

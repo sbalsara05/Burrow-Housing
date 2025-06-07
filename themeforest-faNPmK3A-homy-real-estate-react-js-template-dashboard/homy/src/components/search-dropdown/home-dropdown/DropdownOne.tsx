@@ -2,7 +2,7 @@ import React, { useState } from "react"; // Import useState for local capture
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from 'react-redux';
 import NiceSelect from "../../../ui/NiceSelect";
-import { AppDispatch } from '../../../redux/store';
+import { AppDispatch } from '../../../redux/slices/store.ts';
 // Import filter actions
 import {
     setCategory,

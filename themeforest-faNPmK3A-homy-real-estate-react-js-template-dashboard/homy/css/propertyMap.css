@@ -1,0 +1,250 @@
+/* Property Map Custom Tailwind Styles */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+/* Custom animations and keyframes that aren't available in default Tailwind */
+@keyframes selectProperty {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.02); }
+    100% { transform: scale(1); }
+}
+
+.animate-select-property {
+    animation: selectProperty 0.5s ease-in-out;
+}
+
+/* Custom scrollbar styles (since Tailwind doesn't have comprehensive scrollbar utilities) */
+.property-list-scroll {
+    max-height: calc(100vh - 200px);
+    overflow-y: auto;
+}
+
+.property-list-scroll::-webkit-scrollbar {
+    @apply w-1.5;
+}
+
+.property-list-scroll::-webkit-scrollbar-track {
+    @apply bg-gray-100 rounded-sm;
+}
+
+.property-list-scroll::-webkit-scrollbar-thumb {
+    @apply bg-gray-400 rounded-sm hover:bg-gray-500;
+}
+
+/* Focus styles for accessibility */
+.property-marker:focus {
+    @apply outline-2 outline-blue-500 outline-offset-2;
+}
+
+.map-button:focus {
+    @apply outline-2 outline-blue-500 outline-offset-2;
+}
+
+/* Custom map overlay positioning (Google Maps specific) */
+.map-overlay {
+    position: absolute !important;
+    pointer-events: none;
+}
+
+.map-overlay > * {
+    pointer-events: auto;
+}
+
+/* Loading spinner for map */
+.map-loading-spinner {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* Responsive adjustments for map controls */
+@media (max-width: 640px) {
+    .map-controls-mobile {
+        @apply top-2 left-2 p-2;
+    }
+
+    .map-legend-mobile {
+        @apply flex-col items-start gap-1;
+    }
+}
+
+/* Custom styles for Google Maps info window content */
+.gm-style .property-info-content {
+    @apply p-0 m-0;
+}
+
+.gm-style .property-info-content h3 {
+    @apply text-lg font-semibold text-gray-800 m-0 mb-2;
+}
+
+.gm-style .property-info-content .property-address {
+    @apply text-sm text-gray-600 mb-2 flex items-center;
+}
+
+.gm-style .property-info-content .property-details {
+    @apply text-sm text-gray-600 mb-3 flex items-center;
+}
+
+.gm-style .property-info-content .property-price {
+    @apply text-xl font-bold text-red-500;
+}
+
+.gm-style .property-info-content .view-button {
+    @apply bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded font-medium transition-colors duration-200 border-none cursor-pointer;
+}
+
+/* Property card selection and hover states */
+.property-card-selected {
+    @apply border-blue-500 shadow-lg transform -translate-y-1 transition-all duration-300;
+}
+
+.property-card-hovered {
+    @apply shadow-md transform -translate-y-0.5 transition-all duration-300;
+}
+
+/* Map marker styles that work with Tailwind classes */
+.property-marker-base {
+    @apply text-white px-3 py-2 rounded-full font-bold text-sm shadow-lg border-2 border-white cursor-pointer transition-all duration-300 hover:scale-110;
+}
+
+.property-marker-affordable {
+    @apply bg-blue-500;
+}
+
+.property-marker-mid-range {
+    @apply bg-teal-500;
+}
+
+.property-marker-expensive {
+    @apply bg-red-500;
+}
+
+.property-marker-selected {
+    @apply scale-110 z-50;
+}
+
+/* Action button styles */
+.action-icon-button {
+    @apply bg-transparent border-0 text-gray-500 hover:text-blue-500 hover:bg-blue-50 p-2 rounded transition-all duration-200;
+}
+
+.action-icon-button.favorite {
+    @apply hover:text-red-500 hover:bg-red-50;
+}
+
+/* Map legend styles */
+.map-legend {
+    @apply bg-white rounded-xl p-3 shadow-md border border-gray-200;
+}
+
+.legend-item {
+    @apply flex items-center gap-1;
+}
+
+.legend-dot {
+    @apply w-3 h-3 rounded-full;
+}
+
+.legend-dot-affordable {
+    @apply bg-blue-500;
+}
+
+.legend-dot-mid-range {
+    @apply bg-teal-500;
+}
+
+.legend-dot-expensive {
+    @apply bg-red-500;
+}
+
+/* Property details badge */
+.property-details-badge {
+    @apply bg-black bg-opacity-75 text-white px-2 py-1 rounded-lg text-sm;
+}
+
+/* Amenities preview */
+.amenities-preview {
+    @apply text-sm text-gray-500;
+}
+
+/* Price display */
+.property-price-display {
+    @apply text-xl font-bold text-red-500;
+}
+
+/* Loading states */
+.map-loading-container {
+    @apply flex items-center justify-center h-full bg-gray-100 text-gray-600;
+}
+
+.loading-content {
+    @apply flex items-center space-x-2;
+}
+
+.loading-spinner {
+    @apply w-5 h-5 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin;
+}
+
+/* Responsive utilities for map */
+@media (max-width: 768px) {
+    .map-container-mobile {
+        @apply min-h-[300px] mb-8;
+    }
+
+    .property-info-mobile {
+        @apply w-60 p-3;
+    }
+
+    .property-info-mobile img {
+        @apply h-32;
+    }
+
+    .property-info-mobile h3 {
+        @apply text-base;
+    }
+
+    .property-info-mobile .property-price {
+        @apply text-lg;
+    }
+
+    .property-marker-mobile {
+        @apply px-2 py-1 text-xs;
+    }
+}
+
+/* Utility classes for z-index management */
+.z-map-marker {
+    z-index: 10;
+}
+
+.z-map-marker-selected {
+    z-index: 1000;
+}
+
+.z-map-overlay {
+    z-index: 10;
+}
+
+/* Custom transitions for smooth interactions */
+.transition-map-interaction {
+    @apply transition-all duration-300 ease-in-out;
+}
+
+/* Custom focus styles for better accessibility */
+.focus-ring-blue {
+    @apply focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2;
+}
+
+/* Property list container styles */
+.property-list-container {
+    @apply bg-gray-50 px-10 pt-9 pb-15;
+}
+
+@media (max-width: 768px) {
+    .property-list-container {
+        @apply px-4 pt-6 pb-10;
+    }
+}
