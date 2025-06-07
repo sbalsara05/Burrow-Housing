@@ -31,14 +31,10 @@ import {
 // Component imports (adjust paths as needed)
 import DropdownSeven from "../../search-dropdown/inner-dropdown/DropdownSeven";
 import NiceSelect from "../../../ui/NiceSelect";
-// import PropertyMap from './propertyMap';
-import SimplePropertyMap from "./SimplePropertyMap.tsx";
-import { usePropertyMap } from "../../../hooks/usePropertyMap";
+import PropertyMap from './propertyMap';
 
-// 👈 ADD THIS LINE HERE with your other component imports:
-import CoordinateFixer from './CoordinateFixer';
 
-const ITEMS_PER_PAGE = 8;
+const ITEMS_PER_PAGE = 4;
 
 // Client-Side Sorting Logic (updated to use imported Property type)
 const selectSortedPublicProperties = createSelector(
@@ -240,7 +236,6 @@ const ListingFourteenArea = () => {
                     />
                 </div>
             </div>
-             <CoordinateFixer properties={sortedProperties} />
 
 
             {/* Listing Area */}
@@ -248,13 +243,12 @@ const ListingFourteenArea = () => {
                 {/* Interactive Map Area - 👈 THIS IS WHERE THE MAP GOES */}
                 <div className="col-xxl-6 col-lg-5">
                     <div id="google-map-area" className="h-100 position-relative">
-                        {/* 👈 REPLACE YOUR OLD PROPERTYMAP WITH THIS: */}
-                        <SimplePropertyMap
+                        <PropertyMap
                             properties={sortedProperties}
                             selectedPropertyId={selectedPropertyId || hoveredPropertyId}
                             onPropertySelect={handlePropertySelect}
-                            mapHeight="100%"
-                            className="h-100"
+                            mapHeight="70%"
+                            className="h-full"
                         />
 
                         {/* Map Controls Overlay */}
