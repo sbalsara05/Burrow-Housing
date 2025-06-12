@@ -7,6 +7,7 @@ const authRoutes = require("./routes/authRoutes");
 const profileRoutes = require("./routes/profileRoutes");
 const propertyRoutes = require("./routes/propertyRoutes");
 const otpRoutes = require("./routes/otpRoutes");
+const nearbyRoutes = require("./routes/nearbyRoutes");
 const { getRedisClient } = require("./redis");
 const app = express();
 
@@ -49,6 +50,8 @@ app.use("/api", authRoutes); // Authentication routes (register, login)
 app.use("/api", profileRoutes); // Fetch Profile details
 app.use("/api", propertyRoutes);
 app.use("/api", otpRoutes); // OTP verification routes
+app.use("/api", nearbyRoutes); // Add this line
+
 
 // Start the Server
 const PORT = process.env.PORT || 3000; // Use a different port from React's default
