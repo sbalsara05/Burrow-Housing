@@ -50,11 +50,12 @@ app.use("/api", authRoutes); // Authentication routes (register, login)
 app.use("/api", profileRoutes); // Fetch Profile details
 app.use("/api", propertyRoutes);
 app.use("/api", otpRoutes); // OTP verification routes
-app.use("/api", nearbyRoutes); // Add this line
+app.use("/api", nearbyRoutes); // Nearby places routes
 
 
 // Start the Server
 const PORT = process.env.PORT || 3000; // Use a different port from React's default
 app.listen(PORT, () => {
 	console.log(`Server running on port ${PORT}`);
+	console.log("GOOGLE_PLACES_API_KEY loaded:", process.env.GOOGLE_PLACES_API_KEY ? "YES" : "NO");
 });

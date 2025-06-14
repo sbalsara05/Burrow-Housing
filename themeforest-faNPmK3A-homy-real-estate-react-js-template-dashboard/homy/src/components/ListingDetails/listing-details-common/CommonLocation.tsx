@@ -1,4 +1,3 @@
-// frontend/components/ListingDetails/listing-details-common/CommonLocation.tsx
 import React from 'react';
 
 // Accept location details (at least address) and property name

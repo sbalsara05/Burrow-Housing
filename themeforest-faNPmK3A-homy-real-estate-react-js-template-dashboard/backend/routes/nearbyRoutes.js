@@ -16,13 +16,23 @@ const getNearbyPlaces = async (req, res) => {
         }
 
         // Validate coordinates
-        const latitude = parseFloat(lat);
-        const longitude = parseFloat(lng);
-        
-        if (isNaN(latitude) || isNaN(longitude)) {
+        let latitude, longitude;
+
+        try {
+            latitude = parseFloat(lat);
+            longitude = parseFloat(lng);
+
+            // Check if they're valid numbers in a reasonable range
+            if (isNaN(latitude) || isNaN(longitude) || 
+                latitude < -90 || latitude > 90 || 
+                longitude < -180 || longitude > 180) {
+                throw new Error('Invalid coordinate range');
+            }
+        } catch (error) {
+            console.error('Coordinate parsing error:', error, { lat, lng });
             return res.status(400).json({
                 success: false,
-                message: 'Invalid coordinates provided'
+                message: 'The string did not match the expected pattern'
             });
         }
 
