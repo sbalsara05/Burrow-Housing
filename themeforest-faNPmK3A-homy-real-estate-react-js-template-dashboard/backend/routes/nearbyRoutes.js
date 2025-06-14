@@ -44,16 +44,16 @@ const getNearbyPlaces = async (req, res) => {
             return res.json({
                 success: true,
                 places: [
-                    { title: "School & College:", count: "0.8km" },
-                    { title: "Grocery Center:", count: "0.3km" },
-                    { title: "Metro Station:", count: "0.6km" },
-                    { title: "Gym:", count: "1.2km" },
-                    { title: "University:", count: "2.1km" },
-                    { title: "Hospital:", count: "1.5km" },
-                    { title: "Shopping Mall:", count: "0.9km" },
-                    { title: "Police Station:", count: "1.4km" },
-                    { title: "Bus Station:", count: "0.8km" },
-                    { title: "Market:", count: "2.8km" },
+                    { title: "School & College:", count: "0.5mi" },
+                    { title: "Grocery Center:", count: "0.2mi" },
+                    { title: "Metro Station:", count: "0.4mi" },
+                    { title: "Gym:", count: "0.7mi" },
+                    { title: "University:", count: "1.3mi" },
+                    { title: "Hospital:", count: "0.9mi" },
+                    { title: "Shopping Mall:", count: "0.6mi" },
+                    { title: "Police Station:", count: "0.9mi" },
+                    { title: "Bus Station:", count: "0.5mi" },
+                    { title: "Market:", count: "1.7mi" },
                 ]
             });
         }
@@ -80,19 +80,19 @@ const getNearbyPlaces = async (req, res) => {
                 const response = await fetch(
                     `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${latitude},${longitude}&radius=5000&type=${placeType.type}&key=${GOOGLE_PLACES_API_KEY}`
                 );
-                
+
                 const data = await response.json();
-                
+
                 if (data.results && data.results.length > 0) {
                     // Find the closest place of this type
                     const closest = data.results[0];
-                    
-                    // Calculate distance (rough estimation)
-                    const distance = calculateDistance(latitude, longitude, closest.geometry.location.lat, closest.geometry.location.lng);
-                    
+
+                    // Calculate distance in miles
+                    const distanceInMiles = calculateDistanceInMiles(latitude, longitude, closest.geometry.location.lat, closest.geometry.location.lng);
+
                     nearbyPlaces.push({
                         title: placeType.title,
-                        count: `${distance.toFixed(1)}km`
+                        count: `${distanceInMiles.toFixed(1)}mi`
                     });
                 } else {
                     // Add with unknown distance if not found
@@ -125,17 +125,17 @@ const getNearbyPlaces = async (req, res) => {
     }
 };
 
-// Helper function to calculate distance between two coordinates
-function calculateDistance(lat1, lon1, lat2, lon2) {
-    const R = 6371; // Radius of the Earth in km
+// Helper function to calculate distance between two coordinates in miles
+function calculateDistanceInMiles(lat1, lon1, lat2, lon2) {
+    const R = 3959; // Radius of the Earth in miles (instead of 6371 km)
     const dLat = (lat2 - lat1) * Math.PI / 180;
     const dLon = (lon2 - lon1) * Math.PI / 180;
-    const a = 
+    const a =
         Math.sin(dLat/2) * Math.sin(dLat/2) +
-        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
         Math.sin(dLon/2) * Math.sin(dLon/2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    const d = R * c; // Distance in km
+    const d = R * c; // Distance in miles
     return d;
 }
 
