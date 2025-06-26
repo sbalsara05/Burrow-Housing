@@ -3,8 +3,11 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const mongoose = require("mongoose");
 const Property = require("../models/propertyModel");
+const { geocodePropertyAddress } = require('../geocodingService');
+
 
 // controllers/propertyController.js
+
 
 const User = require("../models/userModel"); // User model
 const { json } = require("stream/consumers");

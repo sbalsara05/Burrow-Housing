@@ -1,3 +1,4 @@
+
 const mongoose = require('mongoose');
 
 const PropertySchema = new mongoose.Schema({
@@ -42,6 +43,13 @@ const PropertySchema = new mongoose.Schema({
   },
   addressAndLocation: {
     address: {type: String, required: true},
+    // Add coordinate fields
+    location: {
+      lat: { type: Number },
+      lng: { type: Number }
+    },
+    coordinateSource: { type: String }, // 'geocoded-google', 'geocoded-nominatim', 'neighborhood-fallback'
+    lastGeocoded: { type: Date }
   },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now }

@@ -102,6 +102,7 @@ const ListingDetailsOneArea = () => {
     // Prepare the location data to pass to CommonLocation
     const locationData = {
         // Try to get address from multiple possible locations in the property object
+        // This line might be causing issues:
         address: property.address ||
             (property.addressAndLocation?.address) ||
             `${property.title || property.name}, ${property.neighborhood || "Boston"}, MA`,
@@ -146,20 +147,10 @@ const ListingDetailsOneArea = () => {
                         </div>
 
                         {/* Amenities */}
-                        <div className="property-amenities bg-white shadow4 border-20 p-40 mb-50">
+                        <div className="property-amenities bg-white shadow4 border-20 p-40 mb-50 w-100">
                             {/* Pass amenities array from property object */}
                             <CommonAmenities amenities={property.amenities}/>
                         </div>
-
-                        {/*/!* Video Tour *!/*/}
-                        {/*<div className="property-video-tour mb-50">*/}
-                        {/*    /!* Pass video URL if available in property object *!/*/}
-                        {/*    <CommonPropertyVideoTour videoUrl={property.videoUrl}/>*/}
-                        {/*</div>*/}
-
-                        {/*/!* Floor Plan *!/*/}
-                        {/*/!* Pass floor plan data if available *!/*/}
-                        {/*<CommonPropertyFloorPlan floorPlans={property.floorPlans} style={false}/>*/}
 
                         {/* Nearby */}
                         <div className="property-nearby bg-white shadow4 border-20 p-40 mb-50">
@@ -167,8 +158,8 @@ const ListingDetailsOneArea = () => {
                             <CommonNearbyList
                                 location={{
                                     address: property.addressAndLocation.address,
-                                    latitude: property.addressAndLocation.location.lat,
-                                    longitude: property.addressAndLocation.location.lng
+                                    lat: property.addressAndLocation.location.lat,
+                                    lng: property.addressAndLocation.location.lng
                                 }}
                             />
 

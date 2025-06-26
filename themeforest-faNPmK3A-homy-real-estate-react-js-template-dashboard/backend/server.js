@@ -8,41 +8,41 @@ const profileRoutes = require("./routes/profileRoutes");
 const propertyRoutes = require("./routes/propertyRoutes");
 const otpRoutes = require("./routes/otpRoutes");
 const nearbyRoutes = require("./routes/nearbyRoutes");
-const { getRedisClient } = require("./redis");
+const {getRedisClient} = require("./redis");
 const app = express();
 
 // Middleware
 app.use(express.json());
 const corsOptions = {
-	origin: ["http://localhost:4173", "http://127.0.0.1:4173","http://localhost:5173", "http://127.0.0.1:5173"], // Allow this specific origin
-	methods: ["GET", "POST", "PUT", "DELETE"],
-	optionsSuccessStatus: 200,
+    origin: ["http://localhost:4173", "http://127.0.0.1:4173", "http://localhost:5173", "http://127.0.0.1:5173"], // Allow this specific origin
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    optionsSuccessStatus: 200,
 };
 app.use(cors(corsOptions));
 
 // MongoDB Connection
 const uri =
-	process.env.MONGODB_URI;
-mongoose.connect(uri, { useNewUrlParser: true, useUnifiedTopology: true })
-	.then(() => console.log("MongoDB connected"))
-	.catch((err) => console.error("Connection error:", err));
+    process.env.MONGODB_URI;
+mongoose.connect(uri, {useNewUrlParser: true, useUnifiedTopology: true})
+    .then(() => console.log("MongoDB connected"))
+    .catch((err) => console.error("Connection error:", err));
 
 // Initialize Redis connection
 (async () => {
-	try {
-		await getRedisClient();
-		console.log("Redis initialized successfully");
-	} catch (error) {
-		console.error("Failed to initialize Redis:", error);
-	}
+    try {
+        await getRedisClient();
+        console.log("Redis initialized successfully");
+    } catch (error) {
+        console.error("Failed to initialize Redis:", error);
+    }
 })();
 
 // API Routes
 app.get("/api/data", (req, res) => {
-	res.json({
-		message: "Hello from the backend!",
-		data: [1, 2, 3, 4],
-	});
+    res.json({
+        message: "Hello from the backend!",
+        data: [1, 2, 3, 4],
+    });
 });
 
 // Routes
@@ -56,6 +56,7 @@ app.use("/api", nearbyRoutes); // Nearby places routes
 // Start the Server
 const PORT = process.env.PORT || 3000; // Use a different port from React's default
 app.listen(PORT, () => {
-	console.log(`Server running on port ${PORT}`);
-	console.log("GOOGLE_PLACES_API_KEY loaded:", process.env.GOOGLE_PLACES_API_KEY ? "YES" : "NO");
+    console.log(`Server running on port ${PORT}`);
+    console.log("GOOGLE_PLACES_API_KEY loaded:", process.env.GOOGLE_PLACES_API_KEY ? "YES" : "NO");
+    console.log("FOURSQUARE_API_KEY loaded:", process.env.FOURSQUARE_API_KEY ? "YES" : "NO");
 });

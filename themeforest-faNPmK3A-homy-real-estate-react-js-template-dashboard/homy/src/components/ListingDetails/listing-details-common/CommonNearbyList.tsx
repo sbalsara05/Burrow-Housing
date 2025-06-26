@@ -1,3 +1,4 @@
+
 // frontend/components/ListingDetails/listing-details-common/CommonNearbyList.tsx
 import React, { useState, useEffect } from 'react';
 
@@ -7,8 +8,8 @@ const API_BASE_URL = 'http://localhost:3000';
 // Define props interface (accepting location object)
 interface LocationData {
     address: string;
-    latitude?: number;
-    longitude?: number;
+    lat?: number;
+    lng?: number;
 }
 
 interface CommonNearbyListProps {
@@ -35,90 +36,111 @@ const CommonNearbyList: React.FC<CommonNearbyListProps> = ({ location }) => {
     const [nearbyPlaces, setNearbyPlaces] = useState(static_list_data);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [dataSource, setDataSource] = useState<string>('static'); // Track data source
 
     // Effect to fetch nearby places using location prop
     useEffect(() => {
         // Add debugging to see what we're actually receiving
-        console.log("🔍 Debug - Raw location prop:", location);
-        console.log("🔍 Debug - latitude:", location?.latitude, "type:", typeof location?.latitude);
-        console.log("🔍 Debug - longitude:", location?.longitude, "type:", typeof location?.longitude);
+        console.log("🔍 DEBUG - Raw location prop:", location);
+        console.log("🔍 DEBUG - lat:", location?.lat, "type:", typeof location?.lat);
+        console.log("🔍 DEBUG - lng:", location?.lng, "type:", typeof location?.lng);
 
-        if (location?.latitude !== undefined && location?.longitude !== undefined) {
+        if (location?.lat !== undefined && location?.lng !== undefined) {
             const fetchNearby = async () => {
                 setIsLoading(true);
                 setError(null);
+                console.log("🚀 STARTING API CALL...");
+
                 try {
                     // Ensure we have valid numeric coordinates
-                    const lat = parseFloat(String(location.latitude));
-                    const lng = parseFloat(String(location.longitude));
+                    const lat = parseFloat(String(location.lat));
+                    const lng = parseFloat(String(location.lng));
 
-                    console.log("🔍 Debug - Parsed lat:", lat, "lng:", lng);
+                    console.log("🔍 DEBUG - Parsed lat:", lat, "lng:", lng);
 
                     if (isNaN(lat) || isNaN(lng)) {
                         throw new Error('Invalid coordinates');
                     }
 
-                    console.log(`Fetching nearby places for coordinates: ${lat}, ${lng}`);
+                    console.log(`📡 Fetching nearby places for coordinates: ${lat}, ${lng}`);
                     const url = `${API_BASE_URL}/api/nearby?lat=${lat}&lng=${lng}`;
-                    console.log("🔍 Debug - Fetch URL:", url);
+                    console.log("🔗 DEBUG - Fetch URL:", url);
 
                     const response = await fetch(url);
-                    console.log("🔍 Debug - Response status:", response.status);
-                    console.log("🔍 Debug - Response ok:", response.ok);
+                    console.log("📊 DEBUG - Response status:", response.status);
+                    console.log("✅ DEBUG - Response ok:", response.ok);
 
                     if (!response.ok) {
                         const errorText = await response.text();
-                        console.log("🔍 Debug - Response error text:", errorText);
-                        throw new Error(`Failed to fetch nearby places: ${response.statusText}`);
+                        console.log("❌ DEBUG - Response error text:", errorText);
+                        throw new Error(`Failed to fetch nearby places: ${response.status} ${response.statusText}`);
                     }
 
                     const data = await response.json();
-                    console.log("🔍 Debug - Response data:", data);
+                    console.log("📦 DEBUG - Response data:", data);
 
                     if (data.success && data.places && data.places.length > 0) {
                         setNearbyPlaces(data.places);
-                        console.log('Successfully fetched nearby places:', data.places);
+                        setDataSource('API');
+                        console.log('✅ SUCCESS: Fetched nearby places from API:', data.places);
+
+                        // Log the first few results for debugging
+                        data.places.slice(0, 3).forEach((place: any, i: number) => {
+                            console.log(`   ${i + 1}. ${place.title} - ${place.count}`);
+                        });
                     } else {
-                        console.warn("No nearby places found, using static data");
+                        console.warn("⚠️ No nearby places found in API response, using static data");
+                        console.log("🔍 API Response details:", { success: data.success, places: data.places });
                         setNearbyPlaces(static_list_data);
+                        setDataSource('static-fallback');
                     }
                 } catch (error) {
-                    console.error("🔍 Debug - Full error object:", error);
-                    console.error("🔍 Debug - Error name:", error?.name);
-                    console.error("🔍 Debug - Error message:", error?.message);
-                    console.error("🔍 Debug - Error stack:", error?.stack);
+                    console.error("❌ DEBUG - Full error object:", error);
+                    console.error("❌ DEBUG - Error name:", (error as Error)?.name);
+                    console.error("❌ DEBUG - Error message:", (error as Error)?.message);
 
                     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-
-                    if (errorMessage.includes('did not match the expected pattern')) {
-                        setError('Coordinate format is invalid');
-                    } else {
-                        setError(errorMessage);
-                    }
-
+                    setError(errorMessage);
                     setNearbyPlaces(static_list_data); // Fallback to static on error
+                    setDataSource('static-error');
+
+                    console.log("🔄 Falling back to static data due to error");
                 } finally {
                     setIsLoading(false);
+                    console.log("🏁 API CALL COMPLETED");
                 }
             };
 
             fetchNearby();
         } else {
             // Use static data if no coordinates provided
-            console.log("No coordinates available, using static nearby data");
+            console.log("📍 No coordinates available, using static nearby data");
+            console.log("🔍 Missing:", {
+                hasLat: location?.lat !== undefined,
+                hasLng: location?.lng !== undefined,
+                lat: location?.lat,
+                lng: location?.lng
+            });
             setNearbyPlaces(static_list_data);
+            setDataSource('static-no-coords');
         }
-    }, [location?.latitude, location?.longitude]); // Refetch if coordinates change
+    }, [location?.lat, location?.lng]); // Updated dependency array
 
     return (
         <>
             <h4 className="mb-20">What's Nearby</h4>
             <p className="fs-20 lh-lg pb-30">
-                {location?.latitude && location?.longitude
+                {location?.lat && location?.lng
                     ? `Real-time distances to points of interest near ${location?.address || 'this location'}.`
                     : `Approximate distances to points of interest near ${location?.address || 'the property'}.`
                 }
             </p>
+
+            {/* DEBUG INFO - Remove this in production */}
+            <div className="alert alert-info mb-3" style={{ fontSize: '12px' }}>
+                <strong>DEBUG:</strong> Data source: <code>{dataSource}</code> |
+                Coords: <code>({location?.lat}, {location?.lng})</code>
+            </div>
 
             {isLoading && (
                 <div className="d-flex align-items-center mb-3">
