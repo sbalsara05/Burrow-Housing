@@ -1,11 +1,9 @@
-// frontend/components/ListingDetails/listing-details-common/CommonLocation.tsx
 import React from 'react';
 
-// Accept location details (at least address) and property name
 interface LocationData {
     address: string;
-    latitude?: number; // Optional coordinates
-    longitude?: number;
+    lat?: number;     // ✅ Changed from latitude
+    lng?: number;     // ✅ Changed from longitude
 }
 
 interface CommonLocationProps {
@@ -18,8 +16,8 @@ const CommonLocation: React.FC<CommonLocationProps> = ({ location, propertyName 
     // Construct map URL based on available location information
     const mapSrc = (() => {
         // If we have coordinates, use them directly (most precise)
-        if (location?.latitude && location?.longitude) {
-            return `https://www.google.com/maps/embed/v1/place?key=AIzaSyAkii4DFVqlM4poc0fHnHu0V91xkUVlvjQ&q=${location.latitude},${location.longitude}&zoom=14`;
+        if (location?.lat && location?.lng) {
+            return `https://www.google.com/maps/embed/v1/place?key=AIzaSyAkii4DFVqlM4poc0fHnHu0V91xkUVlvjQ&q=${location.lat},${location.lng}&zoom=14`;
         }
         // If we have an address but no coordinates, use the address
         else if (location?.address) {
@@ -30,6 +28,7 @@ const CommonLocation: React.FC<CommonLocationProps> = ({ location, propertyName 
         // Fallback to a default location
         return "https://www.google.com/maps/embed/v1/place?key=AIzaSyAkii4DFVqlM4poc0fHnHu0V91xkUVlvjQ&q=Boston,MA&zoom=12";
     })();
+
 
     // Customize the location title with property name if available
     const locationTitle = propertyName

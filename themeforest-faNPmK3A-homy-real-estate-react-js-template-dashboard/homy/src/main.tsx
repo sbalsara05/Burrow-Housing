@@ -3,6 +3,8 @@ import ReactDOM from 'react-dom/client'
 import App from './App.tsx'
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import './styles/index.scss'
+import "./styles/bootstrap-bridge-tailwind.scss"
+// import "./styles/tailwind.scss"
 import { Provider } from "react-redux";
 import { PersistGate } from 'redux-persist/integration/react'; // Import PersistGate
 import store, { persistor } from './redux/slices/store.ts'; // Import both store and persistor
