@@ -33,163 +33,105 @@ const getNearbyPlaces = async (req, res) => {
         }
 
         console.log(`🔍 Searching for nearby places from: ${latitude}, ${longitude}`);
-        
-        // TEST: Calculate distance to known locations for debugging
-        console.log('\n🧪 DEBUG: Testing distance calculations...');
-        
-        // Prudential Center coordinates (known location)
-        const prudentialLat = 42.3467;
-        const prudentialLng = -71.0972;
-        
-        // Calculate distance using our function
-        const distanceToPrudential = calculateDistanceInMiles(latitude, longitude, prudentialLat, prudentialLng);
-        console.log(`📏 Distance to Prudential Center: ${distanceToPrudential.toFixed(2)}mi`);
-        console.log(`📍 Your property coords: (${latitude}, ${longitude})`);
-        console.log(`📍 Prudential coords: (${prudentialLat}, ${prudentialLng})`);
-        
-        // Test if this matches Google's calculation
-        console.log(`🔗 Google Maps distance check: https://www.google.com/maps/dir/${latitude},${longitude}/${prudentialLat},${prudentialLng}`);
 
-        // Helper function to filter out sub-schools and departments
-        const isMainUniversity = (name) => {
-            if (!name) return false;
-            
-            const nameLower = name.toLowerCase();
-            
-            // Exclude sub-schools, departments, and specific buildings
-            const excludeKeywords = [
-                'school of', 'college of', 'department of', 'faculty of',
-                'institute of', 'center for', 'centre for', 'division of',
-                'building', 'hall', 'library', 'laboratory', 'lab',
-                'campus', 'dormitory', 'residence', 'dining',
-                'medical school', 'law school', 'business school',
-                'graduate school', 'dental school', 'nursing school'
-            ];
-            
-            // Return false if name contains any exclude keywords
-            for (const keyword of excludeKeywords) {
-                if (nameLower.includes(keyword)) {
-                    return false;
-                }
-            }
-            
-            // Only include if it contains main university keywords
-            const includeKeywords = [
-                'university', 'college', 'institute of technology',
-                'polytechnic', 'academy'
-            ];
-            
-            return includeKeywords.some(keyword => nameLower.includes(keyword));
-        };
-
-        // Define place types with OpenStreetMap tags and search radius
+        // Define place types with Google Places API types
         const placeTypes = [
             {
                 categoryTitle: 'University:',
-                osmTags: ['amenity=university', 'amenity=college'],
+                type: 'university',
                 searchRadius: 25000, // 25km for universities
-                customFilter: isMainUniversity // Add custom filter for universities
             },
             {
                 categoryTitle: 'Grocery Store:',
-                osmTags: ['shop=supermarket', 'shop=grocery', 'shop=convenience'],
+                type: 'grocery_or_supermarket',
                 searchRadius: 8000, // 8km for grocery stores
             },
             {
                 categoryTitle: 'Metro Station:',
-                osmTags: ['public_transport=station', 'railway=subway_entrance', 'railway=station'],
+                type: 'subway_station',
                 searchRadius: 8000, // 8km for metro stations
             },
             {
                 categoryTitle: 'Gym:',
-                osmTags: ['leisure=fitness_centre', 'leisure=sports_centre'],
+                type: 'gym',
                 searchRadius: 10000, // 10km for gyms
             },
             {
                 categoryTitle: 'Hospital:',
-                osmTags: ['amenity=hospital', 'healthcare=hospital'],
+                type: 'hospital',
                 searchRadius: 25000, // 25km for hospitals
             },
             {
                 categoryTitle: 'Shopping Mall:',
-                osmTags: ['shop=mall', 'amenity=marketplace'],
+                type: 'shopping_mall',
                 searchRadius: 20000, // 20km for shopping malls
             },
             {
                 categoryTitle: 'Police Station:',
-                osmTags: ['amenity=police'],
+                type: 'police',
                 searchRadius: 15000, // 15km for police stations
             },
             {
                 categoryTitle: 'Bus Station:',
-                osmTags: ['amenity=bus_station', 'public_transport=platform', 'highway=bus_stop'],
+                type: 'bus_station',
                 searchRadius: 5000, // 5km for bus stations
             },
             {
                 categoryTitle: 'Market:',
-                osmTags: ['amenity=marketplace', 'shop=wholesale'],
+                type: 'supermarket',
                 searchRadius: 10000, // 10km for markets
             }
         ];
 
         const nearbyPlaces = [];
 
-        // Search for each place type using Overpass API
+        // Search for each place type using Google Places API
         for (const placeType of placeTypes) {
             try {
-                console.log(`\n🔍 Searching for ${placeType.categoryTitle} using OpenStreetMap...`);
-                
-                // Build Overpass query for this place type
-                const tagQueries = placeType.osmTags.map(tag => 
-                    `node["${tag.split('=')[0]}"="${tag.split('=')[1]}"](around:${placeType.searchRadius},${latitude},${longitude});`
-                ).join('\n  ');
+                console.log(`\n🔍 Searching for ${placeType.categoryTitle} using Google Places API...`);
 
-                const overpassQuery = `[out:json][timeout:25];
-(
-  ${tagQueries}
-);
-out center;`;
+                // Build Google Places API URL (Nearby Search)
+                const googlePlacesUrl = new URL('https://maps.googleapis.com/maps/api/place/nearbysearch/json');
+                googlePlacesUrl.searchParams.append('location', `${latitude},${longitude}`);
+                googlePlacesUrl.searchParams.append('radius', placeType.searchRadius.toString());
+                googlePlacesUrl.searchParams.append('type', placeType.type);
+                googlePlacesUrl.searchParams.append('key', process.env.GOOGLE_PLACES_API_KEY);
 
-                const response = await fetch('https://overpass-api.de/api/interpreter', {
-                    method: 'POST',
+                console.log(`🔗 Google Places URL: ${googlePlacesUrl.toString()}`);
+
+                const response = await fetch(googlePlacesUrl, {
+                    method: 'GET',
                     headers: {
-                        'Content-Type': 'text/plain',
-                    },
-                    body: overpassQuery
+                        'Accept': 'application/json'
+                    }
                 });
 
                 if (!response.ok) {
-                    throw new Error(`Overpass API error: ${response.status} ${response.statusText}`);
+                    throw new Error(`Google Places API error: ${response.status} ${response.statusText}`);
                 }
 
                 const data = await response.json();
-                console.log(`📊 Raw results returned: ${data.elements?.length || 0}`);
+                console.log(`📊 Raw results returned: ${data.results?.length || 0}`);
 
-                if (data.elements && data.elements.length > 0) {
+                if (data.status === 'OK' && data.results && data.results.length > 0) {
                     // Calculate distance for all results
-                    let resultsWithDistance = data.elements.map(place => {
+                    let resultsWithDistance = data.results.map(place => {
                         const distance = calculateDistanceInMiles(
                             latitude,
                             longitude,
-                            place.lat,
-                            place.lon
+                            place.geometry.location.lat,
+                            place.geometry.location.lng
                         );
-                        
+
                         return {
                             ...place,
                             calculatedDistance: distance,
-                            name: place.tags?.name || place.tags?.operator || 'Unknown Place'
+                            placeName: place.name || 'Unknown Place'
                         };
-                    }).filter(place => place.name !== 'Unknown Place'); // Filter out places without names
-
-                    // Apply custom filter if it exists (for universities)
-                    if (placeType.customFilter) {
-                        const beforeFilter = resultsWithDistance.length;
-                        resultsWithDistance = resultsWithDistance.filter(place => 
-                            placeType.customFilter(place.name)
-                        );
-                        console.log(`🎓 Filtered ${beforeFilter} results down to ${resultsWithDistance.length} main universities`);
-                    }
+                    }).filter(place =>
+                        place.placeName !== 'Unknown Place' &&
+                        place.business_status !== 'CLOSED_PERMANENTLY'
+                    );
 
                     if (resultsWithDistance.length > 0) {
                         // Sort by distance (closest first)
@@ -197,24 +139,24 @@ out center;`;
 
                         // Take the closest one
                         const closest = resultsWithDistance[0];
-                        const placeName = closest.name;
-                        const fullTitle = `${placeType.categoryTitle} ${placeName}`;
+                        const placeName = closest.placeName;
 
                         nearbyPlaces.push({
-                            title: fullTitle,
+                            title: `${placeType.categoryTitle} ${placeName}`,
                             count: `${closest.calculatedDistance.toFixed(1)}mi`
                         });
 
                         console.log(`✅ ${placeType.categoryTitle}`);
-                        console.log(`   📍 Closest: ${closest.name}`);
+                        console.log(`   📍 Closest: ${closest.placeName}`);
                         console.log(`   📏 Distance: ${closest.calculatedDistance.toFixed(2)}mi`);
-                        console.log(`   🗺️  Coordinates: (${closest.lat}, ${closest.lon})`);
-                        
-                        // Enhanced debugging for first few results
-                        if (placeType.categoryTitle === 'University:' && resultsWithDistance.length > 1) {
-                            console.log(`\n   🎓 TOP 3 MAIN UNIVERSITIES FOUND:`);
+                        console.log(`   🗺️  Coordinates: (${closest.geometry.location.lat}, ${closest.geometry.location.lng})`);
+                        console.log(`   ⭐ Rating: ${closest.rating || 'N/A'}`);
+
+                        // Show top 3 results for debugging
+                        if (resultsWithDistance.length > 1) {
+                            console.log(`\n   🏆 TOP 3 ${placeType.categoryTitle.toUpperCase()} FOUND:`);
                             resultsWithDistance.slice(0, 3).forEach((result, i) => {
-                                console.log(`   ${i + 1}. ${result.name} - ${result.calculatedDistance.toFixed(2)}mi at (${result.lat}, ${result.lon})`);
+                                console.log(`   ${i + 1}. ${result.placeName} - ${result.calculatedDistance.toFixed(2)}mi (Rating: ${result.rating || 'N/A'})`);
                             });
                         }
                     } else {
@@ -224,16 +166,22 @@ out center;`;
                             count: 'N/A'
                         });
                     }
-                } else {
+                } else if (data.status === 'ZERO_RESULTS') {
                     console.log(`❌ No results found for ${placeType.categoryTitle}`);
+                    nearbyPlaces.push({
+                        title: placeType.categoryTitle,
+                        count: 'N/A'
+                    });
+                } else {
+                    console.log(`❌ API Error for ${placeType.categoryTitle}: ${data.status} - ${data.error_message || 'Unknown error'}`);
                     nearbyPlaces.push({
                         title: placeType.categoryTitle,
                         count: 'N/A'
                     });
                 }
 
-                // Add small delay to avoid overwhelming Overpass API
-                await new Promise(resolve => setTimeout(resolve, 100));
+                // Small delay to avoid rate limiting
+                await new Promise(resolve => setTimeout(resolve, 200));
 
             } catch (error) {
                 console.error(`❌ Error fetching ${placeType.categoryTitle}:`, error.message);
@@ -247,11 +195,10 @@ out center;`;
         res.json({
             success: true,
             places: nearbyPlaces,
-            dataSource: 'OpenStreetMap via Overpass API',
+            dataSource: 'Google Places API',
             debug: {
                 propertyCoords: `${latitude}, ${longitude}`,
-                distanceToPrudential: `${distanceToPrudential.toFixed(2)}mi`,
-                googleMapsCheck: `https://www.google.com/maps/dir/${latitude},${longitude}/${prudentialLat},${prudentialLng}`
+                totalResults: nearbyPlaces.length
             }
         });
 
@@ -265,32 +212,22 @@ out center;`;
     }
 };
 
-// Enhanced distance calculation with better precision
+// Distance calculation function (Haversine formula)
 function calculateDistanceInMiles(lat1, lon1, lat2, lon2) {
-    // Ensure all values are properly converted to numbers
     const lat1Rad = parseFloat(lat1) * Math.PI / 180;
     const lon1Rad = parseFloat(lon1) * Math.PI / 180;
     const lat2Rad = parseFloat(lat2) * Math.PI / 180;
     const lon2Rad = parseFloat(lon2) * Math.PI / 180;
-    
+
     const R = 3959; // Radius of the Earth in miles
     const dLat = lat2Rad - lat1Rad;
     const dLon = lon2Rad - lon1Rad;
-    
+
     const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-              Math.cos(lat1Rad) * Math.cos(lat2Rad) * 
+              Math.cos(lat1Rad) * Math.cos(lat2Rad) *
               Math.sin(dLon/2) * Math.sin(dLon/2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
     const distance = R * c;
-    
-    // Debug logging for first calculation
-    if (typeof calculateDistanceInMiles.firstCall === 'undefined') {
-        calculateDistanceInMiles.firstCall = true;
-        console.log(`🧮 Distance calculation debug:`);
-        console.log(`   Point 1: (${lat1}, ${lon1})`);
-        console.log(`   Point 2: (${lat2}, ${lon2})`);
-        console.log(`   Calculated distance: ${distance.toFixed(4)} miles`);
-    }
     
     return distance;
 }

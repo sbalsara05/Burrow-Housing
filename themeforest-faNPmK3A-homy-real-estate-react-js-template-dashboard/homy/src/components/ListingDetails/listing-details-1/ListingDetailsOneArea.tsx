@@ -22,8 +22,6 @@ import CommonBanner from "../listing-details-common/CommonBanner"; // Needs 'pro
 import CommonPropertyOverview from "../listing-details-common/CommonPropertyOverview"; // Needs 'property' prop
 import CommonPropertyFeatureList from "../listing-details-common/CommonPropertyFeatureList"; // Needs 'property' prop
 import CommonAmenities from "../listing-details-common/CommonAmenities"; // Needs 'amenities' prop from property
-import CommonPropertyVideoTour from "../listing-details-common/CommonPropertyVideoTour"; // Needs 'videoUrl' prop (if exists)
-import CommonPropertyFloorPlan from "../listing-details-common/CommonPropertyFloorPlan"; // Needs 'floorPlans' prop (if exists)
 import CommonNearbyList from "../listing-details-common/CommonNearbyList"; // Needs 'location' prop
 import CommonSimilarProperty from "../listing-details-common/CommonSimilarProperty"; // Needs 'currentPropertyId' prop
 import CommonProPertyScore from "../listing-details-common/CommonProPertyScore"; // Needs 'property' prop (or specific score data)
@@ -124,21 +122,22 @@ const ListingDetailsOneArea = () => {
                 <CommonBanner property={property}/>
                 <MediaGallery property={property}/> {/* Modify if gallery images come from property.images */}
 
-                <div className="property-feature-list bg-white shadow4 border-20 p-40 mt-50 mb-60">
+                <div className="property-feature-list bg-white shadow4 bg-whiterounded p-40 mt-50 mb-60">
                     <h4 className="sub-title-one mb-40 lg-mb-20">Property Overview</h4>
                     <CommonPropertyOverview property={property}/>
                 </div>
 
+
                 <div className="row">
                     <div className="col-xl-8">
                         {/* Overview Description */}
-                        <div className="property-overview mb-50 bg-white shadow4 border-20 p-40">
+                        <div className="property-overview mb-50 bg-white shadow4  p-40">
                             <h4 className="mb-20">Overview</h4>
                             <p className="fs-20 lh-lg">{property.description || "No detailed description available."}</p>
                         </div>
 
                         {/* Property Features */}
-                        <div className="property-feature-accordion bg-white shadow4 border-20 p-40 mb-50">
+                        <div className="property-feature-accordion bg-white shadow4 p-40 mb-50">
                             <h4 className="mb-20">Property Features</h4>
                             <p className="fs-20 lh-lg">Detailed characteristics of the property.</p>
                             <div className="accordion-style-two mt-45">
@@ -146,14 +145,15 @@ const ListingDetailsOneArea = () => {
                             </div>
                         </div>
 
+
                         {/* Amenities */}
-                        <div className="property-amenities bg-white shadow4 border-20 p-40 mb-50 w-100">
+                        <div className="property-amenities rounded shadow4 bg-white p-40 mb-50">
                             {/* Pass amenities array from property object */}
                             <CommonAmenities amenities={property.amenities}/>
                         </div>
 
                         {/* Nearby */}
-                        <div className="property-nearby bg-white shadow4 border-20 p-40 mb-50">
+                        <div className=" bg-white shadow4 p-40 mb-50">
                             {/* Pass location details */}
                             <CommonNearbyList
                                 location={{
@@ -169,14 +169,14 @@ const ListingDetailsOneArea = () => {
                         {/* Pass current property ID to find similar ones */}
                         <CommonSimilarProperty currentPropertyId={property._id}/>
 
-                        {/* Walk Score */}
-                        <div className="property-score bg-white shadow4 border-20 p-40 mb-50">
-                            {/* Pass relevant data if score depends on property */}
-                            <CommonProPertyScore property={property}/>
-                        </div>
+                        {/* Walk Score  (come back to this)*/}
+                        {/*<div className="property-score bg-white shadow4 p-40 mb-50 ">*/}
+                        {/*    /!* Pass relevant data if score depends on property *!/*/}
+                        {/*    <CommonProPertyScore property={property}/>*/}
+                        {/*</div>*/}
 
                         {/* Location Map */}
-                        <div className="property-location mb-50">
+                        <div className="property-location mb-50 tw-w-full ">
                             <CommonLocation
                                 location={locationData}
                                 propertyName={property.title || property.name}
@@ -184,7 +184,7 @@ const ListingDetailsOneArea = () => {
                         </div>
 
                         {/* Reviews */}
-                        <div className="review-panel-one bg-white shadow4 border-20 p-40 mb-50">
+                        <div className="review-panel-one bg-white shadow4 p-40 mb-50">
                             <div className="position-relative z-1">
                                 <div className="d-sm-flex justify-content-between align-items-center mb-10">
                                     <h4 className="m0 xs-pb-30">Reviews</h4>

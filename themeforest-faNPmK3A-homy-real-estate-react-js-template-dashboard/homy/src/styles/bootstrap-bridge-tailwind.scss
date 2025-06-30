@@ -1,0 +1,98 @@
+// Bootstrap + Tailwind Bridge Styles
+// Add this file after your main imports
+
+// Fix width conflicts
+.w-100 {
+  width: 100% !important;
+}
+
+.mw-100 {
+  max-width: 100% !important;
+}
+
+// Fix container issues
+.container,
+.container-fluid {
+  &.full-width {
+    width: 100% !important;
+    max-width: none !important;
+    padding-left: 15px !important;
+    padding-right: 15px !important;
+  }
+}
+
+// Dashboard specific fixes
+.dashboard-body {
+  width: 100% !important;
+
+  .bg-white {
+    background-color: #ffffff !important;
+  }
+
+  .card-box {
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+}
+
+// Property listing fixes
+.property-list-container {
+  width: 100% !important;
+
+  .row {
+    margin-left: -15px !important;
+    margin-right: -15px !important;
+
+    > [class*="col-"] {
+      padding-left: 15px !important;
+      padding-right: 15px !important;
+    }
+  }
+}
+
+// Form elements fixes
+.dash-input-wrapper {
+  width: 100% !important;
+
+  input,
+  select,
+  textarea {
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+}
+
+// Button fixes
+.btn,
+.dash-btn-two,
+.dash-cancel-btn {
+  display: inline-block !important;
+  box-sizing: border-box !important;
+}
+
+// Table responsive fixes
+.table-responsive {
+  width: 100% !important;
+  overflow-x: auto !important;
+
+  table {
+    width: 100% !important;
+    min-width: 100% !important;
+  }
+}
+
+// Card component fixes
+.listing-card-one,
+.property-card {
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+// Utility classes for Tailwind override when needed
+.tw-important {
+  // Use this class to make Tailwind utilities more specific
+  &.tw-w-full { width: 100% !important; }
+  &.tw-max-w-none { max-width: none !important; }
+  &.tw-p-4 { padding: 1rem !important; }
+  &.tw-m-0 { margin: 0 !important; }
+}

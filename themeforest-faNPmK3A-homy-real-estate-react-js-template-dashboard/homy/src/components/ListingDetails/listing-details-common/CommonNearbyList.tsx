@@ -1,6 +1,5 @@
-
 // frontend/components/ListingDetails/listing-details-common/CommonNearbyList.tsx
-import React, { useState, useEffect } from 'react';
+import React, {useState, useEffect} from 'react';
 
 // Add this at the top of your file
 const API_BASE_URL = 'http://localhost:3000';
@@ -18,20 +17,20 @@ interface CommonNearbyListProps {
 
 // Static data as fallback
 const static_list_data = [
-    { title: "School & College:", count: "0.9km" },
-    { title: "Grocery Center:", count: "0.2km" },
-    { title: "Metro Station:", count: "0.7km" },
-    { title: "Gym:", count: "2.3km" },
-    { title: "University:", count: "2.7km" },
-    { title: "Hospital:", count: "1.7km" },
-    { title: "Shopping Mall:", count: "1.1km" },
-    { title: "Police Station:", count: "1.2km" },
-    { title: "Bus Station:", count: "1.1km" },
-    { title: "River:", count: "3.1km" },
-    { title: "Market:", count: "3.4km" },
+    {title: "School & College:", count: "0.9km"},
+    {title: "Grocery Center:", count: "0.2km"},
+    {title: "Metro Station:", count: "0.7km"},
+    {title: "Gym:", count: "2.3km"},
+    {title: "University:", count: "2.7km"},
+    {title: "Hospital:", count: "1.7km"},
+    {title: "Shopping Mall:", count: "1.1km"},
+    {title: "Police Station:", count: "1.2km"},
+    {title: "Bus Station:", count: "1.1km"},
+    {title: "River:", count: "3.1km"},
+    {title: "Market:", count: "3.4km"},
 ];
 
-const CommonNearbyList: React.FC<CommonNearbyListProps> = ({ location }) => {
+const CommonNearbyList: React.FC<CommonNearbyListProps> = ({location}) => {
     // State for dynamically fetched nearby places
     const [nearbyPlaces, setNearbyPlaces] = useState(static_list_data);
     const [isLoading, setIsLoading] = useState(false);
@@ -90,7 +89,7 @@ const CommonNearbyList: React.FC<CommonNearbyListProps> = ({ location }) => {
                         });
                     } else {
                         console.warn("⚠️ No nearby places found in API response, using static data");
-                        console.log("🔍 API Response details:", { success: data.success, places: data.places });
+                        console.log("🔍 API Response details:", {success: data.success, places: data.places});
                         setNearbyPlaces(static_list_data);
                         setDataSource('static-fallback');
                     }
@@ -124,7 +123,7 @@ const CommonNearbyList: React.FC<CommonNearbyListProps> = ({ location }) => {
             setNearbyPlaces(static_list_data);
             setDataSource('static-no-coords');
         }
-    }, [location?.lat, location?.lng]); // Updated dependency array
+    }, [location?.lat, location?.lng]);
 
     return (
         <>
@@ -135,12 +134,6 @@ const CommonNearbyList: React.FC<CommonNearbyListProps> = ({ location }) => {
                     : `Approximate distances to points of interest near ${location?.address || 'the property'}.`
                 }
             </p>
-
-            {/* DEBUG INFO - Remove this in production */}
-            <div className="alert alert-info mb-3" style={{ fontSize: '12px' }}>
-                <strong>DEBUG:</strong> Data source: <code>{dataSource}</code> |
-                Coords: <code>({location?.lat}, {location?.lng})</code>
-            </div>
 
             {isLoading && (
                 <div className="d-flex align-items-center mb-3">
@@ -158,17 +151,18 @@ const CommonNearbyList: React.FC<CommonNearbyListProps> = ({ location }) => {
             )}
 
             {nearbyPlaces.length > 0 ? (
-                <ul className="style-none d-flex flex-wrap justify-content-between nearby-list-item">
+                <ul className="style-none d-flex flex-wrap justify-content-between nearby-list-item ">
                     {nearbyPlaces.map((list, i) => (
                         <li key={i}>
                             {list.title}
-                            <span className="fw-500 color-dark">{list.count}</span>
+                            <span className="fw-500 color-dark tw-w-full">{list.count}</span>
                         </li>
                     ))}
                 </ul>
             ) : (
                 !isLoading && <p>Could not load nearby places information.</p>
             )}
+
         </>
     );
 };

@@ -1,7 +1,7 @@
 // frontend/components/ListingDetails/listing-details-sidebar/SidebarInfo.tsx
-import React, { useEffect, useState } from 'react'; // Import React and hooks if fetching agent
-import { Link } from "react-router-dom";
-import { BadgeCheck } from 'lucide-react';
+import React, {useEffect, useState} from 'react'; // Import React and hooks if fetching agent
+import {Link} from "react-router-dom";
+import {BadgeCheck} from 'lucide-react';
 // import axios from 'axios'; // If fetching agent data
 
 // Interface for the props
@@ -21,7 +21,7 @@ interface StudentData {
     // Add social links if available
 }
 
-const SidebarInfo: React.FC<SidebarInfoProps> = ({ agentId }) => {
+const SidebarInfo: React.FC<SidebarInfoProps> = ({agentId}) => {
     // --- State for fetched agent data (optional, if fetching) ---
     // const [agentData, setAgentData] = useState<AgentData | null>(null);
     // const [isLoading, setIsLoading] = useState(false);
@@ -85,6 +85,7 @@ const SidebarInfo: React.FC<SidebarInfoProps> = ({ agentId }) => {
 
     return (
         <>
+
             <img
                 src={displayData.avatarUrl || "/assets/images/dashboard/no-profile-pic.png"} // Use fetched or default avatar
                 alt={`${displayData.name || 'Agent'} Avatar`}
@@ -96,7 +97,7 @@ const SidebarInfo: React.FC<SidebarInfoProps> = ({ agentId }) => {
                 <div className="d-flex align-items-center justify-content-center">
                     <h6 className="name mb-0">{displayData.name || 'Student Name Unavailable'}</h6>
                     {displayData.verified && (
-                        <BadgeCheck className="ms-1 text-primary" size={20} color="#1E88E5" />
+                        <BadgeCheck className="ms-1 text-primary" size={20} color="#1E88E5"/>
                     )}
                 </div>
                 <p className="fs-16">{displayData.majors || 'Student'}</p> {/* Use fetched title */}
@@ -109,13 +110,17 @@ const SidebarInfo: React.FC<SidebarInfoProps> = ({ agentId }) => {
                 </ul>
             </div>
 
-            <div className="d-flex justify-content-between gap-2 mt-3">
-                <Link to="/contact" className="btn flex-grow-1 text-center py-3 text-white"
-                      style={{backgroundColor: '#f16040'}}>Contact</Link>
-                <Link to="/request" className="btn flex-grow-1 text-center py-3 text-white"
+            <div className="mt-3" style={{
+                display: 'grid',
+                gridTemplateColumns: '1fr 1fr 1fr',
+                gap: '8px'
+            }}>
+                <Link to="/contact" className="btn text-center text-white"
+                      style={{backgroundColor: '#f16040', paddingTop: '30px', paddingBottom: '8px'}}>Contact</Link>
+                <Link to="/request" className="btn text-center py-3 text-white"
                       style={{backgroundColor: '#f16040'}}>Request Ambassador</Link>
-                <Link to="#" className="btn flex-grow-1 text-center py-3 text-white"
-                      style={{backgroundColor: '#f16040'}}>Save</Link>
+                <Link to="#" className="btn text-center text-white"
+                      style={{backgroundColor: '#f16040', paddingTop: '30px', paddingBottom: '8px'}}>Save</Link>
             </div>
         </>
     );

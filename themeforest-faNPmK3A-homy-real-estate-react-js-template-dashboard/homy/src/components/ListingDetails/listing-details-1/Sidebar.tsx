@@ -1,8 +1,9 @@
+
 // frontend/components/ListingDetails/listing-details-1/Sidebar.tsx
 import React from 'react';
-import FeatureListing from "../listing-details-sidebar/FeatureListing"; // Needs modification if dynamic
-import MortgageCalculator from "../listing-details-sidebar/MortgageCalculator"; // Needs modification
-import ScheduleForm from "../listing-details-sidebar/ScheduleForm"; // Needs modification
+// import FeatureListing from "../listing-details-sidebar/FeatureListing"; // Needs modification if dynamic
+// import MortgageCalculator from "../listing-details-sidebar/MortgageCalculator"; // Needs modification
+// import ScheduleForm from "../listing-details-sidebar/ScheduleForm"; // Needs modification
 import SidebarInfo from "../listing-details-sidebar/SidebarInfo"; // Needs modification if agent is linked
 import { Property } from '../../../redux/slices/propertySlice'; // Adjust path
 
@@ -13,8 +14,8 @@ interface SidebarProps {
 const Sidebar: React.FC<SidebarProps> = ({ property }) => {
     return (
         <div className="col-xl-4 col-lg-8 me-auto ms-auto">
-            {/* Use a wrapper div for styling consistency */}
-            <div className="theme-sidebar-one dot-bg p-30 ms-xxl-3 lg-mt-80">
+            {/* Use Tailwind sticky positioning with proper prefix */}
+            <div className="theme-sidebar-one dot-bg p-30 ms-xxl-3 lg-mt-80 tw-top-5 tw-z-10">
                 {/* Agent Info (Pass agent data if available in property) */}
                 <div className="agent-info bg-white border-20 p-30 mb-40">
                     {/* Assuming agent info is NOT directly on the property object */}
