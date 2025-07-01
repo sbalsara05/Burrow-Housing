@@ -799,3 +799,19 @@
         }
     }
 }
+
+.address-link {
+    text-decoration: none; // Removes the default underline from the link itself
+
+    .address {
+        // Inherits color by default, but we can be specific
+        color: rgba($color: #000000, $alpha: 0.7); // Adjust this color to match your design for non-hovered text
+        transition: color 0.2s ease-in-out;
+        cursor: pointer;
+
+        &:hover {
+            color: $color-one; // This is your theme's primary orange color from _variables.scss
+            text-decoration: underline; // Add underline on hover for clear affordance
+        }
+    }
+}

@@ -1,7 +1,6 @@
-// frontend/components/ListingDetails/listing-details-common/CommonBanner.tsx
 import React from 'react';
 import { Link } from "react-router-dom";
-import { Property } from '../../../redux/slices/propertySlice'; // Adjust path if needed
+import { Property } from '../../../redux/slices/propertySlice';
 
 interface CommonBannerProps {
     property: Property | null;
@@ -11,7 +10,7 @@ interface CommonBannerProps {
 const CommonBanner: React.FC<CommonBannerProps> = ({ property, style_3 }) => {
 
     if (!property) {
-        // Optional: Render a placeholder or null if property data isn't ready
+        // Render placeholders if property data isn't ready
         return (
             <div className="row placeholder-glow">
                 <div className="col-lg-6"><h3 className="placeholder col-10"></h3><p className="placeholder col-8"></p></div>
@@ -20,12 +19,16 @@ const CommonBanner: React.FC<CommonBannerProps> = ({ property, style_3 }) => {
         );
     }
 
+    // Get the address string safely.
+    const fullAddress = property.addressAndLocation?.address || '';
+
+    // Create the encoded Google Maps URL.
+    const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(fullAddress)}`;
+
     // Derive display values
     const displayTitle = property.title || `${property.listingDetails.bedrooms} Bed ${property.overview.category} in ${property.overview.neighborhood}`;
-    // Simple example for tag - adjust based on your actual logic/data
     const displayTag = property.tag || (property.overview.category === 'Apartment' ? 'FOR SELL' : 'FOR RENT');
-    // Example estimated payment - replace with actual calculation if available
-    const estimatedPayment = (property.overview.rent / 20).toFixed(0); // Very basic example
+    const estimatedPayment = (property.overview.rent / 20).toFixed(0);
 
     return (
         <div className="row">
@@ -35,9 +38,13 @@ const CommonBanner: React.FC<CommonBannerProps> = ({ property, style_3 }) => {
                     <div className={`list-type text-uppercase mt-15 me-3 ${style_3 ? "bg-white text-dark fw-500" : "text-uppercase border-20"}`}>
                         {displayTag}
                     </div>
-                    <div className="address mt-15">
-                        <i className="bi bi-geo-alt"></i> {property.addressAndLocation.address}
-                    </div>
+                    {fullAddress && (
+                        <a href={googleMapsUrl} target="_blank" rel="noopener noreferrer" className="address-link" title={`View "${fullAddress}" on Google Maps`}>
+                            <div className="address mt-15">
+                                <i className="bi bi-geo-alt"></i> {fullAddress}
+                            </div>
+                        </a>
+                    )}
                 </div>
             </div>
             <div className="col-lg-6 text-lg-end">
