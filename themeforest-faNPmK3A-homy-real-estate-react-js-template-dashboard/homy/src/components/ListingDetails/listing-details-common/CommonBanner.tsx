@@ -24,7 +24,7 @@ const CommonBanner: React.FC<CommonBannerProps> = ({ property, style_3 }) => {
     const fullAddress = property.addressAndLocation?.address || '';
     const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(fullAddress)}`;
 
-    // 👇 --- START: New Share Handler Logic ---
+    // Share Handler Logic ---
     const handleShare = async () => {
         const shareData = {
             title: property.title || 'Check out this property!',
@@ -36,10 +36,8 @@ const CommonBanner: React.FC<CommonBannerProps> = ({ property, style_3 }) => {
         if (navigator.share) {
             try {
                 await navigator.share(shareData);
-                console.log('Property shared successfully');
             } catch (err) {
                 // This error is thrown if the user cancels the share dialog, so we can ignore it.
-                console.log('Share was cancelled or failed:', err);
             }
         } else {
             // Fallback for browsers that do not support the Web Share API (e.g., most desktops)
@@ -48,7 +46,6 @@ const CommonBanner: React.FC<CommonBannerProps> = ({ property, style_3 }) => {
                 toast.success("Link copied to clipboard!");
             } catch (err) {
                 toast.error("Failed to copy link.");
-                console.error('Failed to copy link to clipboard:', err);
             }
         }
     };
