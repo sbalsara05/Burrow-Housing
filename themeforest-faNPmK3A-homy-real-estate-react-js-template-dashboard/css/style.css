@@ -7111,7 +7111,8 @@ iframe {
 .theme-details-one .media-gallery .carousel .carousel-indicators button:last-child {
   margin-bottom: 0;
 }
-.theme-details-one .media-gallery .carousel .carousel-control-next, .theme-details-one .media-gallery .carousel .carousel-control-prev {
+.theme-details-one .media-gallery .carousel .carousel-control-next,
+.theme-details-one .media-gallery .carousel .carousel-control-prev {
   width: 60px;
   height: 60px;
   background: #fff;
@@ -7123,7 +7124,8 @@ iframe {
   -webkit-transition: all 0.3s ease-in-out 0s;
   transition: all 0.3s ease-in-out 0s;
 }
-.theme-details-one .media-gallery .carousel .carousel-control-next:hover, .theme-details-one .media-gallery .carousel .carousel-control-prev:hover {
+.theme-details-one .media-gallery .carousel .carousel-control-next:hover,
+.theme-details-one .media-gallery .carousel .carousel-control-prev:hover {
   background: #000;
   color: #fff;
 }
@@ -7150,7 +7152,8 @@ iframe {
   bottom: 35px;
   left: 35px;
 }
-.theme-details-one .media-gallery .style-two .carousel-control-next, .theme-details-one .media-gallery .style-two .carousel-control-prev {
+.theme-details-one .media-gallery .style-two .carousel-control-next,
+.theme-details-one .media-gallery .style-two .carousel-control-prev {
   position: static;
   margin: 0 10px;
   border: 1px solid #000;
@@ -7714,7 +7717,9 @@ iframe {
   padding: 0 0 10px 0;
   border-bottom: 1px solid #000;
 }
-.theme-sidebar-one .agent-finder .input-box-one .label, .theme-sidebar-one .agent-finder .input-box-one .nice-select, .theme-sidebar-one .agent-finder .input-box-one .type-input {
+.theme-sidebar-one .agent-finder .input-box-one .label,
+.theme-sidebar-one .agent-finder .input-box-one .nice-select,
+.theme-sidebar-one .agent-finder .input-box-one .type-input {
   padding: 0;
 }
 
@@ -7730,6 +7735,18 @@ iframe {
 .address-link .address:hover {
   color: #FF6725;
   text-decoration: underline;
+}
+
+.action-btns .share-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  -webkit-transition: color 0.2s ease-in-out;
+  transition: color 0.2s ease-in-out;
+}
+.action-btns .share-btn:hover {
+  color: #FF6725;
 }
 
 .agent-section-one:before, .agent-section-one:after {
