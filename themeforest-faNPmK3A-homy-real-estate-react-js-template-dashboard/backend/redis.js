@@ -11,9 +11,8 @@ async function connectRedis() {
 	redisClient = createClient({
 		url: redisUrl,
 		socket: {
-			tls: process.env.NODE_ENV === "production",
-			rejectUnauthorized:
-				process.env.NODE_ENV === "production",
+			tls: false,
+			rejectUnauthorized: false,
 		},
 	});
 

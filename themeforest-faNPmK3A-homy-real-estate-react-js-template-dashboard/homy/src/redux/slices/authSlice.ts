@@ -266,12 +266,32 @@ export const logoutUser = createAsyncThunk(
             console.log("Logout: Clearing token and dispatching clearProfile.");
             setAuthToken(null);
             dispatch(clearProfile());
-            dispatch(clearAllPropertyData()); 
+            dispatch(clearAllPropertyData());
         }
         return true;
     }
 );
 
+// Action: Change Password
+export const changePassword = createAsyncThunk(
+    'auth/changePassword',
+    async (passwordData: { oldPassword, newPassword }, { getState, rejectWithValue }) => {
+        const token = (getState() as RootState).auth.token;
+        if (!token) {
+            return rejectWithValue('User is not authenticated.');
+        }
+        console.log("Dispatching changePassword thunk...");
+        try {
+            const response = await axios.put(`${API_URL}/user/change-password`, passwordData);
+            // The thunk now simply returns the success data. 
+            // The component will handle the logout process.
+            return response.data;
+        } catch (error: any) {
+            console.error("changePassword Error:", error.response?.data || error.message);
+            return rejectWithValue(error.response?.data?.message || 'Failed to change password.');
+        }
+    }
+);
 
 // --- Slice Definition ---
 const authSlice = createSlice({
@@ -452,6 +472,23 @@ const authSlice = createSlice({
                 console.log("Reducer: googleSignIn.rejected", action.payload);
                 state.isLoading = false; state.error = action.payload as string; state.status = 'failed'; state.token = null; state.isAuthenticated = false; state.user = null; state.googleUser = null;
                 setAuthToken(null); // Ensure token cleared on rejection
+            })
+
+            // --- Change Password ---
+            .addCase(changePassword.pending, (state) => {
+                console.log("Reducer: changePassword.pending");
+                state.isLoading = true;
+                state.error = null;
+            })
+            .addCase(changePassword.fulfilled, (state) => {
+                console.log("Reducer: changePassword.fulfilled");
+                state.isLoading = false;
+                // No state change is needed here for token/user, as the logout will handle it.
+            })
+            .addCase(changePassword.rejected, (state, action) => {
+                console.log("Reducer: changePassword.rejected", action.payload);
+                state.isLoading = false;
+                state.error = action.payload as string;
             })
 
             // --- Logout ---

@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { getUserProfile, updateUserProfile } = require('../controllers/userController');
+const { getUserProfile, updateUserProfile, changePassword } = require('../controllers/userController');
 const { authenticateToken } = require('../middlewares/authMiddleware');
 const upload = require('../middlewares/upload').default;
 const { getProfile, updateProfile, uploadProfileImage } = require('../controllers/profileController');
@@ -8,7 +8,7 @@ const { getProfile, updateProfile, uploadProfileImage } = require('../controller
 
 router.get('/user', authenticateToken, getUserProfile);
 router.put('/updateUser', authenticateToken, updateUserProfile);
-
+router.put('/user/change-password', authenticateToken, changePassword);
 // Fetch and Update Profile 
 router.get("/profile", authenticateToken, getProfile);
 console.log(updateProfile);
