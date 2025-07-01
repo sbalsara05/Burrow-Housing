@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from "react-router-dom";
+import { toast } from 'react-toastify';
 import { Property } from '../../../redux/slices/propertySlice';
 
 interface CommonBannerProps {
@@ -19,11 +20,38 @@ const CommonBanner: React.FC<CommonBannerProps> = ({ property, style_3 }) => {
         );
     }
 
-    // Get the address string safely.
+    // --- Logic for Clickable Address ---
     const fullAddress = property.addressAndLocation?.address || '';
-
-    // Create the encoded Google Maps URL.
     const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(fullAddress)}`;
+
+    // 👇 --- START: New Share Handler Logic ---
+    const handleShare = async () => {
+        const shareData = {
+            title: property.title || 'Check out this property!',
+            text: `I found this amazing property on Burrow Housing: ${property.title || `${property.listingDetails.bedrooms} Bed ${property.overview.category} in ${property.overview.neighborhood}`}`,
+            url: window.location.href, // Gets the current page URL
+        };
+
+        // Check if the Web Share API is supported by the browser
+        if (navigator.share) {
+            try {
+                await navigator.share(shareData);
+                console.log('Property shared successfully');
+            } catch (err) {
+                // This error is thrown if the user cancels the share dialog, so we can ignore it.
+                console.log('Share was cancelled or failed:', err);
+            }
+        } else {
+            // Fallback for browsers that do not support the Web Share API (e.g., most desktops)
+            try {
+                await navigator.clipboard.writeText(shareData.url);
+                toast.success("Link copied to clipboard!");
+            } catch (err) {
+                toast.error("Failed to copy link.");
+                console.error('Failed to copy link to clipboard:', err);
+            }
+        }
+    };
 
     // Derive display values
     const displayTitle = property.title || `${property.listingDetails.bedrooms} Bed ${property.overview.category} in ${property.overview.neighborhood}`;
@@ -54,7 +82,12 @@ const CommonBanner: React.FC<CommonBannerProps> = ({ property, style_3 }) => {
                         className="fw-500 color-dark">${estimatedPayment}/mo*</span>
                     </div>
                     <ul className="style-none d-flex align-items-center action-btns">
-                        <li className="me-auto fw-500 color-dark"><i className="fa-sharp fa-regular fa-share-nodes me-2"></i> Share</li>
+                        <li className="me-auto">
+                            <button onClick={handleShare} className="share-btn d-flex align-items-center fw-500 color-dark">
+                                <i className="fa-sharp fa-regular fa-share-nodes me-2"></i>
+                                <span>Share</span>
+                            </button>
+                        </li>
                         <li><Link to="#" className={`d-flex align-items-center justify-content-center tran3s ${style_3 ? "" : "rounded-circle"}`}><i className="fa-light fa-heart"></i></Link></li>
                         <li><Link to="#" className={`d-flex align-items-center justify-content-center tran3s ${style_3 ? "" : "rounded-circle"}`}><i className="fa-light fa-bookmark"></i></Link></li>
                         <li><Link to="#" className={`d-flex align-items-center justify-content-center tran3s ${style_3 ? "" : "rounded-circle"}`}><i className="fa-light fa-circle-plus"></i></Link></li>
