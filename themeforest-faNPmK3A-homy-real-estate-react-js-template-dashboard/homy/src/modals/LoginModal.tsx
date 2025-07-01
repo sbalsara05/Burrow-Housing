@@ -3,8 +3,8 @@ import React, { useState, useEffect } from "react"; // Import React
 import LoginForm from "../components/forms/LoginForm";
 import RegisterForm from "../components/forms/RegisterForm";
 import OtpVerificationForm from "../components/forms/OtpVerificationForm";
-import { Link } from "react-router-dom";
-import { CustomGoogleButton } from '../components/common/CustomGoogleButton';
+import { Link, useNavigate } from "react-router-dom";
+//import { CustomGoogleButton } from '../components/common/CustomGoogleButton';
 import { useDispatch } from 'react-redux';
 import { resetVerificationFlag, clearAuthError } from '../redux/slices/authSlice'; // Import actions
 import { AppDispatch } from '../redux/slices/store.ts';
@@ -22,6 +22,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ loginModal, setLoginModal }) =>
     const [showOtpForm, setShowOtpForm] = useState(false);
     const [otpEmail, setOtpEmail] = useState("");
     const [previousTab, setPreviousTab] = useState(0); // To remember the tab before OTP
+    const navigate = useNavigate();
 
     // Reset state when modal opens or closes
     useEffect(() => {
@@ -69,7 +70,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ loginModal, setLoginModal }) =>
         setShowOtpForm(false);
         setOtpEmail("");
         setLoginModal(false); // Close the modal
-        // Navigation happens within the verifyOtp thunk or related component logic
+        navigate('/dashboard/profile');
     };
 
     // Called by CustomGoogleButton on successful Google sign-in
