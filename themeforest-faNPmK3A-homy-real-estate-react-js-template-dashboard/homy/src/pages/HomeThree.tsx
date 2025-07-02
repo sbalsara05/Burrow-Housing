@@ -5,7 +5,7 @@ import HomeThreeMain from '../components/homes/home-three';
 const HomeThree = () => {
   return (
     <Wrapper>
-      <SEO pageTitle={'Home Three Homy'} />
+      <SEO pageTitle={'Burrow Housing'} />
       <HomeThreeMain />
     </Wrapper>
   );
