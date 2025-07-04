@@ -1,12 +1,14 @@
 {
-  "name": "backend",
+  "name": "burrowhousing-backend",
   "version": "1.0.0",
-  "description": "Backend for user management",
+  "description": "Backend for Burrow Housing",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.842.0",
+    "@aws-sdk/s3-request-presigner": "^3.842.0",
     "@react-google-maps/api": "^2.20.6",
     "@sendgrid/mail": "^8.1.4",
     "axios": "^1.7.8",
