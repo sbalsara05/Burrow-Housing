@@ -14,13 +14,8 @@ const FooterFour = () => {
                               <img src="/assets/images/logo/textlogo.png" alt="" />
                            </Link>
                         </div>
-                        <p className="mb-30 xs-mb-20">12345 Clyde Rapid Suite 210, Willyand, Virginia, United States</p>
-                        <Link to="#" className="email tran3s mb-60 md-mb-30">homyreal@demo.com</Link>
-                        <ul className="style-none d-flex align-items-center social-icon">
-                           <li><Link to="#"><i className="fa-brands fa-facebook-f"></i></Link></li>
-                           <li><Link to="#"><i className="fa-brands fa-twitter"></i></Link></li>
-                           <li><Link to="#"><i className="fa-brands fa-instagram"></i></Link></li>
-                        </ul>
+                        <p className="mb-30 xs-mb-20">Northeastern University</p>
+                        <Link to="#" className="email tran3s mb-60 md-mb-30">burrowhousingsublets@gmail.com</Link>
                      </div>
                   </div>
 
@@ -38,7 +33,7 @@ const FooterFour = () => {
                </div>
             </div>
             <div className="bottom-footer">
-               <p className="m0 text-center fs-16">Copyright @2024 Homy inc.</p>
+               <p className="m0 text-center fs-16">Copyright @2025 Burrow Housing.</p>
             </div>
          </div>
          <img src="/assets/images/assets/ils_06.svg" alt="" className="lazy-img shapes shape_01" />

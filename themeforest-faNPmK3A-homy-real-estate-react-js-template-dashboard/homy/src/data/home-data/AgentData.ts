@@ -11,37 +11,30 @@ const agent_data: DataType[] = [
       id: 1,
       page: "home_1",
       thumb: "/assets/images/agent/img_01.jpg",
-      title: "Mark Filo",
-      desc: "CEO & Founder",
+      title: "Sohum Balsara",
+      desc: "CEO & Co-Founder",
    },
    {
       id: 2,
       page: "home_1",
       thumb: "/assets/images/agent/img_02.jpg",
-      title: "Chris Matial",
-      desc: "Retailer",
+      title: "Hardi Manish Shah",
+      desc: "CTO and Co-Founder",
    },
    {
       id: 3,
       page: "home_1",
       thumb: "/assets/images/agent/img_03.jpg",
-      title: "Jubayer Al Hasan",
-      desc: "Marketing Expert",
+      title: "Arnav Sawant",
+      desc: "COO",
    },
    {
       id: 4,
       page: "home_1",
       thumb: "/assets/images/agent/img_04.jpg",
-      title: "Jannatul Ferdaus",
+      title: "Sujay Sanakka Nagarajappa",
       desc: "Broker",
-   },
-   {
-      id: 5,
-      page: "home_1",
-      thumb: "/assets/images/agent/img_05.jpg",
-      title: "Chris Matial",
-      desc: "Broker",
-   },
+   }
 ]
 
 export default agent_data;
