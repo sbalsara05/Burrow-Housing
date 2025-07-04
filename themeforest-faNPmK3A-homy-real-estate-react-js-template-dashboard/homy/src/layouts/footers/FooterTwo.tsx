@@ -6,7 +6,6 @@ interface ContentType {
    desc_1: string;
    desc_2: string;
    email: string;
-   number: string;
    icon: string[];
 }
 
@@ -14,8 +13,7 @@ const footer_content: ContentType = {
    title: "Our Newsletter",
    desc_1: "Get instant news by subscribe to our newsletter",
    desc_2: "Northeastern University",
-   email: "homyreal@demo.com",
-   number: "+757 699-4478",
+   email: "burrowhousingsublets@gmail.com",
    icon: ["facebook-f", "twitter", "instagram"],
 }
 
@@ -25,7 +23,7 @@ const FooterTwo = () => {
    return (
       <div className="footer-two">
          <div className="container container-large">
-            <div className="bg-wrapper position-relative z-1">
+            <div className="bg-wrapper position-relative z-1 mb-0">
                {/*<div className="news-letter-area">*/}
                {/*   <div className="row align-items-center">*/}
                      {/*<div className="col-lg-6">*/}
@@ -59,16 +57,7 @@ const FooterTwo = () => {
                               <img src="/assets/images/icon/icon_30.svg" alt="" width="20" />
                               <Link to="#">{email}</Link>
                            </li>
-                           <li className="d-flex align-items-center">
-                              <img src="/assets/images/icon/icon_31.svg" alt="" width="20" />
-                              <Link to="#">{number}</Link>
-                           </li>
-                        </ul>
 
-                        <ul className="style-none d-flex align-items-center social-icon">
-                           {icon.map((icon, i) => (
-                              <li key={i}><Link to="#"><i className={`fa-brands fa-${icon}`}></i></Link></li>
-                           ))}
                         </ul>
                         <img src="/assets/images/shape/shape_46.svg" alt="" className="lazy-img shapes shape_01 d-none d-xl-block" />
                      </div>
@@ -105,7 +94,7 @@ const FooterTwo = () => {
                      <li><Link to="/faq">Cookies</Link></li>
                      <li><Link to="/contact">Contact Us</Link></li>
                   </ul>
-                  <p className="mb-15 text-center text-lg-start order-md-first">Copyright @2024 Burrow Housing</p>
+                  <p className="mb-15 text-center text-lg-start order-md-first">Copyright @2025 Burrow Housing</p>
                </div>
             </div>
          </div>
