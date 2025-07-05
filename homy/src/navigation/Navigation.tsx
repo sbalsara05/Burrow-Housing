@@ -5,12 +5,7 @@ import ProtectedRoute from "./ProtectedRoutes";
 
 //import routes
 import Home from '../pages/Home';
-import HomeTwo from '../pages/HomeTwo';
 import HomeThree from '../pages/HomeThree';
-import HomeFour from '../pages/HomeFour';
-import HomeFive from '../pages/HomeFive';
-import HomeSix from '../pages/HomeSix';
-import HomeSeven from '../pages/HomeSeven';
 import AboutUsOne from '../pages/AboutUsOne';
 import AboutUsTwo from '../pages/AboutUsTwo';
 import Agency from '../pages/Agency';
@@ -26,28 +21,8 @@ import ServiceOne from '../pages/ServiceOne';
 import ServiceTwo from '../pages/ServiceTwo';
 import ServiceDetails from '../pages/ServiceDetails';
 import ListingOne from '../pages/ListingOne';
-import ListingFive from '../pages/ListingFive';
-import ListingTwo from '../pages/ListingTwo';
-import ListingSix from '../pages/ListingSix';
-import ListingThree from '../pages/ListingThree';
-import ListingSeven from '../pages/ListingSeven';
-import ListingFour from '../pages/ListingFour';
-import ListingEight from '../pages/ListingEight';
-import ListingNine from '../pages/ListingNine';
-import ListingEleven from '../pages/ListingEleven';
-import ListingTen from '../pages/ListingTen';
-import ListingTwelve from '../pages/ListingTwelve';
-import ListingThirteen from '../pages/ListingThirteen';
 import ListingFourteen from '../pages/ListingFourteen';
-import ListingFifteen from '../pages/ListingFifteen';
-import ListingSixteen from '../pages/ListingSixteen';
-import ListingSeventeen from '../pages/ListingSeventeen';
 import ListingDetailsOne from '../pages/ListingDetailsOne';
-import ListingDetailsTwo from '../pages/ListingDetailsTwo';
-import ListingDetailsThree from '../pages/ListingDetailsThree';
-import ListingDetailsFour from '../pages/ListingDetailsFour';
-import ListingDetailsFive from '../pages/ListingDetailsFive';
-import ListingDetailsSix from '../pages/ListingDetailsSix';
 import Compare from '../pages/Compare';
 import PricingOne from '../pages/PricingOne';
 import PricingTwo from '../pages/PricingTwo';
@@ -81,12 +56,7 @@ const AppNavigation = () => {
                 {/* These routes are accessible to everyone, logged in or not. */}
 
                 <Route path="/" element={<Navigate to="/home-three" replace />} />
-                <Route path="/home-two" element={<HomeTwo />} />
                 <Route path="/home-three" element={<HomeThree />} />
-                <Route path="/home-four" element={<HomeFour />} />
-                <Route path="/home-five" element={<HomeFive />} />
-                <Route path="/home-six" element={<HomeSix />} />
-                <Route path="/home-seven" element={<HomeSeven />} />
                 <Route path="/about_us_01" element={<AboutUsOne />} />
                 <Route path="/about_us_02" element={<AboutUsTwo />} />
                 <Route path="/agency" element={<Agency />} />
@@ -107,28 +77,8 @@ const AppNavigation = () => {
                 <Route path="/contact" element={<Contact />} />
                 <Route path="/faq" element={<Faq />} />
                 <Route path="/listing_01" element={<ListingOne />} />
-                <Route path="/listing_02" element={<ListingTwo />} />
-                <Route path="/listing_03" element={<ListingThree />} />
-                <Route path="/listing_04" element={<ListingFour />} />
-                <Route path="/listing_05" element={<ListingFive />} />
-                <Route path="/listing_06" element={<ListingSix />} />
-                <Route path="/listing_07" element={<ListingSeven />} />
-                <Route path="/listing_08" element={<ListingEight />} />
-                <Route path="/listing_09" element={<ListingNine />} />
-                <Route path="/listing_10" element={<ListingTen />} />
-                <Route path="/listing_11" element={<ListingEleven />} />
-                <Route path="/listing_12" element={<ListingTwelve />} />
-                <Route path="/listing_13" element={<ListingThirteen />} />
                 <Route path="/listing_14" element={<ListingFourteen />} />
-                <Route path="/listing_15" element={<ListingFifteen />} />
-                <Route path="/listing_16" element={<ListingSixteen />} />
-                <Route path="/listing_17" element={<ListingSeventeen />} />
                 <Route path="/listing_details_01/:id" element={<ListingDetailsOne />} />
-                <Route path="/listing_details_02" element={<ListingDetailsTwo />} />
-                <Route path="/listing_details_03" element={<ListingDetailsThree />} />
-                <Route path="/listing_details_04" element={<ListingDetailsFour />} />
-                <Route path="/listing_details_05" element={<ListingDetailsFive />} />
-                <Route path="/listing_details_06" element={<ListingDetailsSix />} />
                 <Route path="/blog_01" element={<BlogOne />} />
                 <Route path="/blog_02" element={<BlogTwo />} />
                 <Route path="/blog_03" element={<BlogThree />} />
