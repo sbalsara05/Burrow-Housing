@@ -7,12 +7,13 @@ const PropertySchema = new mongoose.Schema({
 		required: true,
 	}, // Reference to the User schema
 	overview: {
+		title: { type: String, required: false },
 		category: {
 			type: String,
 			enum: ["Single Room", "Apartment"],
 			required: true,
 		},
-        roomType: {
+		roomType: {
 			type: String,
 			enum: ["Shared Room", "Single Room"],
 			required: true,
@@ -75,11 +76,15 @@ const PropertySchema = new mongoose.Schema({
 
 	addressAndLocation: {
 		address: { type: String, required: true },
+        location: {
+            lat: { type: Number, required: true },
+            lng: { type: Number, required: true }
+        }
 	},
 	buildingName: { type: String, required: false },
-    leaseLength: { type: String, required: true},
-    description: { type: String, required: true },
-    images: [{ type: String }],
+	leaseLength: { type: String, required: true },
+	description: { type: String, required: true },
+	images: [{ type: String }],
 	createdAt: { type: Date, default: Date.now },
 	updatedAt: { type: Date, default: Date.now },
 });

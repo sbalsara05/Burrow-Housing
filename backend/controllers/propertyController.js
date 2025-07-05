@@ -6,7 +6,7 @@ const Property = require("../models/propertyModel");
 const { geocodePropertyAddress } = require("../geocodingService");
 const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
 const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
-
+const crypto = require('crypto');
 const User = require("../models/userModel"); // User model
 const { json } = require("stream/consumers");
 
@@ -136,7 +136,7 @@ exports.addNewProperty = async (req, res) => {
 				.json({ message: "Size must be a number." });
 		}
 
-		if (!addressAndLocation || !addressAndLocation.address) {
+		if (!addressAndLocation || !addressAndLocation.address || !addressAndLocation.location.lat || !addressAndLocation.location.lng) {
 			return res.status(400).json({
 				message: "addressAndLocation object with address field is required.",
 			});
