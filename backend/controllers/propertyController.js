@@ -3,12 +3,10 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const mongoose = require("mongoose");
 const Property = require("../models/propertyModel");
-const { geocodePropertyAddress } = require('../geocodingService');
-
-
-// controllers/propertyController.js
-
-
+const { geocodePropertyAddress } = require("../geocodingService");
+const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
+const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
+const crypto = require('crypto');
 const User = require("../models/userModel"); // User model
 const { json } = require("stream/consumers");
 
@@ -63,6 +61,7 @@ exports.addNewProperty = async (req, res) => {
 			buildingName,
 			leaseLength,
 			description,
+            imageUrls,
 		} = req.body; // Destructure directly
 
 		const userId = req.user.userId; // Extract user ID from the authenticated token
@@ -80,11 +79,9 @@ exports.addNewProperty = async (req, res) => {
 			!overview.neighborhood ||
 			overview.rent === undefined
 		) {
-			return res
-				.status(400)
-				.json({
-					message: "Required overview fields missing (category, roomType, neighborhood, rent).",
-				});
+			return res.status(400).json({
+				message: "Required overview fields missing (category, roomType, neighborhood, rent).",
+			});
 		}
 		if (
 			!listingDetails ||
@@ -92,11 +89,9 @@ exports.addNewProperty = async (req, res) => {
 			listingDetails.bathrooms === undefined ||
 			listingDetails.floorNo === undefined
 		) {
-			return res
-				.status(400)
-				.json({
-					message: "Required listingDetails fields missing (bedrooms, bathrooms, floorNo).",
-				});
+			return res.status(400).json({
+				message: "Required listingDetails fields missing (bedrooms, bathrooms, floorNo).",
+			});
 		}
 		// Ensure numeric fields are valid numbers if provided
 		if (
@@ -111,31 +106,25 @@ exports.addNewProperty = async (req, res) => {
 			listingDetails.bedrooms !== undefined &&
 			isNaN(Number(listingDetails.bedrooms))
 		) {
-			return res
-				.status(400)
-				.json({
-					message: "Bedrooms must be a number.",
-				});
+			return res.status(400).json({
+				message: "Bedrooms must be a number.",
+			});
 		}
 		if (
 			listingDetails.bathrooms !== undefined &&
 			isNaN(Number(listingDetails.bathrooms))
 		) {
-			return res
-				.status(400)
-				.json({
-					message: "Bathrooms must be a number.",
-				});
+			return res.status(400).json({
+				message: "Bathrooms must be a number.",
+			});
 		}
 		if (
 			listingDetails.floorNo !== undefined &&
 			isNaN(Number(listingDetails.floorNo))
 		) {
-			return res
-				.status(400)
-				.json({
-					message: "Floor No must be a number.",
-				});
+			return res.status(400).json({
+				message: "Floor No must be a number.",
+			});
 		}
 		if (
 			listingDetails.size !== undefined &&
@@ -147,12 +136,10 @@ exports.addNewProperty = async (req, res) => {
 				.json({ message: "Size must be a number." });
 		}
 
-		if (!addressAndLocation || !addressAndLocation.address) {
-			return res
-				.status(400)
-				.json({
-					message: "addressAndLocation object with address field is required.",
-				});
+		if (!addressAndLocation || !addressAndLocation.address || !addressAndLocation.location.lat || !addressAndLocation.location.lng) {
+			return res.status(400).json({
+				message: "addressAndLocation object with address field is required.",
+			});
 		}
 		if (!leaseLength) {
 			return res
@@ -202,7 +189,7 @@ exports.addNewProperty = async (req, res) => {
 			buildingName: buildingName || null, // Use null or undefined based on schema/preference
 			leaseLength,
 			description,
-			// image handling would go here if re-enabled
+			images: imageUrls || [],
 		});
 
 		// Save the new property document to the database
@@ -223,12 +210,10 @@ exports.addNewProperty = async (req, res) => {
 	} catch (error) {
 		console.error("Error adding property: ", error);
 		if (error.name === "ValidationError") {
-			return res
-				.status(400)
-				.json({
-					message: "Validation failed",
-					errors: error.errors,
-				});
+			return res.status(400).json({
+				message: "Validation failed",
+				errors: error.errors,
+			});
 		}
 		res.status(500).json({
 			message: "Server error while adding property",
@@ -456,6 +441,78 @@ exports.getPropertyById = async (req, res) => {
 		res.status(500).json({
 			message: "Server error while fetching property details.",
 			error: error.message,
+		});
+	}
+};
+
+// Generate Presigned URLs for Direct Upload ---
+exports.getPresignedUrls = async (req, res) => {
+	// Configure the S3 client for DigitalOcean Spaces
+	const s3Client = new S3Client({
+		endpoint: `https://${process.env.SPACES_ENDPOINT}`,
+		region: "us-east-1", // This is a required placeholder for the SDK
+		credentials: {
+			accessKeyId: process.env.SPACES_KEY,
+			secretAccessKey: process.env.SPACES_SECRET,
+		},
+	});
+
+	try {
+		const files = req.body.files; // Expects an array: [{ filename, contentType }]
+		if (!Array.isArray(files) || files.length === 0) {
+			return res
+				.status(400)
+				.json({
+					message: "File information is required.",
+				});
+		}
+		if (files.length > 10) {
+			return res
+				.status(400)
+				.json({
+					message: "You can upload a maximum of 10 images.",
+				});
+		}
+
+		// Create a presigned URL for each file
+		const presignedUrls = await Promise.all(
+			files.map(async (file) => {
+				const uniqueSuffix = crypto
+					.randomBytes(16)
+					.toString("hex");
+				const key = `properties/${
+					req.user.userId
+				}/${uniqueSuffix}-${file.filename.replace(
+					/\s+/g,
+					"-"
+				)}`;
+
+				const command = new PutObjectCommand({
+					Bucket: process.env.SPACES_BUCKET_NAME,
+					Key: key,
+					ContentType: file.contentType,
+					ACL: "public-read", // This makes the file public after upload
+				});
+
+				// Generate the temporary URL for uploading
+				const signedUrl = await getSignedUrl(
+					s3Client,
+					command,
+					{ expiresIn: 300 }
+				); // Link is valid for 5 minutes
+
+				// Generate the final public URL to be stored in the database
+				const publicUrl = `https://${process.env.SPACES_BUCKET_NAME}.${process.env.SPACES_ENDPOINT}/${key}`;
+
+				return { signedUrl, publicUrl };
+			})
+		);
+
+		res.status(200).json(presignedUrls);
+	} catch (error) {
+		console.error("Error generating presigned URLs:", error);
+		res.status(500).json({
+			message: "Could not generate upload links.",
 		});
 	}
 };

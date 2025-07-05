@@ -1,6 +1,6 @@
-import {createSlice, createAsyncThunk, PayloadAction} from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import axios from 'axios';
-import {RootState} from './store.ts';
+import { RootState } from './store.ts';
 // import {clearProfile} from './profileSlice';
 
 // --- Configuration ---
@@ -11,11 +11,11 @@ export interface Property {
     _id: string; // MongoDB ID
     userId: string; // Reference to User ObjectId as string
     overview: {
+        title?: string;
         category: "Single Room" | "Apartment";
         roomType: "Shared Room" | "Single Room";
         neighborhood: "Any" | "Allston" | "Back Bay" | "Beacon Hill" | "Brighton" | "Charlestown" | "Chinatown" | "Dorchester" | "Fenway" | "Hyde Park" | "Jamaica Plain" | "Mattapan" | "Mission Hill" | "North End" | "Roslindale" | "Roxbury" | "South Boston" | "South End" | "West End" | "West Roxbury" | "Wharf District";
         rent: number;
-        title: string; // "Title" of the listing
     };
     listingDetails: {
         size?: number; // Optional size
@@ -34,6 +34,7 @@ export interface Property {
     buildingName?: string; // Optional
     leaseLength: string;
     description: string;
+    images: string[]; // Array of image URLs
     createdAt: string; // Store as ISO string date from MongoDB
     updatedAt: string; // Store as ISO string date from MongoDB
 }
@@ -45,7 +46,7 @@ interface NewPropertyData {
         roomType: string;
         neighborhood: string;
         rent: number;
-        title: string; // "Title" of the listing
+        title?: string; // "Title" of the listing
     };
     listingDetails: {
         size?: number;
@@ -62,9 +63,14 @@ interface NewPropertyData {
     buildingName?: string;
     leaseLength: string;
     description: string;
+    imageUrls: string[];
     // Add other fields if needed by controller/model
 }
 
+interface AddPropertyPayload {
+    propertyData: Omit<NewPropertyData, 'imageUrls'>; // All data except the final URLs
+    files: File[]; // The actual file objects to be uploaded
+}
 
 // Pagination info structure matching the backend response
 interface PaginationInfo {
@@ -119,16 +125,16 @@ interface FetchPropertiesPayload {
 export const fetchAllPublicProperties = createAsyncThunk(
     'properties/fetchAllPublicProperties',
     // *** Thunk now directly accepts the full payload including filters ***
-    async (fetchArgs: FetchPropertiesPayload, {rejectWithValue}) => {
+    async (fetchArgs: FetchPropertiesPayload, { rejectWithValue }) => {
         // Set defaults if not provided in args
-        const {page = 1, limit = 9, ...filters} = fetchArgs;
+        const { page = 1, limit = 9, ...filters } = fetchArgs;
 
         // Construct params directly from fetchArgs (which now contains the filters)
-        const params = {page, limit, ...filters};
+        const params = { page, limit, ...filters };
 
         console.log(`Dispatching fetchAllPublicProperties with direct params:`, params);
         try {
-            const response = await axios.get(`${API_URL}/properties/all`, {params}); // Use params directly
+            const response = await axios.get(`${API_URL}/properties/all`, { params }); // Use params directly
             console.log("fetchAllPublicProperties Fulfilled:", response.data);
             return response.data as { properties: Property[], pagination: PaginationInfo, message: string };
         } catch (error: any) {
@@ -141,13 +147,13 @@ export const fetchAllPublicProperties = createAsyncThunk(
 // Thunk to Fetch Property IDs for the Logged-in User
 export const fetchUserPropertyIds = createAsyncThunk(
     'properties/fetchUserPropertyIds',
-    async (_, {getState, rejectWithValue}) => {
+    async (_, { getState, rejectWithValue }) => {
         const token = (getState() as RootState).auth.token;
         if (!token) return rejectWithValue('Not authenticated');
         console.log("Dispatching fetchUserPropertyIds");
         try {
             const response = await axios.get(`${API_URL}/properties`, {
-                headers: {Authorization: `Bearer ${token}`}
+                headers: { Authorization: `Bearer ${token}` }
             });
             // Backend returns { message, properties: [IDs] }
             console.log("fetchUserPropertyIds Fulfilled:", response.data);
@@ -181,32 +187,62 @@ export const fetchUserPropertyIds = createAsyncThunk(
 //     }
 // );
 
+
 // Thunk to Add New Property
 export const addNewProperty = createAsyncThunk(
     'properties/addNewProperty',
-    // *** Thunk now expects a plain object, not FormData ***
-    async (propertyData: NewPropertyData, {getState, dispatch, rejectWithValue}) => {
+    async ({ propertyData, files }: AddPropertyPayload, { getState, dispatch, rejectWithValue }) => {
         const token = (getState() as RootState).auth.token;
-        if (!token) return rejectWithValue('Not authenticated');
-        console.log("Dispatching addNewProperty with data:", propertyData);
+        if (!token) {
+            return rejectWithValue('Not authenticated. Please log in.');
+        }
+
         try {
-            const response = await axios.post(
-                `${API_URL}/properties/add`,
-                propertyData, // Send the JS object directly
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                        'Content-Type': 'application/json', // Explicitly set content type
-                    }
-                }
+            // Get Presigned URLs from our backend ---
+            console.log("Phase 1: Requesting presigned URLs...");
+            const fileInfo = files.map(file => ({ filename: file.name, contentType: file.type }));
+            const presignedUrlResponse = await axios.post(
+                `${API_URL}/properties/generate-upload-urls`,
+                { files: fileInfo },
+                { headers: { Authorization: `Bearer ${token}` } }
             );
-            console.log("addNewProperty Fulfilled:", response.data);
-            // Optionally refetch user properties or just add locally
-            dispatch(fetchUserPropertyIds()); // Refetch IDs after adding is a good idea
-            return response.data.property as Property;
+
+            const uploadTargets: { signedUrl: string, publicUrl: string }[] = presignedUrlResponse.data;
+            console.log("Phase 1: Received upload targets.", uploadTargets);
+
+            // Upload files directly to DigitalOcean Spaces ---
+            console.log("Phase 2: Uploading files directly to cloud...");
+            await Promise.all(
+                uploadTargets.map((target, index) => {
+                    return axios.put(target.signedUrl, files[index], {
+                        headers: { 'Content-Type': files[index].type },
+                    });
+                })
+            );
+            console.log("Phase 2: All files uploaded successfully.");
+
+            // Save final property data (with public URLs) to our backend ---
+            console.log("Phase 3: Saving property to database...");
+            const finalPropertyData = {
+                ...propertyData,
+                imageUrls: uploadTargets.map(target => target.publicUrl),
+            };
+
+            const createPropertyResponse = await axios.post(
+                `${API_URL}/properties/add`,
+                finalPropertyData,
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+
+            console.log("Phase 3: Property saved successfully.");
+            // Refetch user's property list to include the new one
+            dispatch(fetchUserPropertyIds());
+
+            return createPropertyResponse.data.property as Property;
+
         } catch (error: any) {
-            console.error("addNewProperty Error:", error.response?.data || error.message);
-            return rejectWithValue(error.response?.data?.message || 'Failed to add property.');
+            console.error("addNewProperty thunk error:", error.response?.data || error.message);
+            return rejectWithValue(error.response?.data?.message || 'Failed to add property. Please check all fields and try again.');
         }
     }
 );
@@ -214,7 +250,7 @@ export const addNewProperty = createAsyncThunk(
 // Thunk to Fetch Single Property Details (Needs backend endpoint GET /api/properties/:id)
 export const fetchPropertyById = createAsyncThunk(
     'properties/fetchPropertyById',
-    async (propertyId: string, {rejectWithValue}) => {
+    async (propertyId: string, { rejectWithValue }) => {
         console.log(`Dispatching fetchPropertyById API call for ID: ${propertyId}`);
         try {
             const response = await axios.get(`${API_URL}/properties/id/${propertyId}`); // Call the new backend endpoint
