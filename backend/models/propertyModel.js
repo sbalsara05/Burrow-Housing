@@ -79,6 +79,7 @@ const PropertySchema = new mongoose.Schema({
 	buildingName: { type: String, required: false },
     leaseLength: { type: String, required: true},
     description: { type: String, required: true },
+    images: [{ type: String }],
 	createdAt: { type: Date, default: Date.now },
 	updatedAt: { type: Date, default: Date.now },
 });
