@@ -32,7 +32,7 @@ import {
 import DropdownSeven from "../../search-dropdown/inner-dropdown/DropdownSeven";
 import NiceSelect from "../../../ui/NiceSelect";
 import PropertyMap from './propertyMap';
-
+import PropertyCarousel from '../../homes/home-two/PropertyCarousel';
 
 const ITEMS_PER_PAGE = 4;
 
@@ -388,11 +388,7 @@ const ListingFourteenArea = () => {
                                                         <div className="tag bg-white text-dark fw-500 border-20 position-absolute top-3 left-3 z-10">
                                                             {item.overview.category}
                                                         </div>
-                                                        <img
-                                                            src="/assets/images/listing/img_13.jpg"
-                                                            className="w-100 border-20 transition-transform duration-300 hover:scale-105"
-                                                            alt={item.description || 'Property image'}
-                                                        />
+                                                        <PropertyCarousel item={item} />
                                                         <Link
                                                             to={`/listing_details_01/${item._id}`}
                                                             className="btn-four inverse rounded-circle position-absolute top-3 right-3"
