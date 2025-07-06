@@ -1,6 +1,5 @@
 import Slider from "react-slick";
 import agent_data from "../../../data/home-data/AgentData";
-import { Link } from "react-router-dom";
 
 const AgentArea = ({ style }: any) => {
 
@@ -9,14 +8,14 @@ const AgentArea = ({ style }: any) => {
       arrows: false,
       centerPadding: '0px',
       slidesToShow: 4,
-      slidesToScroll: 2,
-      autoplay: true,
+      slidesToScroll: 0,
+      autoplay: false,
       autoplaySpeed: 3000,
       responsive: [
          {
             breakpoint: 1200,
             settings: {
-               slidesToShow: 3
+               slidesToShow: 4
             }
          },
          {
@@ -54,7 +53,7 @@ const AgentArea = ({ style }: any) => {
                                 </div>
                                 <div className="text-center">
                                    <h6>{item.title}</h6>
-                                   <Link to="/agent_details" className="stretched-link">{item.desc}</Link>
+                                   <p  className="stretched-link">{item.desc}</p>
                                 </div>
                              </div>
                           </div>
@@ -66,8 +65,8 @@ const AgentArea = ({ style }: any) => {
                    {/*<Link to="agent" className={` ${style ? "btn-eight" : "btn-one fw-normal"}`}>Meet Entire Team</Link>*/}
                 </div>
              </div>
-          // </div>
-       // </div>
+          </div>
+       </div>
    )
 }
 

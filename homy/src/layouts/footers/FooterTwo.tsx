@@ -6,7 +6,6 @@ interface ContentType {
    desc_1: string;
    desc_2: string;
    email: string;
-   number: string;
    icon: string[];
 }
 
@@ -14,8 +13,7 @@ const footer_content: ContentType = {
    title: "Our Newsletter",
    desc_1: "Get instant news by subscribe to our newsletter",
    desc_2: "Northeastern University",
-   email: "homyreal@demo.com",
-   number: "+757 699-4478",
+   email: "burrowhousingsublets@gmail.com",
    icon: ["facebook-f", "twitter", "instagram"],
 }
 
@@ -26,24 +24,6 @@ const FooterTwo = () => {
       <div className="footer-two">
          <div className="container container-large">
             <div className="bg-wrapper position-relative z-1">
-               {/*<div className="news-letter-area">*/}
-               {/*   <div className="row align-items-center">*/}
-                     {/*<div className="col-lg-6">*/}
-                     {/*   <div className="text-center text-lg-start md-mb-20">*/}
-                     {/*      <h2>{title}</h2>*/}
-                     {/*      <p className="fs-20 m0">{desc_1}</p>*/}
-                     {/*   </div>*/}
-                     {/*</div>*/}
-                     {/*<div className="col-lg-6">*/}
-                     {/*   <div className="form-wrapper me-auto ms-auto me-lg-0">*/}
-                     {/*      <form onSubmit={(e) => e.preventDefault()}>*/}
-                     {/*         <input type="email" placeholder="Your email address" />*/}
-                     {/*         <button><i className="fa-light fa-arrow-right-long"></i></button>*/}
-                     {/*      </form>*/}
-                     {/*   </div>*/}
-                     {/*</div>*/}
-               {/*   </div>*/}
-               {/*</div>*/}
 
                <div className="row justify-content-between">
                   <div className="col-xl-3">
@@ -100,12 +80,7 @@ const FooterTwo = () => {
 
             <div className="bottom-footer">
                <div className="d-md-flex justify-content-center justify-content-md-between align-items-center">
-                  <ul className="style-none bottom-nav d-flex flex-wrap justify-content-center">
-                     <li><Link to="/faq">Privacy &amp; Terms</Link></li>
-                     <li><Link to="/faq">Cookies</Link></li>
-                     <li><Link to="/contact">Contact Us</Link></li>
-                  </ul>
-                  <p className="mb-15 text-center text-lg-start order-md-first">Copyright @2024 Burrow Housing</p>
+                  <p className="mb-15 text-center text-lg-start order-md-first">Copyright @2025 Burrow Housing</p>
                </div>
             </div>
          </div>
