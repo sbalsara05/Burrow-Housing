@@ -1,7 +1,4 @@
 import { Link } from "react-router-dom";
-import Count from "../../../common/Count";
-
-
 interface ContentType {
    // sub_title: string;
    // desc_1: JSX.Element;

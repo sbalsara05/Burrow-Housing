@@ -102,7 +102,6 @@ const FooterTwo = () => {
                <div className="d-md-flex justify-content-center justify-content-md-between align-items-center">
                   <ul className="style-none bottom-nav d-flex flex-wrap justify-content-center">
                      <li><Link to="/faq">Privacy &amp; Terms</Link></li>
-                     <li><Link to="/faq">Cookies</Link></li>
                      <li><Link to="/contact">Contact Us</Link></li>
                   </ul>
                   <p className="mb-15 text-center text-lg-start order-md-first">Copyright @2024 Burrow Housing</p>

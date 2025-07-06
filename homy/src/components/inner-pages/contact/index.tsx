@@ -1,4 +1,4 @@
-import FooterFour from '../../../layouts/footers/FooterFour'
+import FooterTwo from '../../../layouts/footers/FooterTwo'
 import HeaderOne from '../../../layouts/headers/HeaderOne'
 import ContactArea from './ContactArea'
 
@@ -7,7 +7,7 @@ const Contact = () => {
       <>
          <HeaderOne style={true} />
          <ContactArea />
-         <FooterFour />
+         <FooterTwo />
       </>
    )
 }
