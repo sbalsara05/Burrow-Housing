@@ -11,7 +11,7 @@ const agent_data: DataType[] = [
       id: 1,
       page: "home_1",
       thumb: "/assets/images/agent/sohum_01.jpg",
-      title: "Sohum Balasara",
+      title: "Sohum Balsara",
       desc: "CEO & Founder",
    },
    {
@@ -25,15 +25,15 @@ const agent_data: DataType[] = [
       id: 3,
       page: "home_1",
       thumb: "/assets/images/agent/aarnav_02.png",
-      title: "Aarnav",
-      desc: "CMO",
+      title: "Arnav Sawant",
+      desc: "CBO & Co-founder",
    },
    {
       id: 4,
       page: "home_1",
       thumb: "/assets/images/agent/sujay_04.jpeg",
-      title: "Sujay SN",
-      desc: "Director of Engineer",
+      title: "Sujay Sanakka Nagarajappa",
+      desc: "Director of Engineering",
    },
 ]
 
