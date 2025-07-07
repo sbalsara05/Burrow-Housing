@@ -1,12 +1,11 @@
 import ReactPaginate from "react-paginate";
 import UseShortedProperty from "../../../hooks/useShortedProperty";
 import { Link } from "react-router-dom";
-import PropertyCarousel from "../../homes/home-two/PropertyCarousel";
 
 const FavouriteArea = () => {
 
    const itemsPerPage = 9;
-   const page = "listing_4";
+   const page = "listing_14";
 
    const {
       currentItems,
@@ -24,7 +23,6 @@ const FavouriteArea = () => {
                         <div className="prperty-carousel-slider position-relative border-25 overflow-hidden">
                            <div className={`tag border-25 ${item.tag_bg}`}>{item.tag}</div>
                            <Link to="#" className="fav-btn tran3s"><i className="fa-light fa-heart"></i></Link>
-                           <PropertyCarousel item={item} />
                         </div>
                      </div>
                      <div className="property-info p-25">

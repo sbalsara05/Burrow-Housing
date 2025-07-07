@@ -24,10 +24,8 @@ import CommonPropertyFeatureList from "../listing-details-common/CommonPropertyF
 import CommonAmenities from "../listing-details-common/CommonAmenities"; // Needs 'amenities' prop from property
 import CommonNearbyList from "../listing-details-common/CommonNearbyList"; // Needs 'location' prop
 import CommonSimilarProperty from "../listing-details-common/CommonSimilarProperty"; // Needs 'currentPropertyId' prop
-import CommonProPertyScore from "../listing-details-common/CommonProPertyScore"; // Needs 'property' prop (or specific score data)
 import CommonLocation from "../listing-details-common/CommonLocation"; // Needs 'location' prop
 import NiceSelect from "../../../ui/NiceSelect"; // Keep for review sorting
-import Review from "../../inner-pages/agency/agency-details/Review"; // Needs 'propertyId' prop
 
 const ListingDetailsOneArea = () => {
     // 1. Get ID from URL
@@ -198,7 +196,7 @@ const ListingDetailsOneArea = () => {
                                     />
                                 </div>
                                 {/* Pass property ID to fetch/display relevant reviews */}
-                                <Review propertyId={property._id} style={true}/>
+                                {/* <Review propertyId={property._id} style={true}/> */}
                             </div>
                         </div>
 

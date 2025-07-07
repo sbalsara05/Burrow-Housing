@@ -54,7 +54,7 @@ const AgentArea = () => {
                            <img src={item.thumb} alt="" className="lazy-img agent-img w-100 tran5s" />
                         </div>
                         <div className="text-center pt-30">
-                           <h6 className="name"><Link to="/agent_details" className="stretched-link">{item.title}</Link></h6>
+                           <h6 className="name"><Link to="" className="stretched-link">{item.title}</Link></h6>
                            <div className="designation">Agent</div>
                         </div>
                      </div>
