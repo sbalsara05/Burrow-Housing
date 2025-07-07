@@ -133,7 +133,7 @@ const FooterTwo = () => {
                         <div className="row align-items-center">
                             <div className="col-md-6">
                                 <p className="copyright mb-0 text-muted">
-                                    Copyright ©2025 Burrow Housing. All rights reserved.
+                                    Copyright ©2025 Burrow Housing.
                                 </p>
                             </div>
                             <div className="col-md-6">
