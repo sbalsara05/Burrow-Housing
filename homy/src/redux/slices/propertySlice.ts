@@ -213,10 +213,28 @@ export const addNewProperty = createAsyncThunk(
             // Upload files directly to DigitalOcean Spaces ---
             console.log("Phase 2: Uploading files directly to cloud...");
             await Promise.all(
-                uploadTargets.map((target, index) => {
-                    return axios.put(target.signedUrl, files[index], {
-                        headers: { 'Content-Type': files[index].type },
-                    });
+                uploadTargets.map(async (target: { signedUrl: string }, index: number) => {
+                    const file = files[index];
+                    try {
+                        const response = await fetch(target.signedUrl, {
+                            method: 'PUT',
+                            body: file,
+                            headers: {
+                                'Content-Type': file.type,
+                                'x-amz-acl': 'public-read', // As required by DigitalOcean
+                            },
+                        });
+
+                        if (!response.ok) {
+                            // Throw an error to be caught by the outer catch block
+                            throw new Error(`File upload failed for ${file.name} with status ${response.status}`);
+                        }
+                        console.log(`Successfully uploaded ${file.name}`);
+                    } catch (uploadError) {
+                        console.error(`Error uploading ${file.name}:`, uploadError);
+                        // Re-throw the error to make the Promise.all fail
+                        throw uploadError;
+                    }
                 })
             );
             console.log("Phase 2: All files uploaded successfully.");
