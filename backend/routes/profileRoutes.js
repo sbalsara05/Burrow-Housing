@@ -3,7 +3,7 @@ const router = express.Router();
 const { getUserProfile, updateUserProfile, changePassword } = require('../controllers/userController');
 const { authenticateToken } = require('../middlewares/authMiddleware');
 const upload = require('../middlewares/upload').default;
-const { getProfile, updateProfile, uploadProfileImage } = require('../controllers/profileController');
+const { getProfile, updateProfile, uploadProfileImage, getProfileImagePresignedUrl } = require('../controllers/profileController');
 
 
 router.get('/user', authenticateToken, getUserProfile);
@@ -13,6 +13,9 @@ router.put('/user/change-password', authenticateToken, changePassword);
 router.get("/profile", authenticateToken, getProfile);
 console.log(updateProfile);
 router.put("/profile", authenticateToken, upload, updateProfile);
+
+router.post('/upload-url', authenticateToken, getProfileImagePresignedUrl);
+
 
 // Upload profile image
 // router.post("/profile/image", upload, uploadProfileImage);
