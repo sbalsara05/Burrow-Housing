@@ -15,6 +15,10 @@ import {
     Property // Import the Property interface
 } from '../../../redux/slices/propertySlice';
 
+// Import modal components
+import InterestedModal from '../../../modals/InterestedModal';
+import { useInterestedModal } from '../../../hooks/useInterestedModal';
+
 // Import sub-components
 import MediaGallery from "./MediaGallery"; // Assuming this uses props now
 import Sidebar from "./Sidebar";         // Assuming this uses props now
@@ -38,7 +42,60 @@ const ListingDetailsOneArea = () => {
     const error = useSelector(selectPropertyError);
     const allProperties = useSelector(selectAllPublicProperties); // List of properties from listing pages
 
-    // 3. Fetch or select property data on mount/ID change
+    // 3. Initialize the interested modal hook
+    const { isModalOpen, currentProperty, openModal, closeModal, handleSubmitInterest } = useInterestedModal({
+        onSubmitInterest: async (data) => {
+            // Handle the interest submission here
+            console.log('Interest submitted:', data);
+            
+            // TODO: Add API call to your backend
+            // Example:
+            // try {
+            //     await axios.post('/api/interests', {
+            //         propertyId: data.propertyId,
+            //         moveInDate: data.moveInDate,
+            //         message: data.message
+            //     });
+            //     // Show success message
+            //     toast.success('Interest submitted successfully!');
+            // } catch (error) {
+            //     console.error('Error submitting interest:', error);
+            //     toast.error('Failed to submit interest. Please try again.');
+            // }
+            
+            // For now, just show alert
+            alert('Interest submitted successfully!');
+        }
+    });
+
+    // 4. Function to handle "I'm Interested" button click
+    const handleInterestedClick = () => {
+        if (property) {
+            // Extract property ADDRESS (not title) based on the Property interface structure
+            const fullAddress = property.addressAndLocation?.address || 'Address not available';
+
+            // Clean up the address - remove common suffixes like in usePropertyMap
+            const cleanAddress = fullAddress
+                .replace(/,\s*USA?$/i, '')
+                .replace(/,\s*United States$/i, '')
+                .trim();
+
+            // Try to extract just the street address part (number + street name)
+            const addressParts = cleanAddress.split(',');
+            const streetAddress = addressParts[0]?.trim() || cleanAddress;
+
+            console.log('Property address for modal:', {
+                fullAddress,
+                cleanAddress,
+                streetAddress,
+                addressAndLocation: property.addressAndLocation
+            });
+
+            openModal(property._id, streetAddress);
+        }
+    };
+
+    // 5. Fetch or select property data on mount/ID change
     useEffect(() => {
         if (id) {
             dispatch(clearPropertyError()); // Clear errors from previous attempts
@@ -60,7 +117,7 @@ const ListingDetailsOneArea = () => {
             dispatch(selectPropertyFromList(null)); // Clear property if ID is invalid/missing
         }
 
-        // 4. Cleanup Function: Clear the current property when leaving the page
+        // 6. Cleanup Function: Clear the current property when leaving the page
         return () => {
             console.log("ListingDetailsOneArea: Unmounting, dispatching clearCurrentProperty.");
             dispatch(clearCurrentProperty());
@@ -68,49 +125,45 @@ const ListingDetailsOneArea = () => {
         };
     }, [id, dispatch, allProperties]); // Rerun if ID changes or the list updates (might find it next time)
 
-    // 5. Handle loading state
+    // 7. Handle loading state
     if (isLoading) {
         return <div className="container pt-200 pb-200 text-center">Loading property details...</div>;
     }
 
-    // 6. Handle error state
+    // 8. Handle error state
     if (error) {
         return <div className="container pt-200 pb-200 text-center alert alert-danger">Error loading
             property: {error}</div>;
     }
 
-    // 7. Handle property not found state (after loading/error check)
+    // 9. Handle property not found state (after loading/error check)
     if (!property) {
         return <div className="container pt-200 pb-200 text-center">Property details not available or ID is
             invalid.</div>;
     }
 
-    // 8. Render details if property data is available
+    // 10. Render details if property data is available
     const selectHandler = () => {
     }; // Placeholder for review sort dropdown
 
     // Debug the property structure to find address and location data
     console.log("Property data:", property);
-    console.log("Address:", property.address);
-    console.log("Location object:", property.location);
+    console.log("Overview:", property.overview);
     console.log("AddressAndLocation object:", property.addressAndLocation);
 
     // Prepare the location data to pass to CommonLocation
     const locationData = {
         // Try to get address from multiple possible locations in the property object
-        // This line might be causing issues:
-        address: property.address ||
-            (property.addressAndLocation?.address) ||
-            `${property.title || property.name}, ${property.neighborhood || "Boston"}, MA`,
+        address: property.addressAndLocation?.address ||
+                property.overview?.title ||
+                'Property Location',
 
         // Try to get coordinates from multiple possible locations
-        latitude: property.location?.lat ||
-            property.addressAndLocation?.latitude ||
-            (property.geoLocation?.coordinates ? property.geoLocation.coordinates[1] : undefined),
+        latitude: property.addressAndLocation?.location?.lat ||
+                 (property.geoLocation?.coordinates ? property.geoLocation.coordinates[1] : undefined),
 
-        longitude: property.location?.lng ||
-            property.addressAndLocation?.longitude ||
-            (property.geoLocation?.coordinates ? property.geoLocation.coordinates[0] : undefined)
+        longitude: property.addressAndLocation?.location?.lng ||
+                  (property.geoLocation?.coordinates ? property.geoLocation.coordinates[0] : undefined)
     };
 
     return (
@@ -124,7 +177,6 @@ const ListingDetailsOneArea = () => {
                     <h4 className="sub-title-one mb-40 lg-mb-20">Property Overview</h4>
                     <CommonPropertyOverview property={property}/>
                 </div>
-
 
                 <div className="row">
                     <div className="col-xl-8">
@@ -143,7 +195,6 @@ const ListingDetailsOneArea = () => {
                             </div>
                         </div>
 
-
                         {/* Amenities */}
                         <div className="property-amenities rounded shadow4 bg-white p-40 mb-50">
                             {/* Pass amenities array from property object */}
@@ -160,7 +211,6 @@ const ListingDetailsOneArea = () => {
                                     lng: property.addressAndLocation.location.lng
                                 }}
                             />
-
                         </div>
 
                         {/* Similar Properties */}
@@ -177,7 +227,7 @@ const ListingDetailsOneArea = () => {
                         <div className="property-location mb-50 tw-w-full ">
                             <CommonLocation
                                 location={locationData}
-                                propertyName={property.title || property.name}
+                                propertyName={property.overview?.title || property.addressAndLocation?.address || 'Property'}
                             />
                         </div>
 
@@ -201,14 +251,25 @@ const ListingDetailsOneArea = () => {
                         </div>
 
                         {/* Review Form section removed as requested */}
-
                     </div>
 
                     {/* Sidebar */}
-                    {/* Pass property data if sidebar needs it (e.g., agent info, price) */}
-                    <Sidebar property={property}/>
+                    {/* Pass property data and the interested click handler to sidebar */}
+                    <Sidebar
+                        property={property}
+                        onInterestedClick={handleInterestedClick}
+                    />
                 </div>
             </div>
+
+            {/* Interested Modal */}
+            <InterestedModal
+                isOpen={isModalOpen}
+                onClose={closeModal}
+                propertyName={currentProperty?.name || ''}
+                propertyId={currentProperty?.id || property._id}
+                onSubmit={handleSubmitInterest}
+            />
         </div>
     );
 };
