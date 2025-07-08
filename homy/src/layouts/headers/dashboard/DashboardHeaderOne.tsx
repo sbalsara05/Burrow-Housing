@@ -108,15 +108,12 @@ const DashboardHeaderOne: React.FC<DashboardHeaderOneProps> = ({ isActive, setIs
                         {/* Listing Section */}
                         <li className="bottom-line pt-30 lg-pt-20 mb-40 lg-mb-30"></li>
                         <li><div className="nav-title">Listing</div></li>
-                        {/* My Properties Link (Example - uncomment if needed) */}
-                        {/*
-                         <li className="plr">
-                             <Link to="/dashboard/properties-list" className={`d-flex w-100 align-items-center ${pathname === '/dashboard/properties-list' ? 'active' : ''}`} onClick={() => handleNavigation('/dashboard/properties-list')}>
-                                 <img src={pathname === '/dashboard/properties-list' ? "/assets/images/dashboard/icon/icon_6_active.svg" : "/assets/images/dashboard/icon/icon_6.svg"} alt="" />
-                                 <span>My Properties</span>
-                             </Link>
-                         </li>
-                         */}
+                        <li className="plr">
+                            <Link to="/dashboard/properties-list" className={`d-flex w-100 align-items-center ${pathname === '/dashboard/properties-list' ? 'active' : ''}`} onClick={() => handleNavigation('/dashboard/properties-list')}>
+                                <img src={pathname === '/dashboard/properties-list' ? "/assets/images/dashboard/icon/icon_6_active.svg" : "/assets/images/dashboard/icon/icon_6.svg"} alt="" />
+                                <span>My Properties</span>
+                            </Link>
+                        </li>
                         <li className="plr">
                             <Link to="/dashboard/add-property" className={`d-flex w-100 align-items-center ${pathname === '/dashboard/add-property' ? 'active' : ''}`} onClick={() => handleNavigation('/dashboard/add-property')}>
                                 <img src={pathname === '/dashboard/add-property' ? "/assets/images/dashboard/icon/icon_7_active.svg" : "/assets/images/dashboard/icon/icon_7.svg"} alt="" />

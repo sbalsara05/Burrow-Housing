@@ -8,6 +8,7 @@ import "./styles/bootstrap-bridge-tailwind.scss"
 import { Provider } from "react-redux";
 import { PersistGate } from 'redux-persist/integration/react'; // Import PersistGate
 import store, { persistor } from './redux/slices/store.ts'; // Import both store and persistor
+import 'bootstrap/dist/js/bootstrap.bundle.min.js'; // Import Bootstrap JS
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
     <Provider store={store}>
