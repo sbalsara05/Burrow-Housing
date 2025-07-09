@@ -1,19 +1,45 @@
 import {useState, useEffect} from "react";
-import {useSelector} from "react-redux";
+import {useSelector, useDispatch} from "react-redux";
 import {Link} from "react-router-dom";
 import NavMenu from "./Menu/NavMenu";
 import UseSticky from "../../hooks/UseSticky";
 import LoginModal from "../../modals/LoginModal";
 import MobileMenu from "./Menu/MobileMenu";
 import {selectIsAuthenticated, selectAuthState} from "../../redux/slices/authSlice";
+import {selectProfileState, fetchProfile} from "../../redux/slices/profileSlice";
+import {AppDispatch} from "../../redux/slices/store";
 
 const HeaderOne = ({style}: any) => {
     const [loginModal, setLoginModal] = useState<boolean>(false);
     const [isActive, setIsActive] = useState<boolean>(false);
     const {sticky} = UseSticky();
+    const dispatch = useDispatch<AppDispatch>();
+
     const isAuthenticated = useSelector(selectIsAuthenticated);
     const authState = useSelector(selectAuthState);
+    const profileState = useSelector(selectProfileState);
     const user = authState.user;
+    const profile = profileState.profile;
+
+    // Fetch profile when user is authenticated
+    useEffect(() => {
+        if (isAuthenticated && user && !profile) {
+            dispatch(fetchProfile());
+        }
+    }, [isAuthenticated, user, profile, dispatch]);
+
+    // Construct profile image URL
+    const getProfileImageUrl = () => {
+        if (profile?.image) {
+            // If the image path is relative, construct full URL
+            if (profile.image.startsWith('http')) {
+                return profile.image;
+            } else {
+                return `http://localhost:3000/${profile.image.replace(/\\/g, '/')}`;
+            }
+        }
+        return "/assets/images/dashboard/no-profile-pic.png";
+    };
 
     return (
         <>
@@ -37,8 +63,6 @@ const HeaderOne = ({style}: any) => {
                                 <ul className="d-flex align-items-center style-none">
                                     {isAuthenticated ? (
                                         <>
-
-
                                             {/* Add Listing Button */}
                                             <li className="d-none d-md-inline-block">
                                                 <Link to="/dashboard/add-property" className="btn-two" target="_blank">
@@ -51,24 +75,30 @@ const HeaderOne = ({style}: any) => {
                                             {user && (
                                                 <li className="d-none d-md-inline-block tw-pl-5">
                                                     <div className="user-profile d-flex align-items-center">
+
                                                         <div className="user-avatar me-2">
-                                                            <div
-                                                                className="tw-bg-primary text-white rounded-circle d-flex align-items-center justify-content-center fw-500 tw-pt-1 tw-h-14 tw-w-14"
-                                                                // style={{
-                                                                //     width: '32px',
-                                                                //     height: '32px',
-                                                                //     fontSize: '14px'
-                                                                // }}
-                                                            >
-                                                                {user.name?.charAt(0).toUpperCase() || 'U'}
-                                                            </div>
+                                                            <img
+                                                                src={getProfileImageUrl()}
+                                                                alt={user.name || 'User'}
+                                                                className="rounded-circle"
+                                                                style={{
+                                                                    width: '58px',
+                                                                    height: '58px',
+                                                                    objectFit: 'cover',
+                                                                    border: '2px solid #f8f9fa'
+                                                                }}
+                                                                onError={(e) => {
+                                                                    // Fallback to default image if profile image fails to load
+                                                                    e.currentTarget.src = "/assets/images/dashboard/no-profile-pic.png";
+                                                                }}
+                                                            />
                                                         </div>
-                                                        {/*<div className="user-info">*/}
-                                                        {/*    <div className="user-name fw-500 text-dark"*/}
-                                                        {/*         style={{fontSize: '14px', lineHeight: '1.2'}}>*/}
-                                                        {/*        {user.name || 'User'}*/}
-                                                        {/*    </div>*/}
-                                                        {/*</div>*/}
+                                                        <div className="user-info">
+                                                            {/*<div className="user-name fw-500 text-dark"*/}
+                                                            {/*     style={{fontSize: '14px', lineHeight: '1.2'}}>*/}
+                                                            {/*    {user.name || 'User'}*/}
+                                                            {/*</div>*/}
+                                                        </div>
                                                     </div>
                                                 </li>
                                             )}
