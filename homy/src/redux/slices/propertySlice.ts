@@ -35,6 +35,7 @@ export interface Property {
     leaseLength: string;
     description: string;
     images: string[]; // Array of image URLs
+    status?: "Active" | "Pending" | "Inactive"; // Optional status field
     createdAt: string; // Store as ISO string date from MongoDB
     updatedAt: string; // Store as ISO string date from MongoDB
 }
@@ -84,6 +85,7 @@ interface PaginationInfo {
 interface PropertyState {
     allProperties: Property[]; // Holds the properties for the *current* page of public listings
     userProperties: Property[]; // Holds full property objects added by the logged-in user
+    userPropertiesSort: string; // Holds the sort order for user properties (e.g., "Newest", "Oldest", etc.)
     userPropertyIds: string[]; // Holds only the IDs fetched from /api/properties initially
     currentProperty: Property | null; // Holds details for a single property view
     publicPagination: PaginationInfo | null; // Holds pagination data for public listings
@@ -99,6 +101,7 @@ interface PropertyState {
 const initialState: PropertyState = {
     allProperties: [],
     userProperties: [],
+    userPropertiesSort: 'newest',
     userPropertyIds: [], // Initialize IDs array
     currentProperty: null,
     publicPagination: null,
@@ -144,7 +147,30 @@ export const fetchAllPublicProperties = createAsyncThunk(
     }
 );
 
-// Thunk to Fetch Property IDs for the Logged-in User
+// NEW: Thunk to Fetch Full Properties for the Logged-in User
+export const fetchUserProperties = createAsyncThunk(
+    'properties/fetchUserProperties',
+    async (_, { getState, rejectWithValue }) => {
+        const token = (getState() as RootState).auth.token;
+        if (!token) {
+            return rejectWithValue('User is not authenticated.');
+        }
+        console.log("Dispatching fetchUserProperties");
+        try {
+            // This endpoint now returns full property objects
+            const response = await axios.get(`${API_URL}/properties`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            console.log("fetchUserProperties Fulfilled:", response.data);
+            return response.data.properties as Property[]; // The payload is the array of properties
+        } catch (error: any) {
+            console.error("fetchUserProperties Error:", error.response?.data || error.message);
+            return rejectWithValue(error.response?.data?.message || 'Failed to fetch your properties.');
+        }
+    }
+);
+
+// Thunk to Fetch Property IDs for the Logged-in User (Retained for potential other uses)
 export const fetchUserPropertyIds = createAsyncThunk(
     'properties/fetchUserPropertyIds',
     async (_, { getState, rejectWithValue }) => {
@@ -155,37 +181,16 @@ export const fetchUserPropertyIds = createAsyncThunk(
             const response = await axios.get(`${API_URL}/properties`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            // Backend returns { message, properties: [IDs] }
-            console.log("fetchUserPropertyIds Fulfilled:", response.data);
-            return (response.data.properties || []) as string[]; // Return array of IDs
+            console.log("fetchUserPropertyIds Fulfilled (returning IDs only):", response.data);
+            // This is now an example. The backend returns full objects, so we'd map to IDs if needed.
+            const propertyIds = response.data.properties.map((p: Property) => p._id);
+            return propertyIds;
         } catch (error: any) {
             console.error("fetchUserPropertyIds Error:", error.response?.data || error.message);
             return rejectWithValue(error.response?.data?.message || 'Failed to fetch user property IDs.');
         }
     }
 );
-
-// Thunk to Fetch Full Details for User Properties (using IDs) - Example Implementation
-// You might call this after fetchUserPropertyIds succeeds
-// export const fetchFullUserProperties = createAsyncThunk(
-//     'properties/fetchFullUserProperties',
-//     async (propertyIds: string[], { rejectWithValue }) => {
-//         if (!propertyIds || propertyIds.length === 0) return []; // No IDs to fetch
-//         console.log("Dispatching fetchFullUserProperties for IDs:", propertyIds);
-//         try {
-//             // This assumes you have a backend endpoint like GET /api/properties/batch?ids=id1,id2,id3
-//             // Or you might need to make multiple requests to GET /api/properties/:id (less efficient)
-//             // For now, let's simulate fetching from allProperties if they exist there (not ideal)
-//             // const response = await axios.get(`${API_URL}/properties/batch`, { params: { ids: propertyIds.join(',') } });
-//             // return response.data.properties as Property[];
-//             console.warn("fetchFullUserProperties: Needs backend endpoint or alternative fetch strategy.");
-//             return [] as Property[]; // Placeholder return
-//         } catch (error: any) {
-//             console.error("fetchFullUserProperties Error:", error.response?.data || error.message);
-//             return rejectWithValue('Failed to fetch full user property details.');
-//         }
-//     }
-// );
 
 
 // Thunk to Add New Property
@@ -254,7 +259,7 @@ export const addNewProperty = createAsyncThunk(
 
             console.log("Phase 3: Property saved successfully.");
             // Refetch user's property list to include the new one
-            dispatch(fetchUserPropertyIds());
+            dispatch(fetchUserProperties()); // MODIFIED: Refetch full properties, not just IDs
 
             return createPropertyResponse.data.property as Property;
 
@@ -316,7 +321,10 @@ const propertySlice = createSlice({
             state.currentProperty = null;
             state.status = 'idle'; // Reset status related to single fetch
             state.error = null;
-        }
+        },
+        setUserPropertiesSort: (state, action: PayloadAction<string>) => {
+            state.userPropertiesSort = action.payload;
+        },
     },
     extraReducers: (builder) => {
         builder
@@ -349,6 +357,29 @@ const propertySlice = createSlice({
                 state.publicPagination = null;
             })
 
+            // --- Fetch Full User Properties ---
+            .addCase(fetchUserProperties.pending, (state) => {
+                console.log("Reducer: fetchUserProperties.pending");
+                state.isUserPropertiesLoading = true;
+                state.isLoading = true;
+                state.error = null;
+            })
+            .addCase(fetchUserProperties.fulfilled, (state, action: PayloadAction<Property[]>) => {
+                console.log("Reducer: fetchUserProperties.fulfilled");
+                state.isUserPropertiesLoading = false;
+                state.isLoading = false;
+                state.userProperties = action.payload;
+                state.status = 'succeeded';
+            })
+            .addCase(fetchUserProperties.rejected, (state, action) => {
+                console.log("Reducer: fetchUserProperties.rejected", action.payload);
+                state.isUserPropertiesLoading = false;
+                state.isLoading = false;
+                state.error = action.payload as string;
+                state.status = 'failed';
+                state.userProperties = [];
+            })
+
             // --- Fetch User Property IDs ---
             .addCase(fetchUserPropertyIds.pending, (state) => {
                 console.log("Reducer: fetchUserPropertyIds.pending");
@@ -361,10 +392,7 @@ const propertySlice = createSlice({
                 state.isUserPropertiesLoading = false;
                 state.isLoading = false;
                 state.userPropertyIds = action.payload;
-                // **Decision:** Do we fetch full details now? Or leave it to the component?
-                // If fetching now: dispatch(fetchFullUserProperties(action.payload));
-                // For simplicity now, we just store IDs. Component needs to handle fetching details.
-                state.status = 'succeeded'; // Or keep loading if fetching details
+                state.status = 'succeeded';
             })
             .addCase(fetchUserPropertyIds.rejected, (state, action) => {
                 console.log("Reducer: fetchUserPropertyIds.rejected", action.payload);
@@ -386,10 +414,8 @@ const propertySlice = createSlice({
                 console.log("Reducer: addNewProperty.fulfilled");
                 state.isAddingProperty = false;
                 state.isLoading = false;
-                // Add to userProperties list immediately
-                // state.userProperties.unshift(action.payload); // Or refetch IDs/Details
-                // Add the new ID to userPropertyIds
-                state.userPropertyIds.unshift(action.payload._id);
+                // Add the new property to the beginning of the userProperties array
+                state.userProperties.unshift(action.payload);
                 state.status = 'succeeded';
             })
             .addCase(addNewProperty.rejected, (state, action) => {
@@ -430,19 +456,19 @@ export const {
     setCurrentProperty,
     clearAllPropertyData,
     clearCurrentProperty,
-    selectPropertyFromList
+    selectPropertyFromList,
+    setUserPropertiesSort
 } = propertySlice.actions;
 
 // --- Selectors ---
 export const selectPropertyState = (state: RootState) => state.properties;
 export const selectAllPublicProperties = (state: RootState) => state.properties.allProperties;
-export const selectUserPropertyIds = (state: RootState) => state.properties.userPropertyIds;
-export const selectUserProperties = (state: RootState) => state.properties.userProperties; // If storing full objects
+export const selectUserProperties = (state: RootState) => state.properties.userProperties;
+export const selectUserPropertiesSort = (state: RootState) => state.properties.userPropertiesSort;
 export const selectCurrentProperty = (state: RootState) => state.properties.currentProperty;
 export const selectPublicPagination = (state: RootState) => state.properties.publicPagination;
 export const selectPropertyLoading = (state: RootState) => state.properties.isLoading;
 export const selectUserPropertiesLoading = (state: RootState) => state.properties.isUserPropertiesLoading;
-export const selectPublicPropertiesLoading = (state: RootState) => state.properties.isPublicPropertiesLoading;
 export const selectIsAddingProperty = (state: RootState) => state.properties.isAddingProperty;
 export const selectPropertyError = (state: RootState) => state.properties.error;
 export const selectPropertyStatus = (state: RootState) => state.properties.status;

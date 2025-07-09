@@ -76,15 +76,20 @@ const PropertySchema = new mongoose.Schema({
 
 	addressAndLocation: {
 		address: { type: String, required: true },
-        location: {
-            lat: { type: Number, required: true },
-            lng: { type: Number, required: true }
-        }
+		location: {
+			lat: { type: Number, required: true },
+			lng: { type: Number, required: true },
+		},
 	},
 	buildingName: { type: String, required: false },
 	leaseLength: { type: String, required: true },
 	description: { type: String, required: true },
 	images: [{ type: String }],
+	status: {
+		type: String,
+		enum: ["Active", "Pending", "Inactive"],
+		default: "Active",
+	},
 	createdAt: { type: Date, default: Date.now },
 	updatedAt: { type: Date, default: Date.now },
 });

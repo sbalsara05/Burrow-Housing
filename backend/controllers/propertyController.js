@@ -18,8 +18,8 @@ exports.getMyProperties = async (req, res) => {
 		const userId = req.user.userId; // Extracted from the token
 		console.log("Fetching properties for user ID: ", userId);
 
-		// Fetch the user's properties
-		const user = await User.findById(userId).select("properties"); // Assuming 'properties' is a field in the User model
+		// Fetch the user's properties and populate the 'properties' field with full property documents
+		const user = await User.findById(userId).populate('properties'); 
 
 		if (!user) {
 			return res
