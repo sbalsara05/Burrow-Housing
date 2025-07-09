@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import axios from 'axios';
 import { RootState } from './store.ts';
+import { updateUserRole } from './authSlice'; // ADDED FOR AUTOMATIC ROLE SYSTEM
 // import {clearProfile} from './profileSlice';
 
 // --- Configuration ---
@@ -192,7 +193,6 @@ export const fetchUserPropertyIds = createAsyncThunk(
     }
 );
 
-
 // Thunk to Add New Property
 export const addNewProperty = createAsyncThunk(
     'properties/addNewProperty',
@@ -258,6 +258,22 @@ export const addNewProperty = createAsyncThunk(
             );
 
             console.log("Phase 3: Property saved successfully.");
+
+            // ADDED FOR AUTOMATIC ROLE SYSTEM:
+            // Step 4: Update user role to lister since they now have properties
+            console.log("Property created successfully, updating user role to lister");
+            
+            const state = getState() as any;
+            const currentUser = state.auth.user;
+            const currentPropertyCount = state.properties.userProperties?.length || 0;
+            
+            // Update user role to lister since they now have properties
+            dispatch(updateUserRole({
+                hasListings: true,
+                isLister: true,
+                listingCount: currentPropertyCount + 1
+            }));
+
             // Refetch user's property list to include the new one
             dispatch(fetchUserProperties()); // MODIFIED: Refetch full properties, not just IDs
 
@@ -289,7 +305,6 @@ export const fetchPropertyById = createAsyncThunk(
         }
     }
 );
-
 
 // --- Slice Definition ---
 const propertySlice = createSlice({
@@ -369,6 +384,8 @@ const propertySlice = createSlice({
                 state.isUserPropertiesLoading = false;
                 state.isLoading = false;
                 state.userProperties = action.payload;
+                // ADDED FOR AUTOMATIC ROLE SYSTEM: Update userPropertyIds too
+                state.userPropertyIds = action.payload.map(property => property._id);
                 state.status = 'succeeded';
             })
             .addCase(fetchUserProperties.rejected, (state, action) => {
@@ -416,6 +433,8 @@ const propertySlice = createSlice({
                 state.isLoading = false;
                 // Add the new property to the beginning of the userProperties array
                 state.userProperties.unshift(action.payload);
+                // ADDED FOR AUTOMATIC ROLE SYSTEM: Update userPropertyIds too
+                state.userPropertyIds.unshift(action.payload._id);
                 state.status = 'succeeded';
             })
             .addCase(addNewProperty.rejected, (state, action) => {
@@ -464,6 +483,7 @@ export const {
 export const selectPropertyState = (state: RootState) => state.properties;
 export const selectAllPublicProperties = (state: RootState) => state.properties.allProperties;
 export const selectUserProperties = (state: RootState) => state.properties.userProperties;
+export const selectUserPropertyIds = (state: RootState) => state.properties.userPropertyIds; // ADDED FOR AUTOMATIC ROLE SYSTEM
 export const selectUserPropertiesSort = (state: RootState) => state.properties.userPropertiesSort;
 export const selectCurrentProperty = (state: RootState) => state.properties.currentProperty;
 export const selectPublicPagination = (state: RootState) => state.properties.publicPagination;

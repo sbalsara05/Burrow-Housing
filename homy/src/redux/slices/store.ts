@@ -1,3 +1,4 @@
+// frontend/redux/store.ts
 import { configureStore, combineReducers } from '@reduxjs/toolkit';
 import { persistStore, persistReducer, FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER } from 'redux-persist';
 import storage from 'redux-persist/lib/storage';
@@ -5,6 +6,7 @@ import authReducer from './authSlice.ts';
 import profileReducer from './profileSlice.ts';
 import propertyReducer from './propertySlice.ts';
 import filterReducer from './filterSlice.ts';
+import contactRequestReducer from './contactRequestSlice'; // ADDED FOR AUTOMATIC ROLE SYSTEM
 
 // --- Redux Persist Configuration ---
 const persistConfig = {
@@ -15,7 +17,7 @@ const persistConfig = {
     // Profile/Property data is usually fetched on load, no need to persist large lists.
     whitelist: ['filters']
     // Blacklist: Alternatively, specify slices *not* to persist
-    // blacklist: ['auth', 'profile', 'properties']
+    // blacklist: ['auth', 'profile', 'properties', 'contactRequests'] // Don't persist contact requests
 };
 
 // Combine all reducers before wrapping with persistReducer
@@ -24,6 +26,7 @@ const rootReducer = combineReducers({
     profile: profileReducer,
     properties: propertyReducer,
     filters: filterReducer,
+    contactRequests: contactRequestReducer, // ADDED FOR AUTOMATIC ROLE SYSTEM
 });
 
 // Create the persisted reducer
@@ -37,7 +40,9 @@ export const store = configureStore({
             // Ignore specific actions from redux-persist
             ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER,
                 'profile/updateProfile/pending', 'profile/updateProfile/fulfilled', 'profile/updateProfile/rejected', // Keep yours if needed
-                'properties/addNewProperty/pending', 'properties/addNewProperty/fulfilled', 'properties/addNewProperty/rejected'],
+                'properties/addNewProperty/pending', 'properties/addNewProperty/fulfilled', 'properties/addNewProperty/rejected',
+                'contactRequests/submitContactRequest/pending', 'contactRequests/submitContactRequest/fulfilled', 'contactRequests/submitContactRequest/rejected', // ADDED FOR CONTACT REQUESTS
+                'contactRequests/approveContactRequest/pending', 'contactRequests/approveContactRequest/fulfilled', 'contactRequests/approveContactRequest/rejected'], // ADDED FOR CONTACT REQUESTS
             // Ignore specific paths if absolutely necessary (try to avoid)
             // ignoredPaths: ['filters.someNonSerializableField']
         }

@@ -16,6 +16,9 @@ export interface User {
     phone?: string;
     isVerified: boolean;
     properties?: string[]; // Array of property IDs if included
+    hasListings?: boolean;
+    isLister?: boolean;
+    listingCount?: number;
 }
 
 // Define the shape of the Google user info if needed separately
@@ -218,6 +221,7 @@ export const updateUser = createAsyncThunk(
     }
 );
 
+
 // Action: Google Sign-In
 export const googleSignIn = createAsyncThunk(
     'auth/googleSignIn',
@@ -312,7 +316,20 @@ const authSlice = createSlice({
             state.isVerificationRequired = false;
             state.otpEmail = null;
         },
+        updateUserRole: (state, action: PayloadAction<{
+            hasListings: boolean;
+            isLister: boolean;
+            listingCount: number;
+        }>) => {
+            if (state.user) {
+                state.user.hasListings = action.payload.hasListings;
+                state.user.isLister = action.payload.isLister;
+                state.user.listingCount = action.payload.listingCount;
+                console.log('User role updated to lister:', action.payload);
+            }
+        },
     },
+
     // Handle outcomes of async thunks
     extraReducers: (builder) => {
         builder
@@ -511,7 +528,7 @@ const authSlice = createSlice({
 });
 
 // --- Export Actions and Reducer ---
-export const { clearAuthError, resetVerificationFlag } = authSlice.actions;
+export const { clearAuthError, resetVerificationFlag, updateUserRole } = authSlice.actions;
 
 // --- Selectors ---
 export const selectAuthState = (state: RootState) => state.auth;
