@@ -310,15 +310,15 @@ const ListingFourteenArea = () => {
                                         placeholder="Default"
                                     />
                                 </div>
-                                <Link
-                                    to="/listing_15"
-                                    className="tran3s layout-change rounded-circle ms-auto ms-sm-3 d-flex align-items-center justify-content-center"
-                                    data-bs-toggle="tooltip"
-                                    title="Switch To List View"
-                                    style={{ width: '40px', height: '40px' }}
-                                >
-                                    <i className="fa-regular fa-bars"></i>
-                                </Link>
+                                {/*<Link*/}
+                                {/*    to="/listing_15"*/}
+                                {/*    className="tran3s layout-change rounded-circle ms-auto ms-sm-3 d-flex align-items-center justify-content-center"*/}
+                                {/*    data-bs-toggle="tooltip"*/}
+                                {/*    title="Switch To List View"*/}
+                                {/*    style={{ width: '40px', height: '40px' }}*/}
+                                {/*>*/}
+                                {/*    <i className="fa-regular fa-bars"></i>*/}
+                                {/*</Link>*/}
                             </div>
                         </div>
 
