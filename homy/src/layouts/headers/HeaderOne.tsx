@@ -73,35 +73,45 @@ const HeaderOne = ({style}: any) => {
 
                                             {/* User Profile - only show when logged in */}
                                             {user && (
-                                                <li className="d-none d-md-inline-block tw-pl-5">
-                                                    <div className="user-profile d-flex align-items-center">
-
-                                                        <div className="user-avatar me-2">
-                                                            <img
-                                                                src={getProfileImageUrl()}
-                                                                alt={user.name || 'User'}
-                                                                className="rounded-circle"
-                                                                style={{
-                                                                    width: '58px',
-                                                                    height: '58px',
-                                                                    objectFit: 'cover',
-                                                                    border: '2px solid #f8f9fa'
-                                                                }}
-                                                                onError={(e) => {
-                                                                    // Fallback to default image if profile image fails to load
-                                                                    e.currentTarget.src = "/assets/images/dashboard/no-profile-pic.png";
-                                                                }}
-                                                            />
+                                                <li className="d-none d-md-inline-block tw-pl-5 tw-pt-2">
+                                                    <Link to="/dashboard/profile" className="text-decoration-none">
+                                                        <div className="user-profile d-flex align-items-center"
+                                                             style={{cursor: 'pointer'}}>
+                                                            <div className="user-avatar me-2">
+                                                                <img
+                                                                    src={getProfileImageUrl()}
+                                                                    alt={user.name || 'User'}
+                                                                    className="rounded-circle"
+                                                                    style={{
+                                                                        width: '58px',
+                                                                        height: '58px',
+                                                                        objectFit: 'cover',
+                                                                        border: '2px solid #f8f9fa',
+                                                                        transition: 'border-color 0.2s ease'
+                                                                    }}
+                                                                    onError={(e) => {
+                                                                        // Fallback to default image if profile image fails to load
+                                                                        e.currentTarget.src = "/assets/images/dashboard/no-profile-pic.png";
+                                                                    }}
+                                                                    onMouseEnter={(e) => {
+                                                                        e.currentTarget.style.borderColor = '#f54a2c';
+                                                                    }}
+                                                                    onMouseLeave={(e) => {
+                                                                        e.currentTarget.style.borderColor = '#f8f9fa';
+                                                                    }}
+                                                                />
+                                                            </div>
+                                                            <div className="user-info">
+                                                                {/*<div className="user-name fw-500 text-dark"*/}
+                                                                {/*     style={{fontSize: '14px', lineHeight: '1.2'}}>*/}
+                                                                {/*    {user.name || 'User'}*/}
+                                                                {/*</div>*/}
+                                                            </div>
                                                         </div>
-                                                        <div className="user-info">
-                                                            {/*<div className="user-name fw-500 text-dark"*/}
-                                                            {/*     style={{fontSize: '14px', lineHeight: '1.2'}}>*/}
-                                                            {/*    {user.name || 'User'}*/}
-                                                            {/*</div>*/}
-                                                        </div>
-                                                    </div>
+                                                    </Link>
                                                 </li>
                                             )}
+
                                         </>
                                     ) : (
                                         // If user is not authenticated, show "Login" button
