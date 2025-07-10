@@ -1,0 +1,362 @@
+/* Chat Component Styles */
+.chat-sidebar {
+    border-right: 1px solid #e9ecef;
+    height: 600px;
+    overflow: hidden;
+}
+
+.chat-list {
+    height: 100%;
+    overflow-y: auto;
+}
+
+.chat-item {
+    transition: background-color 0.2s ease;
+    cursor: pointer;
+}
+
+.chat-item:hover {
+    background-color: #f8f9fa;
+}
+
+.chat-item.active {
+    background-color: #e3f2fd;
+}
+
+.bg-primary-light {
+    background-color: #e3f2fd;
+}
+
+.hover-bg-light:hover {
+    background-color: #f8f9fa;
+}
+
+/* Chat Window Styles */
+.chat-window {
+    height: 600px;
+}
+
+.messages-area {
+    height: 400px;
+    overflow-y: auto;
+    scroll-behavior: smooth;
+}
+
+.messages-area::-webkit-scrollbar {
+    width: 6px;
+}
+
+.messages-area::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+.messages-area::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 3px;
+}
+
+.messages-area::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+/* Message Bubble Styles */
+.message-bubble {
+    max-width: 100%;
+}
+
+.message-content {
+    max-width: 70%;
+}
+
+.message-text {
+    word-wrap: break-word;
+    position: relative;
+}
+
+.message-text.sent {
+    background-color: #007bff;
+    color: white;
+    margin-left: auto;
+}
+
+.message-text.received {
+    background-color: #f8f9fa;
+    color: #333;
+    margin-right: auto;
+}
+
+.message-time {
+    font-size: 0.75rem;
+    opacity: 0.7;
+}
+
+/* Message Input Styles */
+.message-input-container {
+    position: relative;
+}
+
+.message-input {
+    border-top: 1px solid #e9ecef;
+    padding: 15px;
+}
+
+.message-input textarea {
+    resize: none;
+    border: none;
+    outline: none;
+    box-shadow: none;
+    background: #f8f9fa;
+    border-radius: 20px;
+    padding: 10px 15px;
+}
+
+.message-input textarea:focus {
+    background: white;
+    border: 1px solid #007bff;
+}
+
+.message-input .btn {
+    border: none;
+    outline: none;
+    box-shadow: none;
+}
+
+.message-input .btn:focus {
+    box-shadow: none;
+}
+
+/* Quick Actions */
+.quick-actions {
+    background-color: #f8f9fa;
+    border-top: 1px solid #e9ecef;
+    padding: 10px 15px;
+}
+
+.quick-actions .btn {
+    font-size: 0.875rem;
+    padding: 5px 10px;
+}
+
+/* File Upload Styles */
+.file-upload-overlay {
+    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1);
+    border-radius: 8px 8px 0 0;
+}
+
+.drop-zone {
+    border: 2px dashed #dee2e6;
+    border-radius: 8px;
+    padding: 30px;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.drop-zone.drag-over {
+    border-color: #007bff;
+    background-color: rgba(0, 123, 255, 0.1);
+}
+
+.drop-zone:hover {
+    border-color: #007bff;
+}
+
+/* Typing Indicator Styles */
+.typing-indicator .typing-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background-color: #6c757d;
+    display: inline-block;
+    animation: typing 1.4s infinite ease-in-out;
+    margin: 0 1px;
+}
+
+.typing-indicator .typing-dot:nth-child(1) {
+    animation-delay: -0.32s;
+}
+
+.typing-indicator .typing-dot:nth-child(2) {
+    animation-delay: -0.16s;
+}
+
+@keyframes typing {
+
+    0%,
+    80%,
+    100% {
+        opacity: 0.4;
+        transform: scale(0.8);
+    }
+
+    40% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Online Status Indicator */
+.online-indicator {
+    position: absolute;
+    bottom: 2px;
+    right: 2px;
+    width: 12px;
+    height: 12px;
+    background-color: #28a745;
+    border: 2px solid white;
+    border-radius: 50%;
+}
+
+/* Chat Header Styles */
+.chat-header {
+    background-color: white;
+    border-bottom: 1px solid #e9ecef;
+    padding: 15px 20px;
+}
+
+.chat-header h4 {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.chat-header .btn {
+    color: #6c757d;
+    padding: 8px;
+}
+
+.chat-header .btn:hover {
+    color: #007bff;
+    background-color: #f8f9fa;
+}
+
+/* Search Bar Styles */
+.search-bar {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.search-bar .form-control {
+    border: 1px solid #e9ecef;
+    border-radius: 20px;
+    padding: 8px 40px 8px 15px;
+    background-color: white;
+    font-size: 0.875rem;
+}
+
+.search-bar .form-control:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+    .chat-sidebar {
+        height: 100vh;
+    }
+
+    .chat-window {
+        height: 100vh;
+    }
+
+    .messages-area {
+        height: calc(100vh - 200px);
+    }
+
+    .message-content {
+        max-width: 85%;
+    }
+
+    .quick-actions {
+        padding: 8px 10px;
+    }
+
+    .quick-actions .btn {
+        font-size: 0.75rem;
+        padding: 4px 8px;
+    }
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+    .chat-sidebar {
+        background-color: #2d3748;
+        border-color: #4a5568;
+    }
+
+    .chat-item {
+        color: #e2e8f0;
+    }
+
+    .chat-item:hover {
+        background-color: #4a5568;
+    }
+
+    .message-text.received {
+        background-color: #4a5568;
+        color: #e2e8f0;
+    }
+
+    .message-input textarea {
+        background-color: #4a5568;
+        color: #e2e8f0;
+        border-color: #4a5568;
+    }
+
+    .chat-header {
+        background-color: #2d3748;
+        border-color: #4a5568;
+        color: #e2e8f0;
+    }
+}
+
+/* Animation Classes */
+.fade-in {
+    animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.slide-up {
+    animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Utility Classes */
+.cursor-pointer {
+    cursor: pointer;
+}
+
+.text-truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.resize-none {
+    resize: none;
+}
+
+.min-vh-100 {
+    min-height: 100vh;
+}

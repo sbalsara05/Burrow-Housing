@@ -69,6 +69,15 @@ const DashboardHeaderOne: React.FC<DashboardHeaderOneProps> = ({ isActive, setIs
                             </Link>
                         </li>
                          */}
+                        
+                        {/* Chat Link - NEW ADDITION */}
+                        <li className="plr">
+                            <Link to="/dashboard/chat" className={`d-flex w-100 align-items-center ${pathname === '/dashboard/chat' ? 'active' : ''}`} onClick={() => handleNavigation('/dashboard/chat')}>
+                                <img src={pathname === '/dashboard/chat' ? "/assets/images/dashboard/icon/icon_chat_active.svg" : "/assets/images/dashboard/icon/icon_chat.png"} alt="" />
+                                <span>Chat</span>
+                            </Link>
+                        </li>
+                        
                         {/* Message Link (Example - uncomment if needed) */}
                         {/*
                          <li className="plr">

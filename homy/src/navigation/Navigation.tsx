@@ -16,6 +16,7 @@ import NotFound from '../pages/NotFound';
 import DashboardIndex from '../pages/DashboardIndex';
 import DashboardMessage from '../pages/DashboardMessage';
 import DashboardProfile from '../pages/DashboardProfile';
+import DashboardChatConversationMain from '../pages/DashboardChatConversation';
 import DashboardAccountSettings from '../pages/DashboardAccountSettings';
 import DashboardPropertiesList from '../pages/DashboardPropertiesList';
 import DashboardAddProperty from '../pages/DashboardAddProperty';
@@ -53,6 +54,7 @@ const AppNavigation = () => {
                     <Route path="/dashboard/dashboard-index" element={<DashboardIndex />} />
                     <Route path="/dashboard/message" element={<DashboardMessage />} />
                     <Route path="/dashboard/profile" element={<DashboardProfile />} />
+                    <Route path="/dashboard/chat" element={<DashboardChatConversationMain />} />
                     <Route path="/dashboard/account-settings" element={<DashboardAccountSettings />} />
                     <Route path="/dashboard/account-settings/password-change" element={<PasswordChange />} />
                     <Route path="/dashboard/properties-list" element={<DashboardPropertiesList />} />
