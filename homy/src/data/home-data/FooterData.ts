@@ -49,12 +49,12 @@ const footer_data: DataType[] = [
       widget_title: "Legal",
       footer_link: [{ link: "/faq", link_title: "Terms & conditions" },{ link: "/faq", link_title: "Privacy policy" }, { link: "/faq", link_title: "Faq’s" },]
    },
-   {
-      id: 3,
-      page: "home_3",
-      widget_title: "New Listing",
-      footer_link: []
-   },
+   // {
+   //    id: 3,
+   //    page: "home_3",
+   //    widget_title: "New Listing",
+   //    footer_link: []
+   // },
 
    // home four
 

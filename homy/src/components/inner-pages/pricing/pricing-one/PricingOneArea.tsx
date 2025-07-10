@@ -1,5 +1,5 @@
 import { useState } from "react";
-import pricing_data from "../../../../data/inner-data/PricingData";
+// import pricing_data from "../../../../data/inner-data/PricingData";
 import { Link } from "react-router-dom";
 
 const tab_title: string[] = ["Monthly", "Yearly",];
