@@ -9,3 +9,16 @@
 @import "../../public/assets/scss/style.scss";
 
 @tailwind utilities;
+
+.Toastify__toast-container {
+  z-index: 9999 !important;
+}
+
+.Toastify__toast {
+  z-index: 9999 !important;
+}
+
+
+
+
+

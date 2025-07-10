@@ -1,13 +1,21 @@
 // frontend/components/forms/LoginForm.tsx
-import React, { useState, useEffect } from "react"; // Import React
-import { toast } from "react-toastify";
+import React, {useState, useEffect} from "react"; // Import React
+import {toast} from "react-toastify";
 import * as yup from "yup";
-import { useForm } from "react-hook-form";
-import { yupResolver } from "@hookform/resolvers/yup";
-import { Link, useNavigate } from "react-router-dom";
-import { useDispatch, useSelector } from 'react-redux';
-import { loginUser, clearAuthError, selectAuthLoading, selectAuthError, selectIsVerificationRequired, resetVerificationFlag, selectOtpEmail } from '../../redux/slices/authSlice'; // Corrected import path
-import { AppDispatch, RootState } from '../../redux/slices/store.ts'; // Corrected import path
+import {useForm} from "react-hook-form";
+import {yupResolver} from "@hookform/resolvers/yup";
+import {Link, useNavigate} from "react-router-dom";
+import {useDispatch, useSelector} from 'react-redux';
+import {
+    loginUser,
+    clearAuthError,
+    selectAuthLoading,
+    selectAuthError,
+    selectIsVerificationRequired,
+    resetVerificationFlag,
+    selectOtpEmail
+} from '../../redux/slices/authSlice'; // Corrected import path
+import {AppDispatch, RootState} from '../../redux/slices/store.ts'; // Corrected import path
 
 // Define FormData interface locally or import if shared
 interface FormData {
@@ -37,7 +45,7 @@ const schema = yup
     .required();
 
 
-const LoginForm: React.FC<LoginFormProps> = ({ onOtpRequired }) => {
+const LoginForm: React.FC<LoginFormProps> = ({onOtpRequired}) => {
     const dispatch = useDispatch<AppDispatch>();
     const isLoading = useSelector(selectAuthLoading);
     const error = useSelector(selectAuthError);
@@ -49,7 +57,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpRequired }) => {
         register,
         handleSubmit,
         reset,
-        formState: { errors },
+        formState: {errors},
         getValues // Added getValues
     } = useForm<FormData>({
         resolver: yupResolver(schema),
@@ -75,23 +83,67 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpRequired }) => {
         }
     }, [isVerificationRequired, onOtpRequired, otpEmail, dispatch]);
 
-
     const togglePasswordVisibility = () => setPasswordVisibility(!isPasswordVisible);
+
+    // Function to clean up modal backdrop after successful login
+    const cleanupLoginModalBackdrop = () => {
+        // Use a slight delay to ensure all DOM updates are complete
+        setTimeout(() => {
+            // Find and remove any lingering modal backdrops
+            const modalBackdrops = document.querySelectorAll('.modal-backdrop');
+            console.log('Found modal backdrops:', modalBackdrops.length);
+
+            modalBackdrops.forEach(backdrop => {
+                // Only remove if there's no actual modal dialog visible
+                const visibleModal = document.querySelector('.modal.show');
+                if (!visibleModal) {
+                    console.log('Removing orphaned modal backdrop after login');
+                    backdrop.remove();
+                }
+            });
+
+            // Clean up body classes that Bootstrap adds for modals
+            const bodyClasses = document.body.classList;
+            if (!document.querySelector('.modal.show')) {
+                bodyClasses.remove('modal-open');
+                // Remove any inline styles that Bootstrap might have added
+                document.body.style.removeProperty('overflow');
+                document.body.style.removeProperty('padding-right');
+                document.body.style.removeProperty('margin-right');
+            }
+        }, 100);
+    };
 
     const onSubmit = async (data: FormData) => {
         dispatch(clearAuthError()); // Clear previous errors
         const resultAction = await dispatch(loginUser(data));
 
         if (loginUser.fulfilled.match(resultAction)) {
-            toast.success("Login successful!", { position: "top-center" });
-            navigate(`/dashboard/profile`); // Redirect on success
-            reset();
+        toast.dismiss(); // Clear any existing toasts
+        toast.success("Login successful!", {
+          position: "top-center",
+          autoClose: 3000,
+          closeOnClick: true
+        });
+        navigate(`/dashboard/profile`); // Redirect on success
+        reset();
+
+
+
+            // Clean up any modal backdrops that might be left behind
+            cleanupLoginModalBackdrop();
+
+            // Navigate after a short delay to ensure cleanup is complete
+            setTimeout(() => {
+                navigate(`/dashboard/profile`);
+                reset();
+            }, 200);
         } else if (loginUser.rejected.match(resultAction)) {
             // Error message (non-OTP) will be shown via selector
             // OTP requirement handled by useEffect
             if (!resultAction.payload?.requiresVerification) {
                 // Only show toast for non-OTP errors, as OTP error is handled by state change
-                toast.error(resultAction.payload as string || "Login failed!", { position: "top-center" });
+                toast.error(resultAction.payload as string || "Login failed!", {position: "top-center"});
             }
         }
     };
@@ -104,7 +156,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpRequired }) => {
                 <div className="col-12">
                     <div className="input-group-meta position-relative mb-25">
                         <label>Email*</label>
-                        <input type="email" {...register("email")} placeholder="youremail@university.edu" />
+                        <input type="email" {...register("email")} placeholder="youremail@university.edu"/>
                         <p className="form_error">{errors.email?.message}</p>
                     </div>
                 </div>
@@ -119,7 +171,8 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpRequired }) => {
                         />
                         <span className="placeholder_icon">
                             <span className={`passVicon ${isPasswordVisible ? "eye-slash" : ""}`}>
-                                <img onClick={togglePasswordVisibility} src="/assets/images/icon/icon_68.svg" alt="Toggle Password Visibility" />
+                                <img onClick={togglePasswordVisibility} src="/assets/images/icon/icon_68.svg"
+                                     alt="Toggle Password Visibility"/>
                             </span>
                         </span>
                         <p className="form_error">{errors.password?.message}</p>
@@ -128,7 +181,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onOtpRequired }) => {
                 <div className="col-12">
                     <div className="agreement-checkbox d-flex justify-content-between align-items-center">
                         <div>
-                            <input type="checkbox" id="remember" />
+                            <input type="checkbox" id="remember"/>
                             <label htmlFor="remember">Keep me logged in</label>
                         </div>
                         <Link to="#">Forget Password?</Link> {/* Implement forgot password flow separately */}
