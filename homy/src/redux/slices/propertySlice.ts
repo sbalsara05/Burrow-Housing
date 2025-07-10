@@ -290,6 +290,27 @@ export const fetchPropertyById = createAsyncThunk(
     }
 );
 
+// Thunk to Delete a User Property
+export const deleteUserProperty = createAsyncThunk(
+    'properties/deleteUserProperty',
+    async (propertyId: string, { getState, rejectWithValue }) => {
+        const token = (getState() as RootState).auth.token;
+        if (!token) {
+            return rejectWithValue('Not authenticated.');
+        }
+        console.log(`Dispatching deleteUserProperty for ID: ${propertyId}`);
+        try {
+            const response = await axios.delete(`${API_URL}/properties/${propertyId}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            // On success, return the ID to remove it from the local state
+            return propertyId;
+        } catch (error: any) {
+            console.error("deleteUserProperty Error:", error.response?.data || error.message);
+            return rejectWithValue(error.response?.data?.message || 'Failed to delete property.');
+        }
+    }
+);
 
 // --- Slice Definition ---
 const propertySlice = createSlice({
@@ -446,6 +467,26 @@ const propertySlice = createSlice({
                 state.error = action.payload as string;
                 state.status = 'failed';
                 state.currentProperty = null;
+            })
+
+            // --- Delete User Property ---
+            .addCase(deleteUserProperty.pending, (state) => {
+                console.log("Reducer: deleteUserProperty.pending");
+                state.isLoading = true; // Use general loading state for this
+                state.error = null;
+            })
+            .addCase(deleteUserProperty.fulfilled, (state, action: PayloadAction<string>) => {
+                console.log("Reducer: deleteUserProperty.fulfilled");
+                state.isLoading = false;
+                // Filter out the deleted property from the userProperties array
+                state.userProperties = state.userProperties.filter(
+                    (property) => property._id !== action.payload
+                );
+            })
+            .addCase(deleteUserProperty.rejected, (state, action) => {
+                console.log("Reducer: deleteUserProperty.rejected", action.payload);
+                state.isLoading = false;
+                state.error = action.payload as string;
             });
     },
 });
