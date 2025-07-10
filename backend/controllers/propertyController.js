@@ -552,3 +552,103 @@ exports.deleteProperty = async (req, res) => {
 		});
 	}
 };
+
+/**
+ * Controller to UPDATE a property owned by the authenticated user
+ */
+exports.updateProperty = async (req, res) => {
+	try {
+		const { id: propertyId } = req.params;
+		const { userId } = req.user;
+		const { images: finalImageUrls, ...updatedData } = req.body;
+
+		if (!mongoose.Types.ObjectId.isValid(propertyId)) {
+			return res
+				.status(400)
+				.json({
+					message: "Invalid property ID format.",
+				});
+		}
+
+		const property = await Property.findById(propertyId);
+
+		if (!property) {
+			return res
+				.status(404)
+				.json({ message: "Property not found." });
+		}
+
+		if (property.userId.toString() !== userId) {
+			return res
+				.status(403)
+				.json({
+					message: "Forbidden: You do not have permission to edit this property.",
+				});
+		}
+
+		// --- Image Deletion Logic ---
+		// Find which images stored in the DB are NOT in the final list sent from the client.
+		const imagesToDelete = property.images.filter(
+			(dbImageUrl) => !finalImageUrls.includes(dbImageUrl)
+		);
+
+		if (imagesToDelete.length > 0) {
+			console.log(
+				`Deleting ${imagesToDelete.length} images from S3.`
+			);
+			try {
+				const deletionPromises = imagesToDelete.map(
+					(url) => deleteFileFromS3(url)
+				);
+				await Promise.all(deletionPromises);
+				console.log(
+					"Successfully processed image deletions from S3."
+				);
+			} catch (s3Error) {
+				console.error(
+					"A non-critical error occurred during S3 image deletion, but proceeding with DB update.",
+					s3Error
+				);
+			}
+		}
+
+		// --- Update Property Document ---
+		// Combine the updated text data with the final list of image URLs
+		const finalUpdatedData = {
+			...updatedData,
+			images: finalImageUrls, // This is the complete, correct list of URLs
+			updatedAt: new Date(),
+		};
+
+		const updatedProperty = await Property.findByIdAndUpdate(
+			propertyId,
+			{ $set: finalUpdatedData },
+			{ new: true, runValidators: true }
+		);
+
+		if (!updatedProperty) {
+			return res
+				.status(404)
+				.json({
+					message: "Property not found after update attempt.",
+				});
+		}
+
+		res.status(200).json({
+			message: "Property updated successfully.",
+			property: updatedProperty,
+		});
+	} catch (error) {
+		console.error("Error updating property:", error);
+		if (error.name === "ValidationError") {
+			return res.status(400).json({
+				message: "Validation failed",
+				errors: error.errors,
+			});
+		}
+		res.status(500).json({
+			message: "Server error while updating property.",
+			error: error.message,
+		});
+	}
+};
