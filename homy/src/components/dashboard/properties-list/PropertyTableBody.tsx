@@ -5,43 +5,36 @@ import { Property } from '../../../redux/slices/propertySlice';
 
 interface PropertyTableBodyProps {
     properties: Property[];
+    onDeleteClick: (id: string) => void;
 }
 
-const PropertyTableBody: React.FC<PropertyTableBodyProps> = ({ properties }) => {
+const PropertyTableBody: React.FC<PropertyTableBodyProps> = ({ properties, onDeleteClick }) => {
 
     const formatDate = (dateString: string) => {
         const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'short', day: 'numeric' };
         return new Date(dateString).toLocaleDateString(undefined, options);
     };
 
-    // --- Share Functionality ---
     const handleShare = async (property: Property) => {
-        // Construct the full URL for the property details page
         const propertyUrl = `${window.location.origin}/listing_details_01/${property._id}`;
-
         const shareData = {
             title: property.overview.title || 'Check out this property!',
             text: `I found this property on Burrow Housing: ${property.overview.title || 'View Details'}`,
             url: propertyUrl,
         };
 
-        // Use the Web Share API if available
         if (navigator.share) {
             try {
                 await navigator.share(shareData);
-                console.log("Property shared successfully!");
             } catch (err) {
-                // User cancellation is not an error, so we can ignore it or log it.
                 console.log("Share action was cancelled by the user.");
             }
         } else {
-            // Fallback for desktop browsers: copy to clipboard
             try {
                 await navigator.clipboard.writeText(propertyUrl);
                 toast.success("Property link copied to clipboard!");
             } catch (err) {
                 toast.error("Failed to copy link.");
-                console.error("Failed to copy link: ", err);
             }
         }
     };
@@ -67,10 +60,9 @@ const PropertyTableBody: React.FC<PropertyTableBodyProps> = ({ properties }) => 
                         </div>
                     </td>
                     <td>{formatDate(item.createdAt)}</td>
-                    <td>0</td> {/* Placeholder for view count */}
+                    <td>0</td>
                     <td>
-                        {/* Placeholder for status */}
-                        <div className="property-status">Active</div>
+                        <div className="property-status">{item.status || 'Active'}</div>
                     </td>
                     <td>
                         <div className="action-dots float-end">
@@ -79,13 +71,11 @@ const PropertyTableBody: React.FC<PropertyTableBodyProps> = ({ properties }) => 
                             </button>
                             <ul className="dropdown-menu dropdown-menu-end">
                                 <li>
-                                    {/* --- "View" Button Logic (already correct) --- */}
                                     <Link className="dropdown-item" to={`/listing_details_01/${item._id}`}>
                                         <img src="/assets/images/dashboard/icon/icon_18.svg" alt="" className="lazy-img" /> View
                                     </Link>
                                 </li>
                                 <li>
-                                    {/* --- "Share" Button Logic --- */}
                                     <button
                                         className="dropdown-item"
                                         onClick={() => handleShare(item)}
@@ -94,16 +84,15 @@ const PropertyTableBody: React.FC<PropertyTableBodyProps> = ({ properties }) => 
                                         <img src="/assets/images/dashboard/icon/icon_19.svg" alt="" className="lazy-img" /> Share
                                     </button>
                                 </li>
-                                {/* --- Placeholder for Edit and Delete --- */}
                                 <li>
                                     <Link className="dropdown-item" to="#">
                                         <img src="/assets/images/dashboard/icon/icon_20.svg" alt="" className="lazy-img" /> Edit
                                     </Link>
                                 </li>
                                 <li>
-                                    <Link className="dropdown-item" to="#">
+                                    <button className="dropdown-item" onClick={() => onDeleteClick(item._id)}>
                                         <img src="/assets/images/dashboard/icon/icon_21.svg" alt="" className="lazy-img" /> Delete
-                                    </Link>
+                                    </button>
                                 </li>
                             </ul>
                         </div>
