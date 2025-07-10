@@ -62,51 +62,6 @@ exports.updateUserProfile = async (req, res) => {
 	}
 };
 
-exports.updateProperty = async (req, res) => {
-	const { propertyKey, propertyValue } = req.body; // Get key-value pair to update
-	const userId = req.user.userId; // Extract User ID from JWT
-
-	try {
-		// Validate input
-		if (!propertyKey || propertyValue === undefined) {
-			return res
-				.status(400)
-				.json({
-					message: "Property key and value are required",
-				});
-		}
-
-		// Find the user
-		const user = await User.findById(userId);
-		if (!user) {
-			return res
-				.status(404)
-				.json({ message: "User not found" });
-		}
-
-		console.log(`Updating ${propertyKey} for user ${userId}`);
-
-		// Dynamically update the property
-		user[propertyKey] = propertyValue;
-
-		// Save updated user
-		await user.save();
-
-		// Return updated user data
-		res.status(200).json({
-			message: "User property updated successfully",
-			updatedProperty: {
-				[propertyKey]: propertyValue,
-			},
-		});
-	} catch (error) {
-		console.error("Error updating property: ", error);
-		res.status(500).json({
-			message: "Error updating user property",
-		});
-	}
-};
-
 exports.changePassword = async (req, res) => {
 	try {
 		const { oldPassword, newPassword } = req.body;

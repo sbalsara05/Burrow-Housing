@@ -85,7 +85,7 @@ const PropertyTableBody: React.FC<PropertyTableBodyProps> = ({ properties, onDel
                                     </button>
                                 </li>
                                 <li>
-                                    <Link className="dropdown-item" to="#">
+                                    <Link className="dropdown-item" to={`/dashboard/edit-property/${item._id}`}>
                                         <img src="/assets/images/dashboard/icon/icon_20.svg" alt="" className="lazy-img" /> Edit
                                     </Link>
                                 </li>

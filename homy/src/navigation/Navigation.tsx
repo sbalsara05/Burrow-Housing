@@ -23,6 +23,7 @@ import DashboardFavourites from '../pages/DashboardFavourites';
 import DashboardSavedSearch from '../pages/DashboardSavedSearch';
 import DashboardReview from '../pages/DashboardReview';
 import PasswordChange from '../components/dashboard/account-settings/password-change';
+import DashboardEditProperty from '../pages/DashboardEditProperty';
 
 const AppNavigation = () => {
     return (
@@ -35,7 +36,7 @@ const AppNavigation = () => {
 
                 <Route path="/" element={<Navigate to="/home-three" replace />} />
                 <Route path="/home-three" element={<HomeThree />} />
-                <Route path="/about_us_01" element={<AboutUsOne />} />                
+                <Route path="/about_us_01" element={<AboutUsOne />} />
                 <Route path="/agent" element={<Agent />} />
                 <Route path="/contact" element={<Contact />} />
                 <Route path="/faq" element={<Faq />} />
@@ -60,7 +61,7 @@ const AppNavigation = () => {
                     <Route path="/dashboard/favourites" element={<DashboardFavourites />} />
                     <Route path="/dashboard/saved-search" element={<DashboardSavedSearch />} />
                     <Route path="/dashboard/review" element={<DashboardReview />} />
-
+                    <Route path="/dashboard/edit-property/:id" element={<DashboardEditProperty />} />
                     {/* Add any other future protected routes inside this wrapper */}
                 </Route>
 
