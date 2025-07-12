@@ -1,206 +1,211 @@
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Channel, Message } from '../../../types/chat';
 import MessageBubble from './MessageBubble';
 import MessageInput from './MessageInput';
-import TypingIndicator from './TypingIndicator';
 
 interface ChatWindowProps {
-    activeChat: string | null;
-    setActiveChat: (chatId: string | null) => void;
-    setIsMobileView: (isMobile: boolean) => void;
-}
-
-interface Message {
-    id: string;
-    senderId: string;
-    senderName: string;
-    message: string;
-    timestamp: string;
-    isCurrentUser: boolean;
-    type: 'text' | 'image' | 'file';
-    fileUrl?: string;
-    fileName?: string;
-}
-
-interface ChatUser {
-    id: string;
-    name: string;
-    avatar: string;
-    isOnline: boolean;
-    lastSeen?: string;
+    activeChannel: Channel | null;
+    messages: Message[];
+    currentUserId: string;
+    isLoadingMessages: boolean;
+    isSendingMessage: boolean;
+    onSendMessage: (text: string) => void;
+    onBackToList?: () => void;
+    onLoadMoreMessages?: () => void;
+    isFullScreen?: boolean;
 }
 
 const ChatWindow: React.FC<ChatWindowProps> = ({
-    activeChat,
-    setActiveChat,
-    setIsMobileView
+    activeChannel,
+    messages,
+    currentUserId,
+    isLoadingMessages,
+    isSendingMessage,
+    onSendMessage,
+    onBackToList,
+    onLoadMoreMessages,
+    isFullScreen = false
 }) => {
-    const [messages, setMessages] = useState<Message[]>([]);
-    const [chatUser, setChatUser] = useState<ChatUser | null>(null);
-    const [isTyping, setIsTyping] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
-
-    // Mock data - replace with real data from your API
-    useEffect(() => {
-        if (activeChat) {
-            // Mock chat user data
-            const mockUser: ChatUser = {
-                id: activeChat,
-                name: activeChat === '1' ? 'John Doe' : activeChat === '2' ? 'Sarah Wilson' : 'Mike Johnson',
-                avatar: '/images/lazy.svg',
-                isOnline: activeChat === '1' || activeChat === '3',
-                lastSeen: activeChat === '2' ? '2 hours ago' : undefined
-            };
-            setChatUser(mockUser);
-
-            // Mock messages
-            const mockMessages: Message[] = [
-                {
-                    id: '1',
-                    senderId: activeChat,
-                    senderName: mockUser.name,
-                    message: 'Hi! I\'m interested in the property listing.',
-                    timestamp: '10:30 AM',
-                    isCurrentUser: false,
-                    type: 'text'
-                },
-                {
-                    id: '2',
-                    senderId: 'current-user',
-                    senderName: 'You',
-                    message: 'Great! I\'d be happy to help you with that.',
-                    timestamp: '10:32 AM',
-                    isCurrentUser: true,
-                    type: 'text'
-                },
-                {
-                    id: '3',
-                    senderId: activeChat,
-                    senderName: mockUser.name,
-                    message: 'Can you tell me more about the location?',
-                    timestamp: '10:35 AM',
-                    isCurrentUser: false,
-                    type: 'text'
-                }
-            ];
-            setMessages(mockMessages);
-        }
-    }, [activeChat]);
+    const messagesContainerRef = useRef<HTMLDivElement>(null);
 
     // Auto scroll to bottom when new messages arrive
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages]);
 
-    const handleSendMessage = (message: string, type: 'text' | 'image' | 'file' = 'text', fileUrl?: string, fileName?: string) => {
-        const newMessage: Message = {
-            id: Date.now().toString(),
-            senderId: 'current-user',
-            senderName: 'You',
-            message,
-            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-            isCurrentUser: true,
-            type,
-            fileUrl,
-            fileName
-        };
+    // Get channel display info
+    const getChannelDisplayInfo = () => {
+        if (!activeChannel) return null;
 
-        setMessages(prev => [...prev, newMessage]);
+        if (activeChannel.name) {
+            return {
+                name: activeChannel.name,
+                subtitle: `${activeChannel.members.length} members`,
+                avatar: null,
+                isOnline: false
+            };
+        }
 
-        // Simulate typing indicator and response
-        if (type === 'text') {
-            setIsTyping(true);
-            setTimeout(() => {
-                setIsTyping(false);
-                // Add a mock response
-                const response: Message = {
-                    id: (Date.now() + 1).toString(),
-                    senderId: activeChat!,
-                    senderName: chatUser?.name || 'User',
-                    message: 'Thank you for your message. I\'ll get back to you soon.',
-                    timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-                    isCurrentUser: false,
-                    type: 'text'
+        // For direct messages, show other user's info
+        if (activeChannel.type === 'direct' && activeChannel.members.length === 2) {
+            const otherMember = activeChannel.members.find(m => m.user.id !== currentUserId);
+            if (otherMember) {
+                return {
+                    name: otherMember.user.name,
+                    subtitle: '', // Remove subtitle entirely
+                    avatar: otherMember.user.image,
+                    isOnline: otherMember.user.isOnline
                 };
-                setMessages(prev => [...prev, response]);
-            }, 2000);
+            }
+        }
+
+        return {
+            name: 'Unknown Channel',
+            subtitle: '',
+            avatar: null,
+            isOnline: false
+        };
+    };
+
+    // Handle scroll to load more messages
+    const handleScroll = () => {
+        if (!messagesContainerRef.current || !onLoadMoreMessages) return;
+
+        const { scrollTop } = messagesContainerRef.current;
+        if (scrollTop === 0 && !isLoadingMessages) {
+            onLoadMoreMessages();
         }
     };
 
-    const handleBackToList = () => {
-        setActiveChat(null);
-        setIsMobileView(false);
-    };
+    const channelInfo = getChannelDisplayInfo();
 
-    if (!activeChat) {
+    // Empty state when no channel selected
+    if (!activeChannel) {
         return (
-            <div className="d-flex align-items-center justify-content-center h-100">
+            <div className="d-flex align-items-center justify-content-center h-100 bg-light">
                 <div className="text-center">
-                    <i className="bi bi-chat-dots fs-1 text-muted mb-3"></i>
-                    <h5 className="text-muted">Select a conversation to start messaging</h5>
+                    <i className="bi bi-chat-dots text-muted mb-3 d-block" style={{ fontSize: '4rem' }}></i>
+                    <h5 className="text-muted">Select a conversation</h5>
+                    <p className="text-muted mb-0">Choose a conversation from the sidebar to start messaging</p>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className="chat-window d-flex flex-column h-100">
+        <div className="d-flex flex-column h-100 bg-white">
             {/* Chat Header */}
-            <div className="chat-header d-flex align-items-center p-3 border-bottom">
-                <button
-                    className="btn btn-link d-md-none me-2 p-0"
-                    onClick={handleBackToList}
-                >
-                    <i className="bi bi-arrow-left fs-5"></i>
-                </button>
+            <div className="bg-white border-bottom p-3">
+                <div className="d-flex align-items-center">
+                    {/* Back Button for Mobile */}
+                    {onBackToList && (
+                        <button
+                            className="btn btn-link p-0 me-3 d-md-none"
+                            onClick={onBackToList}
+                            title="Back to conversations"
+                        >
+                            <i className="bi bi-arrow-left fs-4"></i>
+                        </button>
+                    )}
 
-                <div className="d-flex align-items-center flex-grow-1">
+                    {/* User Avatar */}
                     <div className="position-relative me-3">
-                        <img
-                            src={chatUser?.avatar}
-                            alt={chatUser?.name}
-                            className="rounded-circle"
-                            width="40"
-                            height="40"
-                        />
-                        {chatUser?.isOnline && (
-                            <span className="position-absolute bottom-0 end-0 bg-success rounded-circle border border-white"
-                                style={{ width: '10px', height: '10px' }}></span>
+                        <div
+                            className="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center"
+                            style={{ width: '40px', height: '40px' }}
+                        >
+                            {channelInfo?.avatar ? (
+                                <img
+                                    src={channelInfo.avatar}
+                                    alt={channelInfo.name}
+                                    className="rounded-circle"
+                                    style={{ width: '40px', height: '40px', objectFit: 'cover' }}
+                                    onError={(e) => {
+                                        e.currentTarget.style.display = 'none';
+                                        e.currentTarget.parentElement!.innerHTML =
+                                            `<span>${channelInfo?.name.charAt(0).toUpperCase()}</span>`;
+                                    }}
+                                />
+                            ) : (
+                                <span>{channelInfo?.name.charAt(0).toUpperCase()}</span>
+                            )}
+                        </div>
+                        {/* Online indicator */}
+                        {channelInfo?.isOnline && (
+                            <span
+                                className="position-absolute bg-success rounded-circle border border-2 border-white"
+                                style={{
+                                    width: '12px',
+                                    height: '12px',
+                                    bottom: '0',
+                                    right: '0'
+                                }}
+                            ></span>
                         )}
                     </div>
-                    <div>
-                        <h6 className="mb-0">{chatUser?.name}</h6>
-                        <small className="text-muted">
-                            {chatUser?.isOnline ? 'Online' : `Last seen ${chatUser?.lastSeen}`}
-                        </small>
-                    </div>
-                </div>
 
-                <div className="chat-actions">
-                    <button className="btn btn-link p-2">
-                        <i className="bi bi-telephone"></i>
-                    </button>
-                    <button className="btn btn-link p-2">
-                        <i className="bi bi-camera-video"></i>
-                    </button>
-                    <button className="btn btn-link p-2">
-                        <i className="bi bi-three-dots-vertical"></i>
-                    </button>
+                    {/* User Info */}
+                    <div className="flex-grow-1">
+                        <h6 className="mb-0">{channelInfo?.name}</h6>
+                        {channelInfo?.isOnline && (
+                            <small className="text-success">Online</small>
+                        )}
+                    </div>
+
+                    {/* Removed Action Buttons */}
                 </div>
             </div>
 
             {/* Messages Area */}
-            <div className="messages-area flex-grow-1 overflow-auto p-3" style={{ maxHeight: '400px' }}>
-                {messages.map((message) => (
-                    <MessageBubble key={message.id} message={message} />
-                ))}
-                {isTyping && <TypingIndicator />}
+            <div
+                className="flex-grow-1 overflow-auto p-2"
+                ref={messagesContainerRef}
+                onScroll={handleScroll}
+                style={{
+                    height: isFullScreen ? 'calc(100vh - 160px)' : '400px'
+                }}
+            >
+                {/* Load More Messages Indicator */}
+                {isLoadingMessages && (
+                    <div className="d-flex justify-content-center align-items-center mb-3">
+                        <div className="spinner-border text-primary" role="status">
+                            <span className="visually-hidden">Loading messages...</span>
+                        </div>
+                        <span className="ms-2 text-muted">Loading messages...</span>
+                    </div>
+                )}
+
+                {/* Messages */}
+                {messages.length > 0 ? (
+                    <div>
+                        {messages.map((message) => (
+                            <MessageBubble
+                                key={message.id}
+                                message={message}
+                                currentUserId={currentUserId}
+                            />
+                        ))}
+                    </div>
+                ) : !isLoadingMessages && (
+                    /* Empty State */
+                    <div className="d-flex flex-column align-items-center justify-content-center h-100 text-center">
+                        <i className="bi bi-chat-dots text-muted mb-3" style={{ fontSize: '3rem' }}></i>
+                        <h5 className="text-muted">No messages yet</h5>
+                        <p className="text-muted mb-0">Start the conversation by sending a message below</p>
+                    </div>
+                )}
+
+                {/* Scroll anchor */}
                 <div ref={messagesEndRef} />
             </div>
 
             {/* Message Input */}
-            <div className="message-input-area border-top">
-                <MessageInput onSendMessage={handleSendMessage} />
-            </div>
+            <MessageInput
+                onSendMessage={onSendMessage}
+                disabled={isSendingMessage}
+                placeholder={`Message ${channelInfo?.name}...`}
+            />
         </div>
     );
 };

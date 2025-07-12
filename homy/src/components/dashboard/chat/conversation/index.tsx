@@ -1,23 +1,29 @@
+// src/components/dashboard/chat/conversation/index.tsx - Updated Conversation Component
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import DashboardHeaderOne from "../../../../layouts/headers/dashboard/DashboardHeaderOne";
 import ChatWindow from '../ChatWindow';
-
-interface ConversationUser {
-    id: string;
-    name: string;
-    avatar: string;
-    isOnline: boolean;
-    lastSeen?: string;
-}
+import { useChatService } from '../../../../hooks/useChatService';
 
 const DashboardChatConversationMain = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
-    const [conversationUser, setConversationUser] = useState<ConversationUser | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
-    // Mock data - replace with real API call
+    const {
+        channels,
+        activeChannel,
+        messages,
+        user,
+        isLoadingMessages,
+        isSendingMessage,
+        setActiveChannel,
+        sendMessage,
+        loadMoreMessages,
+        error
+    } = useChatService();
+
+    // Load specific conversation
     useEffect(() => {
         const loadConversation = async () => {
             if (!id) {
@@ -27,19 +33,16 @@ const DashboardChatConversationMain = () => {
 
             try {
                 setIsLoading(true);
-
-                // Mock API call - replace with actual API
-                await new Promise(resolve => setTimeout(resolve, 500));
-
-                const mockUser: ConversationUser = {
-                    id: id,
-                    name: id === '1' ? 'John Doe' : id === '2' ? 'Sarah Wilson' : 'Mike Johnson',
-                    avatar: '/images/lazy.svg',
-                    isOnline: id === '1' || id === '3',
-                    lastSeen: id === '2' ? '2 hours ago' : undefined
-                };
-
-                setConversationUser(mockUser);
+                
+                // Find the channel by ID
+                const channel = channels.find(c => c.id === id);
+                
+                if (channel) {
+                    setActiveChannel(channel);
+                } else {
+                    // Channel not found, redirect to main chat
+                    navigate('/dashboard/chat');
+                }
             } catch (error) {
                 console.error('Failed to load conversation:', error);
                 navigate('/dashboard/chat');
@@ -48,14 +51,17 @@ const DashboardChatConversationMain = () => {
             }
         };
 
-        loadConversation();
-    }, [id, navigate]);
+        if (channels.length > 0) {
+            loadConversation();
+        }
+    }, [id, channels, navigate, setActiveChannel]);
 
     const handleBackToChat = () => {
         navigate('/dashboard/chat');
     };
 
-    if (isLoading) {
+    // Loading state
+    if (isLoading || channels.length === 0) {
         return (
             <div className="dashboard-body">
                 <div className="position-relative">
@@ -73,7 +79,8 @@ const DashboardChatConversationMain = () => {
         );
     }
 
-    if (!conversationUser) {
+    // Channel not found
+    if (!activeChannel) {
         return (
             <div className="dashboard-body">
                 <div className="position-relative">
@@ -96,6 +103,18 @@ const DashboardChatConversationMain = () => {
         );
     }
 
+    // Get channel display name
+    const getChannelDisplayName = () => {
+        if (activeChannel.name) return activeChannel.name;
+        
+        if (activeChannel.type === 'direct' && activeChannel.members.length === 2) {
+            const otherMember = activeChannel.members.find(m => m.user.id !== user?.id);
+            return otherMember?.user.name || 'Unknown User';
+        }
+        
+        return 'Conversation';
+    };
+
     return (
         <div className="dashboard-body">
             <div className="position-relative">
@@ -108,20 +127,32 @@ const DashboardChatConversationMain = () => {
                         <i className="bi bi-arrow-left fs-4"></i>
                     </button>
                     <div className="flex-grow-1">
-                        <DashboardHeaderOne title={`Chat with ${conversationUser.name}`} />
+                        <DashboardHeaderOne title={`Chat with ${getChannelDisplayName()}`} />
                     </div>
                 </div>
 
                 <h2 className="main-title d-block d-lg-none">
-                    {conversationUser.name}
+                    {getChannelDisplayName()}
                 </h2>
+
+                {/* Error Alert */}
+                {error && (
+                    <div className="alert alert-danger">
+                        <i className="bi bi-exclamation-triangle me-2"></i>
+                        {error}
+                    </div>
+                )}
 
                 {/* Full Screen Chat Window */}
                 <div className="bg-white card-box border-20">
                     <ChatWindow
-                        activeChat={conversationUser.id}
-                        setActiveChat={() => { }}
-                        setIsMobileView={() => { }}
+                        activeChannel={activeChannel}
+                        messages={messages}
+                        currentUser={user}
+                        isLoadingMessages={isLoadingMessages}
+                        isSendingMessage={isSendingMessage}
+                        onSendMessage={sendMessage}
+                        onLoadMoreMessages={loadMoreMessages}
                         isFullScreen={true}
                     />
                 </div>

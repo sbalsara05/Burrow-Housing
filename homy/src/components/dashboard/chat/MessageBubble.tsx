@@ -1,88 +1,73 @@
 import React from 'react';
-
-interface Message {
-    id: string;
-    senderId: string;
-    senderName: string;
-    message: string;
-    timestamp: string;
-    isCurrentUser: boolean;
-    type: 'text' | 'image' | 'file';
-    fileUrl?: string;
-    fileName?: string;
-}
+import { Message } from '../../../types/chat';
 
 interface MessageBubbleProps {
     message: Message;
+    currentUserId: string;
 }
 
-const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
-    const renderMessageContent = () => {
-        switch (message.type) {
-            case 'image':
-                return (
-                    <div className="message-image">
-                        <img
-                            src={message.fileUrl}
-                            alt="Shared image"
-                            className="img-fluid rounded"
-                            style={{ maxWidth: '200px', maxHeight: '200px' }}
-                        />
-                        {message.message && (
-                            <p className="mb-0 mt-2">{message.message}</p>
-                        )}
-                    </div>
-                );
+const MessageBubble: React.FC<MessageBubbleProps> = ({ message, currentUserId }) => {
+    const isCurrentUser = message.senderId === currentUserId;
 
-            case 'file':
-                return (
-                    <div className="message-file d-flex align-items-center p-2 border rounded">
-                        <i className="bi bi-file-earmark fs-4 me-2 text-muted"></i>
-                        <div className="flex-grow-1">
-                            <p className="mb-0 fw-medium">{message.fileName}</p>
-                            <small className="text-muted">Click to download</small>
-                        </div>
-                        <button className="btn btn-link p-1">
-                            <i className="bi bi-download"></i>
-                        </button>
-                    </div>
-                );
-
-            default:
-                return <p className="mb-0">{message.message}</p>;
-        }
+    const formatTime = (timestamp: string) => {
+        const date = new Date(timestamp);
+        return date.toLocaleTimeString('en-US', {
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: true
+        });
     };
 
     return (
-        <div className={`message-bubble mb-3 d-flex ${message.isCurrentUser ? 'justify-content-end' : 'justify-content-start'}`}>
-            <div className={`message-content ${message.isCurrentUser ? 'sent' : 'received'}`}>
+        <div className={`d-flex mb-2 ${isCurrentUser ? 'justify-content-end' : 'justify-content-start'}`}>            {/* Avatar for received messages */}
+            {!isCurrentUser && (
+                <div className="me-2">
+                    <div
+                        className="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center"
+                        style={{ width: '32px', height: '32px', fontSize: '14px' }}
+                    >
+                        {message.senderName.charAt(0).toUpperCase()}
+                    </div>
+                </div>
+            )}
+
+            {/* Message Content */}
+            <div style={{ maxWidth: '70%' }}>
+                {/* Sender Name for received messages */}
+                {!isCurrentUser && (
+                    <small className="text-muted d-block mb-1">{message.senderName}</small>
+                )}
+
                 {/* Message Bubble */}
                 <div
-                    className={`message-text p-3 rounded-3 ${message.isCurrentUser
-                            ? 'bg-primary text-white ms-auto'
-                            : 'bg-light text-dark'
+                    className={`px-3 py-2 ${isCurrentUser
+                        ? 'text-white'
+                        : ''
                         }`}
-                    style={{ maxWidth: '70%' }}
+                    style={{
+                        backgroundColor: isCurrentUser ? '#f46248' : '#f8f9fa',
+                        borderRadius: '16px',
+                        border: 'none'
+                    }}
                 >
-                    {/* Sender Name (for received messages) */}
-                    {!message.isCurrentUser && (
-                        <small className="d-block mb-1 fw-medium opacity-75">
-                            {message.senderName}
+                    <p className="mb-1">{message.text}</p>
+                    <div className="d-flex justify-content-between align-items-center">
+                        <small
+                            className={`${isCurrentUser ? 'text-white-50' : 'text-muted'
+                                }`}
+                            style={{ fontSize: '11px' }}
+                        >
+                            {formatTime(message.timestamp)}
                         </small>
-                    )}
-
-                    {/* Message Content */}
-                    {renderMessageContent()}
-                </div>
-
-                {/* Timestamp */}
-                <div className={`message-time mt-1 ${message.isCurrentUser ? 'text-end' : 'text-start'}`}>
-                    <small className="text-muted">{message.timestamp}</small>
-                    {message.isCurrentUser && (
-                        <span className="ms-1">
-                            <i className="bi bi-check2-all text-primary"></i>
-                        </span>
-                    )}
+                        {/* Delivery Status */}
+                        {isCurrentUser && message.deliveryStatus && (
+                            <small className="ms-2 text-white-50" style={{ fontSize: '11px' }}>
+                                {message.deliveryStatus === 'read' && '✓✓'}
+                                {message.deliveryStatus === 'delivered' && '✓'}
+                                {message.deliveryStatus === 'sent' && '•'}
+                            </small>
+                        )}
+                    </div>
                 </div>
             </div>
         </div>

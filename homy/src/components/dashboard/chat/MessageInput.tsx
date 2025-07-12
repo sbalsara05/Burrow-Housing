@@ -1,21 +1,25 @@
-import { useState, useRef, KeyboardEvent } from 'react';
-import FileUpload from './FileUpload';
+import React, { useState, useRef, KeyboardEvent } from 'react';
 
 interface MessageInputProps {
-    onSendMessage: (message: string, type?: 'text' | 'image' | 'file', fileUrl?: string, fileName?: string) => void;
+    onSendMessage: (message: string) => void;
+    disabled?: boolean;
+    placeholder?: string;
 }
 
-const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage }) => {
+const MessageInput: React.FC<MessageInputProps> = ({
+    onSendMessage,
+    disabled = false,
+    placeholder = "Type your message..."
+}) => {
     const [message, setMessage] = useState('');
-    const [showFileUpload, setShowFileUpload] = useState(false);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
 
     const handleSendMessage = () => {
-        if (message.trim()) {
+        if (message.trim() && !disabled) {
             onSendMessage(message.trim());
             setMessage('');
             if (textareaRef.current) {
-                textareaRef.current.style.height = 'auto';
+                textareaRef.current.style.height = '40px';
             }
         }
     };
@@ -32,98 +36,58 @@ const MessageInput: React.FC<MessageInputProps> = ({ onSendMessage }) => {
 
         // Auto-resize textarea
         if (textareaRef.current) {
-            textareaRef.current.style.height = 'auto';
+            textareaRef.current.style.height = '40px';
             textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
         }
     };
 
-    const handleFileUpload = (file: File, type: 'image' | 'file') => {
-        // Create a temporary URL for the file (in real app, upload to server first)
-        const fileUrl = URL.createObjectURL(file);
-
-        if (type === 'image') {
-            onSendMessage('', 'image', fileUrl, file.name);
-        } else {
-            onSendMessage('', 'file', fileUrl, file.name);
-        }
-
-        setShowFileUpload(false);
-    };
-
     return (
-        <div className="message-input-container">
-            {/* File Upload Modal */}
-            {showFileUpload && (
-                <div className="file-upload-overlay position-absolute bottom-100 start-0 end-0 bg-white border-top p-3">
-                    <FileUpload
-                        onFileUpload={handleFileUpload}
-                        onClose={() => setShowFileUpload(false)}
-                    />
-                </div>
-            )}
-
-            {/* Message Input */}
-            <div className="message-input d-flex align-items-end p-3 gap-2">
-                {/* Attachment Button */}
-                <button
-                    className="btn btn-link p-2"
-                    onClick={() => setShowFileUpload(!showFileUpload)}
-                    title="Attach file"
-                >
-                    <i className="bi bi-paperclip fs-5 text-muted"></i>
-                </button>
-
+        <div className="bg-white border-top p-3">
+            <div className="d-flex gap-2 align-items-center">
                 {/* Text Input */}
                 <div className="flex-grow-1">
                     <textarea
                         ref={textareaRef}
                         className="form-control border-0 resize-none"
-                        placeholder="Type your message..."
+                        placeholder={placeholder}
                         value={message}
                         onChange={handleInputChange}
                         onKeyPress={handleKeyPress}
+                        disabled={disabled}
                         rows={1}
                         style={{
                             maxHeight: '100px',
-                            minHeight: '40px',
-                            overflow: 'hidden'
+                            minHeight: '44px',
+                            overflow: 'hidden',
+                            boxShadow: 'none',
+                            backgroundColor: '#f8f9fa',
+                            borderRadius: '22px',
+                            padding: '12px 16px'
                         }}
                     />
                 </div>
 
-                {/* Emoji Button */}
-                <button
-                    className="btn btn-link p-2"
-                    title="Add emoji"
-                >
-                    <i className="bi bi-emoji-smile fs-5 text-muted"></i>
-                </button>
-
                 {/* Send Button */}
                 <button
-                    className={`btn btn-primary rounded-circle d-flex align-items-center justify-content-center ${message.trim() ? '' : 'disabled'
-                        }`}
+                    className="btn rounded-circle d-flex align-items-center justify-content-center"
                     onClick={handleSendMessage}
-                    disabled={!message.trim()}
-                    style={{ width: '40px', height: '40px' }}
+                    disabled={!message.trim() || disabled}
+                    style={{
+                        width: '44px',
+                        height: '44px',
+                        backgroundColor: message.trim() && !disabled ? '#f46248' : '#e9ecef',
+                        border: 'none',
+                        color: 'white'
+                    }}
+                    title="Send message"
                 >
-                    <i className="bi bi-send-fill"></i>
-                </button>
-            </div>
-
-            {/* Quick Actions */}
-            <div className="quick-actions d-flex justify-content-center gap-2 pb-2">
-                <button className="btn btn-sm btn-outline-secondary">
-                    <i className="bi bi-camera me-1"></i>
-                    Camera
-                </button>
-                <button className="btn btn-sm btn-outline-secondary">
-                    <i className="bi bi-image me-1"></i>
-                    Gallery
-                </button>
-                <button className="btn btn-sm btn-outline-secondary">
-                    <i className="bi bi-geo-alt me-1"></i>
-                    Location
+                    {disabled ? (
+                        <div className="spinner-border spinner-border-sm" role="status">
+                            <span className="visually-hidden">Sending...</span>
+                        </div>
+                    ) : (
+                        <i className="bi bi-send-fill"></i>
+                    )}
                 </button>
             </div>
         </div>
