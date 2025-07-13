@@ -65,7 +65,7 @@ const DashboardChatConversationMain = () => {
         return (
             <div className="dashboard-body">
                 <div className="position-relative">
-                    <DashboardHeaderOne title="Chat" />
+                    <DashboardHeaderOne />
                     <div className="d-flex justify-content-center align-items-center" style={{ height: '400px' }}>
                         <div className="text-center">
                             <div className="spinner-border text-primary" role="status">
@@ -84,7 +84,7 @@ const DashboardChatConversationMain = () => {
         return (
             <div className="dashboard-body">
                 <div className="position-relative">
-                    <DashboardHeaderOne title="Chat" />
+                    <DashboardHeaderOne />
                     <div className="bg-white card-box border-20 text-center p-5">
                         <i className="bi bi-chat-x fs-1 text-muted mb-3"></i>
                         <h5 className="mb-3">Conversation not found</h5>
@@ -127,7 +127,7 @@ const DashboardChatConversationMain = () => {
                         <i className="bi bi-arrow-left fs-4"></i>
                     </button>
                     <div className="flex-grow-1">
-                        <DashboardHeaderOne title={`Chat with ${getChannelDisplayName()}`} />
+                        <DashboardHeaderOne />
                     </div>
                 </div>
 
