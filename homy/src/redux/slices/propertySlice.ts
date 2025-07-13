@@ -97,6 +97,12 @@ interface PropertyState {
     status: 'idle' | 'loading' | 'succeeded' | 'failed'; // Overall status
 }
 
+// Interface for the update payload
+interface UpdatePropertyPayload {
+    propertyId: string;
+    propertyData: any; // Use 'any' for flexibility, as it will be FormData
+}
+
 // --- Initial State ---
 const initialState: PropertyState = {
     allProperties: [],
@@ -123,6 +129,11 @@ interface FetchPropertiesPayload {
     neighborhood?: string;
     rentRange?: string;
     // Add other potential backend filters here
+}
+
+// Interface for the new thunk's payload
+interface PresignedUrlPayload {
+    files: { filename: string; contentType: string; }[];
 }
 
 export const fetchAllPublicProperties = createAsyncThunk(
@@ -290,6 +301,76 @@ export const fetchPropertyById = createAsyncThunk(
     }
 );
 
+// Thunk to Delete a User Property
+export const deleteUserProperty = createAsyncThunk(
+    'properties/deleteUserProperty',
+    async (propertyId: string, { getState, rejectWithValue }) => {
+        const token = (getState() as RootState).auth.token;
+        if (!token) {
+            return rejectWithValue('Not authenticated.');
+        }
+        console.log(`Dispatching deleteUserProperty for ID: ${propertyId}`);
+        try {
+            const response = await axios.delete(`${API_URL}/properties/${propertyId}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            // On success, return the ID to remove it from the local state
+            return propertyId;
+        } catch (error: any) {
+            console.error("deleteUserProperty Error:", error.response?.data || error.message);
+            return rejectWithValue(error.response?.data?.message || 'Failed to delete property.');
+        }
+    }
+);
+
+// Thunk to Update a User Property
+export const updateUserProperty = createAsyncThunk(
+    'properties/updateUserProperty',
+    async ({ propertyId, propertyData }: UpdatePropertyPayload, { getState, rejectWithValue }) => {
+        const token = (getState() as RootState).auth.token;
+        if (!token) {
+            return rejectWithValue('Not authenticated.');
+        }
+        console.log(`Dispatching updateUserProperty for ID: ${propertyId}`);
+        try {
+            const response = await axios.put(`${API_URL}/properties/${propertyId}`, propertyData, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    // When sending FormData, axios sets the Content-Type automatically.
+                    // Do not set it manually here.
+                }
+            });
+            return response.data.property as Property;
+        } catch (error: any) {
+            console.error("updateUserProperty Error:", error.response?.data || error.message);
+            return rejectWithValue(error.response?.data?.message || 'Failed to update property.');
+        }
+    }
+);
+
+// Dedicated Thunk for getting presigned URLs
+export const getPresignedUrlsForUpload = createAsyncThunk(
+    'properties/getPresignedUrlsForUpload',
+    async (payload: PresignedUrlPayload, { getState, rejectWithValue }) => {
+        const token = (getState() as RootState).auth.token;
+        if (!token) {
+            return rejectWithValue('Not authenticated.');
+        }
+        try {
+            const response = await axios.post(
+                `${API_URL}/properties/generate-upload-urls`,
+                { files: payload.files },
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+            // This thunk's purpose is to return data directly, so we return it here.
+            return response.data as { signedUrl: string, publicUrl: string }[];
+        } catch (error: any) {
+            return rejectWithValue(error.response?.data?.message || 'Could not get upload links.');
+        }
+    }
+);
+
+
 
 // --- Slice Definition ---
 const propertySlice = createSlice({
@@ -446,6 +527,52 @@ const propertySlice = createSlice({
                 state.error = action.payload as string;
                 state.status = 'failed';
                 state.currentProperty = null;
+            })
+
+            // --- Delete User Property ---
+            .addCase(deleteUserProperty.pending, (state) => {
+                console.log("Reducer: deleteUserProperty.pending");
+                state.isLoading = true; // Use general loading state for this
+                state.error = null;
+            })
+            .addCase(deleteUserProperty.fulfilled, (state, action: PayloadAction<string>) => {
+                console.log("Reducer: deleteUserProperty.fulfilled");
+                state.isLoading = false;
+                // Filter out the deleted property from the userProperties array
+                state.userProperties = state.userProperties.filter(
+                    (property) => property._id !== action.payload
+                );
+            })
+            .addCase(deleteUserProperty.rejected, (state, action) => {
+                console.log("Reducer: deleteUserProperty.rejected", action.payload);
+                state.isLoading = false;
+                state.error = action.payload as string;
+            })
+
+            // --- Update User Property ---
+            .addCase(updateUserProperty.pending, (state) => {
+                state.isLoading = true;
+                state.isAddingProperty = true; // Reuse this state for the submit button
+                state.error = null;
+            })
+            .addCase(updateUserProperty.fulfilled, (state, action: PayloadAction<Property>) => {
+                state.isLoading = false;
+                state.isAddingProperty = false;
+                // Find the index of the property to update
+                const index = state.userProperties.findIndex(p => p._id === action.payload._id);
+                if (index !== -1) {
+                    // Replace the old property with the updated one
+                    state.userProperties[index] = action.payload;
+                }
+                // Also update the currentProperty if it's the one being edited
+                if (state.currentProperty?._id === action.payload._id) {
+                    state.currentProperty = action.payload;
+                }
+            })
+            .addCase(updateUserProperty.rejected, (state, action) => {
+                state.isLoading = false;
+                state.isAddingProperty = false;
+                state.error = action.payload as string;
             });
     },
 });

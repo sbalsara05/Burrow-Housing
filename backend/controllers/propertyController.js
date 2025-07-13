@@ -6,9 +6,13 @@ const Property = require("../models/propertyModel");
 const { geocodePropertyAddress } = require("../geocodingService");
 const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
 const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
-const crypto = require('crypto');
+const crypto = require("crypto");
 const User = require("../models/userModel"); // User model
 const { json } = require("stream/consumers");
+const {
+	generatePresignedUrls,
+	deleteFileFromS3,
+} = require("../services/s3Service");
 
 /**
  * Controller to get the properties of a user
@@ -19,7 +23,7 @@ exports.getMyProperties = async (req, res) => {
 		console.log("Fetching properties for user ID: ", userId);
 
 		// Fetch the user's properties and populate the 'properties' field with full property documents
-		const user = await User.findById(userId).populate('properties'); 
+		const user = await User.findById(userId).populate("properties");
 
 		if (!user) {
 			return res
@@ -48,8 +52,6 @@ exports.getMyProperties = async (req, res) => {
 /**
  * Controller to add a new property for a user
  */
-
-// Define the function to add a new property
 exports.addNewProperty = async (req, res) => {
 	try {
 		// *** Access directly from req.body ***
@@ -61,7 +63,7 @@ exports.addNewProperty = async (req, res) => {
 			buildingName,
 			leaseLength,
 			description,
-            imageUrls,
+			imageUrls,
 		} = req.body; // Destructure directly
 
 		const userId = req.user.userId; // Extract user ID from the authenticated token
@@ -136,7 +138,12 @@ exports.addNewProperty = async (req, res) => {
 				.json({ message: "Size must be a number." });
 		}
 
-		if (!addressAndLocation || !addressAndLocation.address || !addressAndLocation.location.lat || !addressAndLocation.location.lng) {
+		if (
+			!addressAndLocation ||
+			!addressAndLocation.address ||
+			!addressAndLocation.location.lat ||
+			!addressAndLocation.location.lng
+		) {
 			return res.status(400).json({
 				message: "addressAndLocation object with address field is required.",
 			});
@@ -447,72 +454,201 @@ exports.getPropertyById = async (req, res) => {
 
 // Generate Presigned URLs for Direct Upload ---
 exports.getPresignedUrls = async (req, res) => {
-	// Configure the S3 client for DigitalOcean Spaces
-	const s3Client = new S3Client({
-		endpoint: `https://${process.env.SPACES_ENDPOINT}`,
-		region: "us-east-1", // This is a required placeholder for the SDK
-		credentials: {
-			accessKeyId: process.env.SPACES_KEY,
-			secretAccessKey: process.env.SPACES_SECRET,
-		},
-	});
-
 	try {
-		const files = req.body.files; // Expects an array: [{ filename, contentType }]
-		if (!Array.isArray(files) || files.length === 0) {
+		const { files } = req.body;
+		const { userId } = req.user;
+
+		// Call the service to do the heavy lifting
+		const urls = await generatePresignedUrls(files, userId);
+
+		res.status(200).json(urls);
+	} catch (error) {
+		console.error(
+			"Error in getPresignedUrls controller:",
+			error.message
+		);
+		// The service throws a generic error, so we can send that back
+		// Or handle specific error types if you add them in the service
+		res.status(400).json({
+			message:
+				error.message ||
+				"Could not process your request.",
+		});
+	}
+};
+
+/**
+ * Controller to delete a property owned by the authenticated user
+ */
+exports.deleteProperty = async (req, res) => {
+	try {
+		const { id: propertyId } = req.params; // Get property ID from URL params
+		const { userId } = req.user; // Get user ID from authenticated token
+
+		// Validate if the propertyId is a valid MongoDB ObjectId
+		if (!mongoose.Types.ObjectId.isValid(propertyId)) {
+			return res.status(400).json({
+				message: "Invalid property ID format.",
+			});
+		}
+
+		// Find the property by its ID
+		const property = await Property.findById(propertyId);
+
+		// Check if the property exists
+		if (!property) {
+			return res
+				.status(404)
+				.json({ message: "Property not found." });
+		}
+
+		// --- SECURITY CHECK: Verify Ownership ---
+		if (property.userId.toString() !== userId) {
+			return res.status(403).json({
+				message: "Forbidden: You do not have permission to delete this property.",
+			});
+		}
+
+		if (property.images && property.images.length > 0) {
+			console.log(
+				`Deleting ${property.images.length} associated images from S3.`
+			);
+			try {
+				// Attempt to delete all images concurrently
+				const deletionPromises = property.images.map(
+					(url) => deleteFileFromS3(url)
+				);
+				await Promise.all(deletionPromises);
+				console.log(
+					"All associated images have been processed for deletion."
+				);
+			} catch (s3Error) {
+				// We log the error but continue the process.
+				// The main goal is to remove the property from the user's view.
+				// Orphaned files can be handled by a separate cleanup process if necessary.
+				console.error(
+					"An error occurred during S3 image deletion, but proceeding with DB deletion.",
+					s3Error
+				);
+			}
+		}
+
+		// Delete the property document
+		await property.remove();
+
+		// Remove the property reference from the user's document
+		await User.findByIdAndUpdate(userId, {
+			$pull: { properties: propertyId },
+		});
+
+		res.status(200).json({
+			message: "Property deleted successfully.",
+		});
+	} catch (error) {
+		console.error("Error deleting property:", error);
+		res.status(500).json({
+			message: "Server error while deleting property.",
+			error: error.message,
+		});
+	}
+};
+
+/**
+ * Controller to UPDATE a property owned by the authenticated user
+ */
+exports.updateProperty = async (req, res) => {
+	try {
+		const { id: propertyId } = req.params;
+		const { userId } = req.user;
+		const { images: finalImageUrls, ...updatedData } = req.body;
+
+		if (!mongoose.Types.ObjectId.isValid(propertyId)) {
 			return res
 				.status(400)
 				.json({
-					message: "File information is required.",
+					message: "Invalid property ID format.",
 				});
 		}
-		if (files.length > 10) {
+
+		const property = await Property.findById(propertyId);
+
+		if (!property) {
 			return res
-				.status(400)
+				.status(404)
+				.json({ message: "Property not found." });
+		}
+
+		if (property.userId.toString() !== userId) {
+			return res
+				.status(403)
 				.json({
-					message: "You can upload a maximum of 10 images.",
+					message: "Forbidden: You do not have permission to edit this property.",
 				});
 		}
 
-		// Create a presigned URL for each file
-		const presignedUrls = await Promise.all(
-			files.map(async (file) => {
-				const uniqueSuffix = crypto
-					.randomBytes(16)
-					.toString("hex");
-				const key = `properties/${
-					req.user.userId
-				}/${uniqueSuffix}-${file.filename.replace(
-					/\s+/g,
-					"-"
-				)}`;
-
-				const command = new PutObjectCommand({
-					Bucket: process.env.SPACES_BUCKET_NAME,
-					Key: key,
-					ContentType: file.contentType,
-					ACL: "public-read", // This makes the file public after upload
-				});
-
-				// Generate the temporary URL for uploading
-				const signedUrl = await getSignedUrl(
-					s3Client,
-					command,
-					{ expiresIn: 300 }
-				); // Link is valid for 5 minutes
-
-				// Generate the final public URL to be stored in the database
-				const publicUrl = `https://${process.env.SPACES_BUCKET_NAME}.${process.env.SPACES_ENDPOINT}/${key}`;
-
-				return { signedUrl, publicUrl };
-			})
+		// --- Image Deletion Logic ---
+		// Find which images stored in the DB are NOT in the final list sent from the client.
+		const imagesToDelete = property.images.filter(
+			(dbImageUrl) => !finalImageUrls.includes(dbImageUrl)
 		);
 
-		res.status(200).json(presignedUrls);
+		if (imagesToDelete.length > 0) {
+			console.log(
+				`Deleting ${imagesToDelete.length} images from S3.`
+			);
+			try {
+				const deletionPromises = imagesToDelete.map(
+					(url) => deleteFileFromS3(url)
+				);
+				await Promise.all(deletionPromises);
+				console.log(
+					"Successfully processed image deletions from S3."
+				);
+			} catch (s3Error) {
+				console.error(
+					"A non-critical error occurred during S3 image deletion, but proceeding with DB update.",
+					s3Error
+				);
+			}
+		}
+
+		// --- Update Property Document ---
+		// Combine the updated text data with the final list of image URLs
+		const finalUpdatedData = {
+			...updatedData,
+			images: finalImageUrls, // This is the complete, correct list of URLs
+			updatedAt: new Date(),
+		};
+
+		const updatedProperty = await Property.findByIdAndUpdate(
+			propertyId,
+			{ $set: finalUpdatedData },
+			{ new: true, runValidators: true }
+		);
+
+		if (!updatedProperty) {
+			return res
+				.status(404)
+				.json({
+					message: "Property not found after update attempt.",
+				});
+		}
+
+		res.status(200).json({
+			message: "Property updated successfully.",
+			property: updatedProperty,
+		});
 	} catch (error) {
-		console.error("Error generating presigned URLs:", error);
+		console.error("Error updating property:", error);
+		if (error.name === "ValidationError") {
+			return res.status(400).json({
+				message: "Validation failed",
+				errors: error.errors,
+			});
+		}
 		res.status(500).json({
-			message: "Could not generate upload links.",
+			message: "Server error while updating property.",
+			error: error.message,
 		});
 	}
 };
