@@ -30,17 +30,6 @@ const DashboardHeaderOne: React.FC<DashboardHeaderOneProps> = ({ isActive, setIs
     // Navigation configuration
     const navSections: NavSection[] = [
         {
-            title: 'Inbox Requests',
-            items: [
-                {
-                    path: '/dashboard/chat',
-                    label: 'Chat',
-                    iconPath: '/assets/images/icon/message-circle-more.svg',
-                    activeIconPath: '/assets/images/icon/message-circle-more-active.svg'
-                }
-            ]
-        },
-        {
             title: 'Profile',
             items: [
                 {
@@ -80,10 +69,10 @@ const DashboardHeaderOne: React.FC<DashboardHeaderOneProps> = ({ isActive, setIs
                     activeIconPath: '/assets/images/dashboard/icon/icon_8_active.svg'
                 },
                 {
-                    path: '/dashboard/saved-search',
-                    label: 'Saved Search',
-                    iconPath: '/assets/images/dashboard/icon/icon_9.svg',
-                    activeIconPath: '/assets/images/dashboard/icon/icon_9_active.svg'
+                    path: '/dashboard/chat',
+                    label: 'Chat',
+                    iconPath: '/assets/images/icon/message-circle-more.svg',
+                    activeIconPath: '/assets/images/icon/message-circle-more-active.svg'
                 }
             ]
         }
