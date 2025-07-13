@@ -1,58 +1,79 @@
-import React, { useEffect, useMemo } from 'react'; // Import useMemo
+import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "../../../redux/slices/store.ts";
 import DashboardHeaderTwo from "../../../layouts/headers/dashboard/DashboardHeaderTwo";
 import NiceSelect from "../../../ui/NiceSelect";
 import PropertyTableBody from "./PropertyTableBody";
+import { toast } from 'react-toastify';
+import DeleteConfirmationModal from '../../../modals/DeleteConfirmationModal';
 import {
     fetchUserProperties,
     selectUserProperties,
     selectUserPropertiesLoading,
     selectPropertyError,
     clearPropertyError,
-    setUserPropertiesSort, // NEW: Import the sort action
-    selectUserPropertiesSort, // NEW: Import the sort selector
-    Property // Import Property type
+    setUserPropertiesSort,
+    selectUserPropertiesSort,
+    deleteUserProperty
 } from "../../../redux/slices/propertySlice";
 
 const PropertyListBody = () => {
     const dispatch = useDispatch<AppDispatch>();
 
-    // Select state from Redux
-    const properties = useSelector(selectUserProperties);
-    const isLoading = useSelector(selectUserPropertiesLoading);
-    const error = useSelector(selectPropertyError);
-    const sortOption = useSelector(selectUserPropertiesSort); // NEW: Get sort option from state
+    const { userProperties, isLoading, error, userPropertiesSort } = useSelector((state: RootState) => state.properties);
 
-    // Handler for the dropdown change
+    // State for the modal now lives in this parent component
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [propertyToDelete, setPropertyToDelete] = useState<string | null>(null);
+
     const handleSortChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-        const newSortValue = event.target.value;
-        dispatch(setUserPropertiesSort(newSortValue));
+        dispatch(setUserPropertiesSort(event.target.value));
     };
 
-    // Memoized sorting logic
     const sortedProperties = useMemo(() => {
-        const sorted = [...properties]; // Create a mutable copy
-        switch (sortOption) {
+        const sorted = [...userProperties];
+        switch (userPropertiesSort) {
             case 'oldest':
                 return sorted.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
             case 'inactive':
-                // Note: Assumes a 'status' field exists. We'll need to add this to the model.
-                return sorted.filter(p => p.status === 'Inactive'); // Placeholder logic
+                // This assumes a 'status' field exists. Update your model if needed.
+                return sorted.filter(p => p.status === 'Inactive');
             case 'newest':
             default:
                 return sorted.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
         }
-    }, [properties, sortOption]); // Re-run only when properties or sortOption changes
+    }, [userProperties, userPropertiesSort]);
 
-    // Fetch data when the component mounts
     useEffect(() => {
         dispatch(fetchUserProperties());
         return () => {
             dispatch(clearPropertyError());
         };
     }, [dispatch]);
+
+    // Modal handling functions live here
+    const openDeleteModal = (id: string) => {
+        setPropertyToDelete(id);
+        setIsModalOpen(true);
+    };
+
+    const closeDeleteModal = () => {
+        setPropertyToDelete(null);
+        setIsModalOpen(false);
+    };
+
+    const handleConfirmDelete = async () => {
+        if (propertyToDelete) {
+            const resultAction = await dispatch(deleteUserProperty(propertyToDelete));
+            if (deleteUserProperty.fulfilled.match(resultAction)) {
+                toast.success("Property deleted successfully!");
+            } else {
+                toast.error((resultAction.payload as string) || "Failed to delete property.");
+            }
+            closeDeleteModal();
+        }
+    };
 
     return (
         <div className="dashboard-body">
@@ -71,8 +92,8 @@ const PropertyListBody = () => {
                                     { value: "oldest", text: "Oldest" },
                                     { value: "inactive", text: "Inactive" },
                                 ]}
-                                defaultCurrent={["newest", "oldest", "inactive"].indexOf(sortOption)}
-                                onChange={handleSortChange} // Use the new handler
+                                defaultCurrent={["newest", "oldest", "inactive"].indexOf(userPropertiesSort)}
+                                onChange={handleSortChange}
                                 name="property-sort"
                                 placeholder="Select Sort"
                             />
@@ -82,8 +103,7 @@ const PropertyListBody = () => {
 
                 <div className="bg-white card-box p0 border-20">
                     <div className="table-responsive pt-25 pb-25 pe-4 ps-4">
-                        {/* ... (keep loading, error, and empty state logic) ... */}
-                        {isLoading && (
+                        {isLoading && !isModalOpen && ( // Don't show main loading if modal is open for delete
                             <div className="text-center p-5">
                                 <div className="spinner-border" role="status"><span className="visually-hidden">Loading...</span></div>
                             </div>
@@ -92,19 +112,20 @@ const PropertyListBody = () => {
                         {!isLoading && !error && sortedProperties.length === 0 && (
                             <div className="text-center p-5">
                                 <h4>
-                                    {sortOption === 'inactive'
+                                    {userPropertiesSort === 'inactive'
                                         ? "You have no inactive properties."
                                         : "You haven't added any properties yet."
                                     }
                                 </h4>
                                 <p className="mt-2">
-                                    {sortOption !== 'inactive' && "Get started by adding your first listing!"}
+                                    {userPropertiesSort !== 'inactive' && "Get started by adding your first listing!"}
                                 </p>
-                                {sortOption !== 'inactive' &&
+                                {userPropertiesSort !== 'inactive' &&
                                     <Link to="/dashboard/add-property" className="btn-two mt-3">Add New Property</Link>
                                 }
                             </div>
                         )}
+
                         {!isLoading && !error && sortedProperties.length > 0 && (
                             <table className="table property-list-table">
                                 <thead>
@@ -116,18 +137,24 @@ const PropertyListBody = () => {
                                         <th scope="col">Action</th>
                                     </tr>
                                 </thead>
-                                {/* Pass the memoized sorted properties to the table body */}
-                                <PropertyTableBody properties={sortedProperties} />
+                                <PropertyTableBody
+                                    properties={sortedProperties}
+                                    onDeleteClick={openDeleteModal}
+                                />
                             </table>
                         )}
                     </div>
                 </div>
-                {properties.length > 0 && (
-                    <ul className="pagination-one d-flex align-items-center justify-content-center style-none pt-40">
-                        <li className="selected"><Link to="#">1</Link></li>
-                    </ul>
-                )}
             </div>
+
+            <DeleteConfirmationModal
+                isOpen={isModalOpen}
+                onClose={closeDeleteModal}
+                onConfirm={handleConfirmDelete}
+                title="Confirm Deletion"
+                message="Are you sure you want to delete this property? This action cannot be undone."
+                isLoading={isLoading}
+            />
         </div>
     );
 }

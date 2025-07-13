@@ -23,6 +23,7 @@ import DashboardFavourites from '../pages/DashboardFavourites';
 import DashboardSavedSearch from '../pages/DashboardSavedSearch';
 import DashboardReview from '../pages/DashboardReview';
 import PasswordChange from '../components/dashboard/account-settings/password-change';
+import DashboardEditProperty from '../pages/DashboardEditProperty';
 
 const AppNavigation = () => {
     return (
