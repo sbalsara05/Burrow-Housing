@@ -67,13 +67,13 @@ const DashboardChatMain = () => {
                     </div>
                 )}
 
-                {/* Chat Interface - Mix Bootstrap grid with Tailwind styling */}
-                <div className="bg-white card-box border-20 tw-shadow-lg tw-overflow-hidden">
-                    <div className="chat-container tw-h-[70vh] tw-min-h-[500px] tw-max-h-[800px]">
-                        <div className="row g-0 h-100">
+                {/* Chat Interface */}
+                <div className="bg-white card-box p0 border-20 tw-rounded-lg tw-overflow-hidden">
+                    <div className="tw-h-[70vh] tw-min-h-[500px] tw-max-h-[800px]">
+                        <div className="tw-flex tw-h-full">
                             {/* Chat List - Left Sidebar */}
-                            <div className={`col-lg-4 col-md-5 ${activeChannel && isMobileView ? 'd-none' : ''}`}>
-                                <div className="chat-list-wrapper tw-bg-gray-50 tw-h-full tw-border-r tw-border-gray-200">
+                            <div className={`tw-w-full md:tw-w-2/5 lg:tw-w-1/3 ${activeChannel && isMobileView ? 'tw-hidden' : ''}`}>
+                                <div className="tw-bg-gray-50 tw-h-full tw-border-r tw-border-gray-200">
                                     <ChatList
                                         channels={channels}
                                         activeChannel={activeChannel}
@@ -85,8 +85,8 @@ const DashboardChatMain = () => {
                             </div>
 
                             {/* Chat Window - Main Content */}
-                            <div className={`col-lg-8 col-md-7 ${!activeChannel && isMobileView ? 'd-none' : ''}`}>
-                                <div className="chat-window-wrapper tw-h-full tw-bg-white">
+                            <div className={`tw-w-full md:tw-w-3/5 lg:tw-w-2/3 ${!activeChannel && isMobileView ? 'tw-hidden' : ''}`}>
+                                <div className="tw-h-full tw-bg-white">
                                     <ChatWindow
                                         activeChannel={activeChannel}
                                         messages={messages}
