@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import DashboardHeaderOne from "../../../layouts/headers/dashboard/DashboardHeaderOne";
+import DashboardHeaderTwo from '../../../layouts/headers/dashboard/DashboardHeaderTwo';
 import ChatList from './ChatList';
 import ChatWindow from './ChatWindow';
 import { useChatService } from '../../../hooks/useChatService';
+import { Channel } from '../../../types/chat';
 
 const DashboardChatMain = () => {
     const [isMobileView, setIsMobileView] = useState(false);
-    const [showChatList, setShowChatList] = useState(true);
 
     const {
         channels,
@@ -23,63 +23,40 @@ const DashboardChatMain = () => {
         clearError
     } = useChatService();
 
-    // Check if mobile view
+    // Handle responsive layout
     useEffect(() => {
-        const checkMobile = () => {
-            const mobile = window.innerWidth < 768;
-            setIsMobileView(mobile);
-
-            // On mobile, show chat list by default if no active channel
-            if (mobile && !activeChannel) {
-                setShowChatList(true);
-            }
+        const handleResize = () => {
+            setIsMobileView(window.innerWidth < 768);
         };
 
-        checkMobile();
-        window.addEventListener('resize', checkMobile);
-        return () => window.removeEventListener('resize', checkMobile);
-    }, [activeChannel]);
+        handleResize(); // Initial check
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
 
-    const handleChannelSelect = (channel: any) => {
+    const handleChannelSelect = (channel: Channel) => {
         setActiveChannel(channel);
-
-        // On mobile, hide chat list when channel is selected
-        if (isMobileView) {
-            setShowChatList(false);
-        }
-
-        // Clear any existing errors
-        if (error) {
-            clearError();
-        }
+        if (error) clearError();
     };
 
     const handleBackToList = () => {
         setActiveChannel(null);
-        setShowChatList(true);
-    };
-
-    const handleSendMessage = async (text: string) => {
-        try {
-            await sendMessage(text);
-        } catch (err) {
-            console.error('Failed to send message:', err);
-        }
     };
 
     const handleCreateChannel = () => {
-        // TODO: Implement channel creation
+        // TODO: Implement channel creation modal/functionality
         console.log('Create channel clicked');
     };
 
     return (
         <div className="dashboard-body">
             <div className="position-relative">
-                <DashboardHeaderOne title="Chat" />
-
-                {/* Error Display */}
+                <DashboardHeaderTwo title="Chat" />
+                
+                {/* Error Alert */}
                 {error && (
-                    <div className="alert alert-danger alert-dismissible fade show mx-3" role="alert">
+                    <div className="alert alert-danger alert-dismissible fade show tw-mb-4 tw-rounded-lg">
+                        <i className="bi bi-exclamation-triangle me-2"></i>
                         {error}
                         <button
                             type="button"
@@ -90,48 +67,41 @@ const DashboardChatMain = () => {
                     </div>
                 )}
 
-                {/* Chat Interface */}
-                <div className="container-fluid p-0">
-                    <div className="row g-0" style={{ height: 'calc(100vh - 100px)' }}>
-                        {/* Chat List - Left Sidebar */}
-                        <div className={`col-lg-4 col-md-5 border-end ${isMobileView ? (showChatList ? 'd-block' : 'd-none') : 'd-block'
-                            }`}>
-                            <ChatList
-                                channels={channels}
-                                activeChannel={activeChannel}
-                                onChannelSelect={handleChannelSelect}
-                                onCreateChannel={handleCreateChannel}
-                                isLoading={isLoadingChannels}
-                            />
-                        </div>
+                {/* Chat Interface - Mix Bootstrap grid with Tailwind styling */}
+                <div className="bg-white card-box border-20 tw-shadow-lg tw-overflow-hidden">
+                    <div className="chat-container tw-h-[70vh] tw-min-h-[500px] tw-max-h-[800px]">
+                        <div className="row g-0 h-100">
+                            {/* Chat List - Left Sidebar */}
+                            <div className={`col-lg-4 col-md-5 ${activeChannel && isMobileView ? 'd-none' : ''}`}>
+                                <div className="chat-list-wrapper tw-bg-gray-50 tw-h-full tw-border-r tw-border-gray-200">
+                                    <ChatList
+                                        channels={channels}
+                                        activeChannel={activeChannel}
+                                        onChannelSelect={handleChannelSelect}
+                                        onCreateChannel={handleCreateChannel}
+                                        isLoading={isLoadingChannels}
+                                    />
+                                </div>
+                            </div>
 
-                        {/* Chat Window - Main Content */}
-                        <div className={`col-lg-8 col-md-7 ${isMobileView ? (showChatList ? 'd-none' : 'd-block') : 'd-block'
-                            }`}>
-                            <ChatWindow
-                                activeChannel={activeChannel}
-                                messages={messages}
-                                currentUserId={user?.id || ''}
-                                isLoadingMessages={isLoadingMessages}
-                                isSendingMessage={isSendingMessage}
-                                onSendMessage={handleSendMessage}
-                                onBackToList={isMobileView ? handleBackToList : undefined}
-                                onLoadMoreMessages={loadMoreMessages}
-                                isFullScreen={true}
-                            />
+                            {/* Chat Window - Main Content */}
+                            <div className={`col-lg-8 col-md-7 ${!activeChannel && isMobileView ? 'd-none' : ''}`}>
+                                <div className="chat-window-wrapper tw-h-full tw-bg-white">
+                                    <ChatWindow
+                                        activeChannel={activeChannel}
+                                        messages={messages}
+                                        currentUserId={user?.id || ''}
+                                        isLoadingMessages={isLoadingMessages}
+                                        isSendingMessage={isSendingMessage}
+                                        onSendMessage={sendMessage}
+                                        onBackToList={isMobileView ? handleBackToList : undefined}
+                                        onLoadMoreMessages={loadMoreMessages}
+                                    />
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
-
-                {/* Development Status Indicator */}
-                {/* {process.env.NODE_ENV === 'development' && (
-                    <div className="position-fixed bottom-0 end-0 p-3" style={{ zIndex: 1000 }}>
-                        <div className="badge bg-secondary">
-                            <i className="bi bi-gear me-1"></i>
-                            {import.meta.env.VITE_USE_MOCK_CHAT === 'true' ? 'Mock Data' : 'Live API'}
-                        </div>
-                    </div>
-                )} */}
             </div>
         </div>
     );
