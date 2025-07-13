@@ -16,6 +16,7 @@ import NotFound from '../pages/NotFound';
 import DashboardIndex from '../pages/DashboardIndex';
 import DashboardMessage from '../pages/DashboardMessage';
 import DashboardProfile from '../pages/DashboardProfile';
+import DashboardChatConversationMain from '../pages/DashboardChatConversation';
 import DashboardAccountSettings from '../pages/DashboardAccountSettings';
 import DashboardPropertiesList from '../pages/DashboardPropertiesList';
 import DashboardAddProperty from '../pages/DashboardAddProperty';
@@ -23,6 +24,7 @@ import DashboardFavourites from '../pages/DashboardFavourites';
 import DashboardSavedSearch from '../pages/DashboardSavedSearch';
 import DashboardReview from '../pages/DashboardReview';
 import PasswordChange from '../components/dashboard/account-settings/password-change';
+import DashboardChatMain from '../components/dashboard/chat/index';
 import DashboardEditProperty from '../pages/DashboardEditProperty';
 
 const AppNavigation = () => {
@@ -64,18 +66,21 @@ const AppNavigation = () => {
             If a non-authenticated user tries to access them, they will be
             redirected to the login page ("/home-three"). */}
 
-                <Route element={<ProtectedRoute/>}>
-                    <Route path="/dashboard/dashboard-index" element={<DashboardIndex/>}/>
-                    <Route path="/dashboard/message" element={<DashboardMessage/>}/>
-                    <Route path="/dashboard/profile" element={<DashboardProfile/>}/>
-                    <Route path="/dashboard/account-settings" element={<DashboardAccountSettings/>}/>
-                    <Route path="/dashboard/account-settings/password-change" element={<PasswordChange/>}/>
-                    <Route path="/dashboard/properties-list" element={<DashboardPropertiesList/>}/>
-                    <Route path="/dashboard/add-property" element={<DashboardAddProperty/>}/>
-                    <Route path="/dashboard/favourites" element={<DashboardFavourites/>}/>
-                    <Route path="/dashboard/saved-search" element={<DashboardSavedSearch/>}/>
-                    <Route path="/dashboard/review" element={<DashboardReview/>}/>
+                <Route element={<ProtectedRoute />}>
+                    <Route path="/dashboard/dashboard-index" element={<DashboardIndex />} />
+                    <Route path="/dashboard/message" element={<DashboardMessage />} />
+                    <Route path="/dashboard/profile" element={<DashboardProfile />} />
+                    <Route path="/dashboard/chat/conversation/:id" element={<DashboardChatConversationMain />} />
+                    <Route path="/dashboard/chat" element={<DashboardChatMain />} />
 
+                    <Route path="/dashboard/account-settings" element={<DashboardAccountSettings />} />
+                    <Route path="/dashboard/account-settings/password-change" element={<PasswordChange />} />
+                    <Route path="/dashboard/properties-list" element={<DashboardPropertiesList />} />
+                    <Route path="/dashboard/add-property" element={<DashboardAddProperty />} />
+                    <Route path="/dashboard/favourites" element={<DashboardFavourites />} />
+                    <Route path="/dashboard/saved-search" element={<DashboardSavedSearch />} />
+                    <Route path="/dashboard/review" element={<DashboardReview />} />
+                    <Route path="/dashboard/edit-property/:id" element={<DashboardEditProperty />} />
                     {/* Add any other future protected routes inside this wrapper */}
                 </Route>
 
