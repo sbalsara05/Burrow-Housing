@@ -91,13 +91,13 @@ const menu_data: MenuItem[] = [
         has_dropdown: false,
         title: "About Us",
         class_name:"mega-dropdown-sm",
-        link: "/about_us_01",
+        link: "/about_us",
         menu_column: [
             {
                 id: 1,
                 mega_title: "Essential",
                 mega_menus: [
-                    { link: "/about_us_01", title: "About us -1" },
+                    { link: "/about_us", title: "About us -1" },
                     { link: "/about_us_02", title: "About us -2" },
                     { link: "/agency", title: "Agency" },
                     { link: "/agency_details", title: "Agency Details" },

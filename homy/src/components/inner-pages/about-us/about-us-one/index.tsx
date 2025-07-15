@@ -4,7 +4,7 @@ import BreadcrumbOne from "../../../common/breadcrumb/BreadcrumbOne"
 import AgentArea from "../../../homes/home/AgentArea"
 import BLockFeatureOne from "./BLockFeatureOne"
 
-const AboutUsOne = () => {
+const AboutUs = () => {
    return (
       <>
          <HeaderOne style={true} />
@@ -16,4 +16,4 @@ const AboutUsOne = () => {
    )
 }
 
-export default AboutUsOne
+export default AboutUs

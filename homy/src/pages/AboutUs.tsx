@@ -1,14 +1,14 @@
 import Wrapper from '../layouts/Wrapper';
 import SEO from '../components/SEO';
-import AboutUsOneMain from '../components/inner-pages/about-us/about-us-one';
+import AboutUsMain from '../components/inner-pages/about-us/about-us-one';
 
-const AboutUsOne = () => {
+const AboutUs = () => {
    return (
       <Wrapper>
          <SEO pageTitle={'About Us'} />
-         <AboutUsOneMain />
+         <AboutUsMain />
       </Wrapper>
    );
 };
 
-export default AboutUsOne;
+export default AboutUs;
