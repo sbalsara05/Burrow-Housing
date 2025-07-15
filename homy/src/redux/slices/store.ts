@@ -5,6 +5,8 @@ import authReducer from './authSlice.ts';
 import profileReducer from './profileSlice.ts';
 import propertyReducer from './propertySlice.ts';
 import filterReducer from './filterSlice.ts';
+import favoritesReducer from './favoritesSlice'; // Add this import
+
 
 // --- Redux Persist Configuration ---
 const persistConfig = {
@@ -24,6 +26,8 @@ const rootReducer = combineReducers({
     profile: profileReducer,
     properties: propertyReducer,
     filters: filterReducer,
+    favorites: favoritesReducer, // Add this line
+
 });
 
 // Create the persisted reducer
