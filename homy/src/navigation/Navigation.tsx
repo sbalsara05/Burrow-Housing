@@ -19,7 +19,6 @@ import DashboardAccountSettings from '../pages/DashboardAccountSettings';
 import DashboardPropertiesList from '../pages/DashboardPropertiesList';
 import DashboardAddProperty from '../pages/DashboardAddProperty';
 import DashboardFavourites from '../pages/DashboardFavourites';
-import DashboardSavedSearch from '../pages/DashboardSavedSearch';
 import DashboardReview from '../pages/DashboardReview';
 import PasswordChange from '../components/dashboard/account-settings/password-change';
 import DashboardChatMain from '../components/dashboard/chat/index';
@@ -74,7 +73,6 @@ const AppNavigation = () => {
                     <Route path="/dashboard/properties-list" element={<DashboardPropertiesList />} />
                     <Route path="/dashboard/add-property" element={<DashboardAddProperty />} />
                     <Route path="/dashboard/favourites" element={<DashboardFavourites />} />
-                    <Route path="/dashboard/saved-search" element={<DashboardSavedSearch />} />
                     <Route path="/dashboard/review" element={<DashboardReview />} />
                     <Route path="/dashboard/edit-property/:id" element={<DashboardEditProperty />} />
                     {/* Add any other future protected routes inside this wrapper */}
