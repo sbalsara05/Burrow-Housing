@@ -3,7 +3,7 @@ import UseShortedProperty from "../../../hooks/useShortedProperty"
 import NiceSelect from "../../../ui/NiceSelect"
 import { Link } from "react-router-dom"
 import DropdownOne from "../../search-dropdown/inner-dropdown/DropdownOne"
-import PropertyCarousel from "../../homes/home-two/PropertyCarousel"
+import PropertyCarousel from "../../homes/home-three/PropertyCarousel"
 
 const ListingOneArea = () => {
 

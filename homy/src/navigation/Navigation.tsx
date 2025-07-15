@@ -6,7 +6,6 @@ import ProtectedRoute from "./ProtectedRoutes";
 //import routes
 import HomeThree from '../pages/HomeThree';
 import AboutUsOne from '../pages/AboutUsOne';
-import Agent from '../pages/Agent';
 import ListingOne from '../pages/ListingOne';
 import ListingFourteen from '../pages/ListingFourteen';
 import ListingDetailsOne from '../pages/ListingDetailsOne';
@@ -52,7 +51,6 @@ const AppNavigation = () => {
                 <Route path="/" element={<Navigate to="/home-three" replace/>}/>
                 <Route path="/home-three" element={<HomeThree/>}/>
                 <Route path="/about_us_01" element={<AboutUsOne/>}/>
-                <Route path="/agent" element={<Agent/>}/>
                 <Route path="/contact" element={<Contact/>}/>
                 <Route path="/faq" element={<Faq/>}/>
                 <Route path="/listing_01" element={<ListingOne/>}/>

@@ -1,6 +1,5 @@
 import Slider from "react-slick";
-import agent_data from "../../../data/home-data/AgentData";
-import {Link} from "react-router-dom";
+import agent_data from "../../../data/home-data/AboutUsData";
 
 const AgentArea = ({style}: any) => {
 
