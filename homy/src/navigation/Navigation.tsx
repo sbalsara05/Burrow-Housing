@@ -14,7 +14,6 @@ import Contact from '../pages/Contact';
 import Faq from '../pages/Faq';
 import NotFound from '../pages/NotFound';
 import DashboardIndex from '../pages/DashboardIndex';
-import DashboardMessage from '../pages/DashboardMessage';
 import DashboardProfile from '../pages/DashboardProfile';
 import DashboardChatConversationMain from '../pages/DashboardChatConversation';
 import DashboardAccountSettings from '../pages/DashboardAccountSettings';
@@ -68,7 +67,6 @@ const AppNavigation = () => {
 
                 <Route element={<ProtectedRoute />}>
                     <Route path="/dashboard/dashboard-index" element={<DashboardIndex />} />
-                    <Route path="/dashboard/message" element={<DashboardMessage />} />
                     <Route path="/dashboard/profile" element={<DashboardProfile />} />
                     <Route path="/dashboard/chat/conversation/:id" element={<DashboardChatConversationMain />} />
                     <Route path="/dashboard/chat" element={<DashboardChatMain />} />

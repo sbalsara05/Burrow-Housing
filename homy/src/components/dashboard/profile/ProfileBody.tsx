@@ -1,15 +1,13 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Link } from "react-router-dom"; // Keep Link if needed elsewhere
 import UserAvatarSetting from "./UserAvatarSetting"; // Renders form fields
 import DashboardHeaderTwo from "../../../layouts/headers/dashboard/DashboardHeaderTwo";
 import { toast } from "react-toastify";
-import { AppDispatch, RootState } from '../../../redux/slices/store.ts';
+import { AppDispatch } from '../../../redux/slices/store.ts';
 // Import actions and selectors from profileSlice
 import { 
     fetchProfile, 
     updateProfileWithImage, 
-    updateProfile, // Keep for backward compatibility if needed
     selectProfile, 
     selectProfileLoading, 
     selectIsUpdatingProfile,
