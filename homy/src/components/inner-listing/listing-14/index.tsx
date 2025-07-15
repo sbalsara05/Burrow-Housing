@@ -1,4 +1,4 @@
-import FooterTwo from "../../../layouts/footers/FooterTwo";
+import Footer from "../../../layouts/footers/Footer";
 import HeaderOne from "../../../layouts/headers/HeaderOne";
 import ListingFourteenArea from "./ListingFourteenArea"
 
@@ -7,7 +7,7 @@ const ListingFourteen = () => {
       <>
          <HeaderOne style={true} />
          <ListingFourteenArea />
-         <FooterTwo />
+         <Footer />
       </>
    )
 }

@@ -1,10 +1,9 @@
-import {Link} from "react-router-dom";
+import { Link } from "react-router-dom";
 import footer_data from "../../data/home-data/FooterData";
 
 interface ContentType {
     title: string;
     desc_1: string;
-    desc_2: string;
     email: string;
     number: string;
     icon: string[];
@@ -12,16 +11,15 @@ interface ContentType {
 
 const footer_content: ContentType = {
     title: "Our Newsletter",
-    desc_1: "Get instant news by subscribe to our newsletter",
-    desc_2: "Northeastern University",
+    desc_1: "Northeastern University",
     email: "burrowhousingsublets@gmail.com",
     number: "1‑800‑555‑1212",
     icon: ["facebook-f", "twitter", "instagram"],
-}
+};
 
-const {title, desc_1, desc_2, email, number, icon} = footer_content;
+const { desc_1, email } = footer_content;
 
-const FooterTwo = () => {
+const Footer = () => {
     return (
         <footer className="footer-two bg-white">
             <div className="container">
@@ -37,49 +35,29 @@ const FooterTwo = () => {
                                             src="/assets/images/logo/textlogo.png"
                                             alt="Burrow Housing"
                                             className="img-fluid"
-                                            style={{maxWidth: "180px", height: "auto"}}
+                                            style={{ maxWidth: "180px", height: "auto" }}
                                         />
                                     </Link>
                                 </div>
-                                <p className="text-muted mb-4 pe-lg-4">{desc_2}</p>
+                                <p className="text-muted mb-4 pe-lg-4">{desc_1}</p>
 
                                 {/* Contact Information */}
                                 <div className="contact-info mb-4">
                                     <div className="contact-item d-flex align-items-center mb-3">
                                         <div className="icon-wrapper me-3">
-                                            <img src="/assets/images/icon/icon_30.svg" alt="Email" width="18"
-                                                 height="18"/>
+                                            <img 
+                                                src="/assets/images/icon/icon_30.svg" 
+                                                alt="Email" 
+                                                width="18"
+                                                height="18"
+                                            />
                                         </div>
-                                        <Link to={`mailto:${email}`}
-                                              className="text-decoration-none text-dark fw-medium">
+                                        <Link 
+                                            to={`mailto:${email}`}
+                                            className="text-decoration-none text-dark fw-medium"
+                                        >
                                             {email}
                                         </Link>
-                                    </div>
-                                    <div className="contact-item d-flex align-items-center mb-3">
-
-                                    </div>
-                                </div>
-
-                                {/* Social Media Links */}
-                                <div className="social-links">
-                                    <div className="d-flex gap-2">
-                                        {/*{icon.map((socialIcon, i) => (*/}
-                                        {/*   <Link */}
-                                        {/*      key={i} */}
-                                        {/*      to="#" */}
-                                        {/*      className="social-link d-flex align-items-center justify-content-center text-decoration-none"*/}
-                                        {/*      style={{*/}
-                                        {/*         width: "40px", */}
-                                        {/*         height: "40px", */}
-                                        {/*         borderRadius: "50%", */}
-                                        {/*         backgroundColor: "#f8f9fa",*/}
-                                        {/*         border: "1px solid #e9ecef",*/}
-                                        {/*         transition: "all 0.3s ease"*/}
-                                        {/*      }}*/}
-                                        {/*   >*/}
-                                        {/*      <i className={`fa-brands fa-${socialIcon} text-muted`}></i>*/}
-                                        {/*   </Link>*/}
-                                        {/*))}*/}
                                     </div>
                                 </div>
                             </div>
@@ -89,40 +67,47 @@ const FooterTwo = () => {
                         <div className="col-lg-8">
                             <div className="d-flex justify-content-between align-items-start">
                                 <div className="row gx-4 gy-4 flex-grow-1">
-                                    {footer_data.filter((items) => items.page === "home_3").map((item) => (
-                                        <div key={item.id} className="col-lg-4 col-md-6">
-                                            <div className="footer-nav">
-                                                <h5 className="footer-title fw-semibold mb-3 text-dark">{item.widget_title}</h5>
-                                                <ul className="list-unstyled footer-nav-links">
-                                                    {item.footer_link.map((li, i) => (
-                                                        <li key={i} className="mb-2">
-                                                            <Link
-                                                                to={li.link}
-                                                                className="text-decoration-none text-muted d-block py-1 footer-link"
-                                                                style={{
-                                                                    transition: "color 0.3s ease",
-                                                                    fontSize: "1.15rem"
-                                                                }}
-                                                            >
-                                                                {li.link_title}
-                                                            </Link>
-                                                        </li>
-                                                    ))}
-                                                </ul>
+                                    {footer_data
+                                        .filter((items) => items.page === "home_3")
+                                        .map((item) => (
+                                            <div key={item.id} className="col-lg-4 col-md-6">
+                                                <div className="footer-nav">
+                                                    <h5 className="footer-title fw-semibold mb-3 text-dark">
+                                                        {item.widget_title}
+                                                    </h5>
+                                                    <ul className="list-unstyled footer-nav-links">
+                                                        {item.footer_link.map((li, i) => (
+                                                            <li key={i} className="mb-2">
+                                                                <Link
+                                                                    to={li.link}
+                                                                    className="text-decoration-none text-muted d-block py-1 footer-link"
+                                                                    style={{
+                                                                        transition: "color 0.3s ease",
+                                                                        fontSize: "1.15rem"
+                                                                    }}
+                                                                >
+                                                                    {li.link_title}
+                                                                </Link>
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+                                                </div>
                                             </div>
-                                        </div>
-                                    ))}
+                                        ))}
                                 </div>
 
-                                <div className="d-flex align-items-center tw-size-1/12 tw-mr-72 ">
-                                    <img src="/assets/images/shape/shape_47.svg" alt=""
-                                         className="lazy-img me-3 tw-ring-4 tw-ring-gray-900 tw-ring-offset-2"/>
-                                    <img src="/assets/images/shape/shape_47.svg" alt=""
-                                         className="lazy-img me-3 tw-ring-4 tw-ring-gray-900 tw-ring-offset-2"/>
-                                    <img src="/assets/images/shape/shape_47.svg" alt=""
-                                         className="lazy-img me-3 tw-ring-4 tw-ring-gray-900 tw-ring-offset-2"/>
-                                    <img src="/assets/images/shape/shape_47.svg" alt=""
-                                         className="lazy-img tw-ring-4 tw-ring-gray-900 tw-ring-offset-2"/>
+                                {/* Decorative Icons */}
+                                <div className="d-flex align-items-center tw-size-1/12 tw-mr-72">
+                                    {[...Array(4)].map((_, index) => (
+                                        <img
+                                            key={index}
+                                            src="/assets/images/shape/shape_47.svg"
+                                            alt=""
+                                            className={`lazy-img tw-ring-4 tw-ring-gray-900 tw-ring-offset-2 ${
+                                                index < 3 ? 'me-3' : ''
+                                            }`}
+                                        />
+                                    ))}
                                 </div>
                             </div>
                         </div>
@@ -139,12 +124,18 @@ const FooterTwo = () => {
                             <div className="col-md-6">
                                 <ul className="list-unstyled d-flex justify-content-md-end justify-content-start gap-4 mb-0 mt-3 mt-md-0">
                                     <li>
-                                        <Link to="/faq" className="text-decoration-none text-muted footer-link">
+                                        <Link 
+                                            to="/faq" 
+                                            className="text-decoration-none text-muted footer-link"
+                                        >
                                             Privacy &amp; Terms
                                         </Link>
                                     </li>
                                     <li>
-                                        <Link to="/contact" className="text-decoration-none text-muted footer-link">
+                                        <Link 
+                                            to="/contact" 
+                                            className="text-decoration-none text-muted footer-link"
+                                        >
                                             Contact Us
                                         </Link>
                                     </li>
@@ -188,16 +179,6 @@ const FooterTwo = () => {
 
                 .footer-link:hover {
                     color: #FF6B47 !important;
-                }
-
-                .social-link:hover {
-                    background-color: #FF6B47 !important;
-                    border-color: #FF6B47 !important;
-                    transform: translateY(-2px);
-                }
-
-                .social-link:hover i {
-                    color: white !important;
                 }
 
                 .footer-title {
@@ -251,10 +232,6 @@ const FooterTwo = () => {
                         align-items: center;
                     }
 
-                    .social-links {
-                        text-align: center;
-                    }
-
                     .footer-nav {
                         text-align: center;
                     }
@@ -266,7 +243,7 @@ const FooterTwo = () => {
                 }
             `}</style>
         </footer>
-    )
-}
+    );
+};
 
-export default FooterTwo
+export default Footer;

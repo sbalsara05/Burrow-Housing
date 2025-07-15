@@ -1,5 +1,5 @@
 import HeroBanner from "./HeroBanner"
-import FooterTwo from "../../../layouts/footers/FooterTwo"
+import Footer from "../../../layouts/footers/Footer"
 import HeaderTwo from "../../../layouts/headers/HeaderTwo"
 
 const Home = () => {
@@ -7,7 +7,7 @@ const Home = () => {
     <>
       <HeaderTwo style_1={true} style_2={false} />
       <HeroBanner />
-      <FooterTwo />
+      <Footer />
     </>
   )
 }

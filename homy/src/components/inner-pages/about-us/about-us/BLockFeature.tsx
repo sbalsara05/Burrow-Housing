@@ -21,7 +21,7 @@ import {Link} from "react-router-dom";
 
  const {title_1, title_2, desc_2, desc_3} = feature_content;
 
- const BLockFeatureOne = () => {
+ const BLockFeature = () => {
      return (
          <div className="block-feature-two mt-150 xl-mt-100">
              <div className="container">
@@ -47,4 +47,4 @@ import {Link} from "react-router-dom";
      )
  }
 
- export default BLockFeatureOne
+ export default BLockFeature

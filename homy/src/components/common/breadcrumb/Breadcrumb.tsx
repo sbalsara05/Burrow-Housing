@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 
-const BreadcrumbOne = ({ title, sub_title, style, link, link_title }: any) => {
+const Breadcrumb = ({ title, sub_title, style, link, link_title }: any) => {
    return (
       <div className="inner-banner-one inner-banner bg-pink text-center z-1 pt-160 lg-pt-130 pb-160 xl-pb-120 md-pb-80 position-relative">
          <div className="container">
@@ -20,4 +20,4 @@ const BreadcrumbOne = ({ title, sub_title, style, link, link_title }: any) => {
    )
 }
 
-export default BreadcrumbOne;
+export default Breadcrumb;
