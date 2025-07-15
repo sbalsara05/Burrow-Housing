@@ -1,13 +1,13 @@
 // frontend/modals/LoginModal.tsx
-import React, { useState, useEffect } from "react"; // Import React
+import React, {useState, useEffect} from "react"; // Import React
 import LoginForm from "../components/forms/LoginForm";
 import RegisterForm from "../components/forms/RegisterForm";
 import OtpVerificationForm from "../components/forms/OtpVerificationForm";
-import { Link, useNavigate } from "react-router-dom";
+import {Link, useNavigate} from "react-router-dom";
 //import { CustomGoogleButton } from '../components/common/CustomGoogleButton';
-import { useDispatch } from 'react-redux';
-import { resetVerificationFlag, clearAuthError } from '../redux/slices/authSlice'; // Import actions
-import { AppDispatch } from '../redux/slices/store.ts';
+import {useDispatch} from 'react-redux';
+import {resetVerificationFlag, clearAuthError} from '../redux/slices/authSlice'; // Import actions
+import {AppDispatch} from '../redux/slices/store.ts';
 
 const tab_title: string[] = ["Login", "Signup"];
 
@@ -16,7 +16,7 @@ interface LoginModalProps {
     setLoginModal: (isOpen: boolean) => void;
 }
 
-const LoginModal: React.FC<LoginModalProps> = ({ loginModal, setLoginModal }) => {
+const LoginModal: React.FC<LoginModalProps> = ({loginModal, setLoginModal}) => {
     const dispatch = useDispatch<AppDispatch>();
     const [activeTab, setActiveTab] = useState(0);
     const [showOtpForm, setShowOtpForm] = useState(false);
@@ -86,12 +86,14 @@ const LoginModal: React.FC<LoginModalProps> = ({ loginModal, setLoginModal }) =>
     return (
         <div className={loginModal ? "login-modal-visible" : ""}>
             {/* Bootstrap Modal Structure */}
-            <div className={`modal fade ${loginModal ? "show" : ""}`} style={{ display: loginModal ? 'block' : 'none' }} id="loginModal" tabIndex={-1} aria-hidden={!loginModal} aria-modal={loginModal}>
+            <div className={`modal fade ${loginModal ? "show" : ""}`} style={{display: loginModal ? 'block' : 'none'}}
+                 id="loginModal" tabIndex={-1} aria-hidden={!loginModal} aria-modal={loginModal}>
                 <div className="modal-dialog modal-fullscreen modal-dialog-centered">
                     <div className="container">
                         <div className="user-data-form modal-content">
                             {/* Close Button */}
-                            <button onClick={closeModal} type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            <button onClick={closeModal} type="button" className="btn-close" data-bs-dismiss="modal"
+                                    aria-label="Close"></button>
 
                             {/* Content Area */}
                             <div className="form-wrapper m-auto">
@@ -115,31 +117,39 @@ const LoginModal: React.FC<LoginModalProps> = ({ loginModal, setLoginModal }) =>
                                         {/* Tab Content */}
                                         <div className="tab-content mt-30">
                                             {/* Login Form Pane */}
-                                            <div className={`tab-pane fade ${activeTab === 0 ? 'show active' : ''}`} role="tabpanel">
+                                            <div className={`tab-pane fade ${activeTab === 0 ? 'show active' : ''}`}
+                                                 role="tabpanel">
                                                 <div className="text-center mb-20">
                                                     <h2>Welcome Back!</h2>
                                                     <p className="fs-20 color-dark">
                                                         Still don't have an account?{" "}
-                                                        <Link to="#" onClick={(e) => { e.preventDefault(); handleTabClick(1); }}>
+                                                        <Link to="#" onClick={(e) => {
+                                                            e.preventDefault();
+                                                            handleTabClick(1);
+                                                        }}>
                                                             Sign up
                                                         </Link>
                                                     </p>
                                                 </div>
-                                                <LoginForm onOtpRequired={handleOtpRequired} />
+                                                <LoginForm onOtpRequired={handleOtpRequired}/>
                                             </div>
 
                                             {/* Register Form Pane */}
-                                            <div className={`tab-pane fade ${activeTab === 1 ? 'show active' : ''}`} role="tabpanel">
+                                            <div className={`tab-pane fade ${activeTab === 1 ? 'show active' : ''}`}
+                                                 role="tabpanel">
                                                 <div className="text-center mb-20">
                                                     <h2>Register</h2>
                                                     <p className="fs-20 color-dark">
                                                         Already have an account?{" "}
-                                                        <Link to="#" onClick={(e) => { e.preventDefault(); handleTabClick(0); }}>
+                                                        <Link to="#" onClick={(e) => {
+                                                            e.preventDefault();
+                                                            handleTabClick(0);
+                                                        }}>
                                                             Login
                                                         </Link>
                                                     </p>
                                                 </div>
-                                                <RegisterForm onOtpRequired={handleOtpRequired} />
+                                                <RegisterForm onOtpRequired={handleOtpRequired}/>
                                             </div>
                                         </div>
 
@@ -170,11 +180,13 @@ const LoginModal: React.FC<LoginModalProps> = ({ loginModal, setLoginModal }) =>
             </div>
 
             {/* Modal Backdrop */}
-            <div
-                onClick={closeModal}
-                className={`modal-backdrop fade ${loginModal ? "show" : ""}`}
-                style={{ display: loginModal ? 'block' : 'none' }} // Ensure backdrop visibility matches modal
-            ></div>
+            {loginModal && (
+                <div
+                    onClick={closeModal}
+                    className="modal-backdrop fade show"
+                    style={{display: 'block'}}
+                ></div>
+            )}
         </div>
     );
 };

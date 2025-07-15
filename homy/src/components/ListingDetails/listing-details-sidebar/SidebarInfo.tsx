@@ -1,96 +1,53 @@
+
 // frontend/components/ListingDetails/listing-details-sidebar/SidebarInfo.tsx
-import React, {useEffect, useState} from 'react'; // Import React and hooks if fetching agent
+import React from 'react';
 import {Link} from "react-router-dom";
 import {BadgeCheck} from 'lucide-react';
-// import axios from 'axios'; // If fetching agent data
 
 // Interface for the props
 interface SidebarInfoProps {
-    agentId?: string | null; // Optional: ID of the agent (property.userId)
+    agentId?: string | null;
+    onInterestedClick?: () => void; // Add the onInterestedClick prop
 }
 
 // Placeholder interface for fetched agent data
 interface StudentData {
     name: string;
-    majors?: string; // e.g., 'Computer Science'
+    majors?: string;
     school?: string;
     expectedGrad: string;
     responseTime: string;
-    avatarUrl?: string; // URL for the students's image
-    verified?: boolean; // Add verification status
-    // Add social links if available
+    avatarUrl?: string;
+    verified?: boolean;
 }
 
-const SidebarInfo: React.FC<SidebarInfoProps> = ({agentId}) => {
-    // --- State for fetched agent data (optional, if fetching) ---
-    // const [agentData, setAgentData] = useState<AgentData | null>(null);
-    // const [isLoading, setIsLoading] = useState(false);
-    // const [error, setError] = useState<string | null>(null);
-
-    // --- Effect to fetch agent data based on agentId (optional) ---
-    // useEffect(() => {
-    //     if (agentId) {
-    //         const fetchAgent = async () => {
-    //             setIsLoading(true);
-    //             setError(null);
-    //             try {
-    //                 // TODO: Replace with your actual API endpoint for fetching student details
-    //                 // const response = await axios.get(`/api/agents/${studentID}`);
-    //                 // setAgentData(response.data);
-    //
-    //                 // --- Placeholder Fetch ---
-    //                  console.warn("SidebarInfo: Fetching agent data is not implemented. Using static data.");
-    //                  // Simulate fetch delay and set static data
-    //                  await new Promise(resolve => setTimeout(resolve, 500));
-    //                  setAgentData({
-    //                      name: "Rashed Kabir (Fetched)", // Indicate data source
-    //                      title: "Property Agent & Broker",
-    //                      email: "fetched.agent@example.com",
-    //                      phone: "+19876543210",
-    //                      location: "Fetched Location",
-    //                      avatarUrl: "/assets/images/agent/img_06.jpg" // Use actual path if available
-    //                  });
-    //                 // --- End Placeholder Fetch ---
-    //
-    //             } catch (err) {
-    //                 console.error("Failed to fetch agent data:", err);
-    //                 setError("Could not load agent information.");
-    //                 setAgentData(null); // Clear data on error
-    //             } finally {
-    //                 setIsLoading(false);
-    //             }
-    //         };
-    //         fetchAgent();
-    //     } else {
-    //          // Reset if agentId is not provided
-    //          setAgentData(null);
-    //     }
-    // }, [agentId]); // Refetch if agentId changes
-
-    // --- Render Logic ---
-    // if (isLoading) return <div>Loading agent info...</div>;
-    // if (error) return <div className="alert alert-warning">{error}</div>;
-
-    // Use fetched agentData if available, otherwise fallback to static/default
-    // const displayData = agentData || { // Fallback to static data for now
-    const displayData = { // Using static data directly until fetch is implemented
+const SidebarInfo: React.FC<SidebarInfoProps> = ({ agentId, onInterestedClick }) => {
+    // Using static data directly until fetch is implemented
+    const displayData = {
         name: "Sarah Johnson",
         majors: "Biochemistry Student",
         school: "Northeastern University",
         expectedGrad: "Spring 2026",
         responseTime: "< 1 hour",
         avatarUrl: "https://randomuser.me/api/portraits/women/65.jpg",
-        verified: true, // Set verification status
+        verified: true,
+    };
+
+    // Handle interested button click
+    const handleInterestedClick = (e: React.MouseEvent) => {
+        e.preventDefault(); // Prevent default link behavior
+        if (onInterestedClick) {
+            onInterestedClick(); // Call the modal opening function
+        }
     };
 
     return (
         <>
-
             <img
-                src={displayData.avatarUrl || "/assets/images/dashboard/no-profile-pic.png"} // Use fetched or default avatar
+                src={displayData.avatarUrl || "/assets/images/dashboard/no-profile-pic.png"}
                 alt={`${displayData.name || 'Agent'} Avatar`}
                 className="lazy-img rounded-circle ms-auto me-auto mt-3 avatar"
-                style={{width: '100px', height: '100px', objectFit: 'cover'}} // Ensure consistent size
+                style={{width: '100px', height: '100px', objectFit: 'cover'}}
             />
 
             <div className="text-center mt-25">
@@ -100,7 +57,7 @@ const SidebarInfo: React.FC<SidebarInfoProps> = ({agentId}) => {
                         <BadgeCheck className="ms-1 text-primary" size={20} color="#1E88E5"/>
                     )}
                 </div>
-                <p className="fs-16">{displayData.majors || 'Student'}</p> {/* Use fetched title */}
+                <p className="fs-16">{displayData.majors || 'Student'}</p>
             </div>
 
             <div className="divider-line mt-40 mb-45 pt-20">
@@ -115,12 +72,33 @@ const SidebarInfo: React.FC<SidebarInfoProps> = ({agentId}) => {
                 gridTemplateColumns: '1fr 1fr 1fr',
                 gap: '8px'
             }}>
-                <Link to="/contact" className="btn text-center text-white"
-                      style={{backgroundColor: '#f16040', paddingTop: '30px', paddingBottom: '8px'}}>Contact</Link>
+                {/* Updated I'm Interested button to use modal instead of navigation */}
+                <button
+                    onClick={handleInterestedClick}
+                    className="btn text-center text-white"
+                    style={{
+                        backgroundColor: '#f16040',
+                        paddingTop: '15px',
+                        paddingBottom: '8px',
+                        border: 'none',
+                        cursor: 'pointer',
+                        transition: 'background-color 0.2s ease'
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#e55a3c'}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#f16040'}
+                >
+                    I'm Interested
+                </button>
+
                 <Link to="/request" className="btn text-center py-3 text-white"
-                      style={{backgroundColor: '#f16040'}}>Request Ambassador</Link>
+                      style={{backgroundColor: '#f16040'}}>
+                    Request Ambassador
+                </Link>
+
                 <Link to="#" className="btn text-center text-white"
-                      style={{backgroundColor: '#f16040', paddingTop: '30px', paddingBottom: '8px'}}>Save</Link>
+                      style={{backgroundColor: '#f16040', paddingTop: '30px', paddingBottom: '8px'}}>
+                    Save
+                </Link>
             </div>
         </>
     );

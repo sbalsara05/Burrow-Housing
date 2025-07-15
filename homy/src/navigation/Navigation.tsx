@@ -1,6 +1,6 @@
-import { Route, BrowserRouter as Router, Routes, Navigate } from 'react-router-dom';
+import {Route, BrowserRouter as Router, Routes, Navigate} from 'react-router-dom';
 import ScrollToTop from '../components/common/ScrollToTop';
-import { ToastContainer } from 'react-toastify';
+import {ToastContainer} from 'react-toastify';
 import ProtectedRoute from "./ProtectedRoutes";
 
 //import routes
@@ -30,21 +30,35 @@ import DashboardEditProperty from '../pages/DashboardEditProperty';
 const AppNavigation = () => {
     return (
         <Router>
-            <ScrollToTop />
-            <ToastContainer position="top-center" />
+            <ScrollToTop/>
+            <ToastContainer
+                position="top-center"
+                autoClose={3000}
+                hideProgressBar={false}
+                newestOnTop={false}
+                closeOnClick
+                rtl={false}
+                pauseOnFocusLoss
+                draggable
+                pauseOnHover
+                theme="light"
+                style={{zIndex: 9999}} // Ensure proper z-index
+            />
+
+
             <Routes>
                 {/* --- PUBLIC ROUTES --- */}
                 {/* These routes are accessible to everyone, logged in or not. */}
 
-                <Route path="/" element={<Navigate to="/home-three" replace />} />
-                <Route path="/home-three" element={<HomeThree />} />
-                <Route path="/about_us_01" element={<AboutUsOne />} />
-                <Route path="/agent" element={<Agent />} />
-                <Route path="/contact" element={<Contact />} />
-                <Route path="/faq" element={<Faq />} />
-                <Route path="/listing_01" element={<ListingOne />} />
-                <Route path="/listing_14" element={<ListingFourteen />} />
-                <Route path="/listing_details_01/:id" element={<ListingDetailsOne />} />
+                <Route path="/" element={<Navigate to="/home-three" replace/>}/>
+                <Route path="/home-three" element={<HomeThree/>}/>
+                <Route path="/about_us_01" element={<AboutUsOne/>}/>
+                <Route path="/agent" element={<Agent/>}/>
+                <Route path="/contact" element={<Contact/>}/>
+                <Route path="/faq" element={<Faq/>}/>
+                <Route path="/listing_01" element={<ListingOne/>}/>
+                <Route path="/listing_14" element={<ListingFourteen/>}/>
+                <Route path="/listing_details_01/:id" element={<ListingDetailsOne/>}/>
 
 
                 {/* --- PROTECTED ROUTES --- */}
@@ -72,7 +86,7 @@ const AppNavigation = () => {
 
                 {/* --- CATCH-ALL / NOT FOUND ROUTE --- */}
                 {/* This route will match any URL that hasn't been matched above. */}
-                <Route path="*" element={<NotFound />} />
+                <Route path="*" element={<NotFound/>}/>
             </Routes>
         </Router>
     );
