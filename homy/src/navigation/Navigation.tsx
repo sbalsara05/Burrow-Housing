@@ -4,7 +4,7 @@ import {ToastContainer} from 'react-toastify';
 import ProtectedRoute from "./ProtectedRoutes";
 
 //import routes
-import HomeThree from '../pages/HomeThree';
+import HomeThree from '../pages/Home';
 import AboutUsOne from '../pages/AboutUsOne';
 import ListingOne from '../pages/ListingOne';
 import ListingFourteen from '../pages/ListingFourteen';

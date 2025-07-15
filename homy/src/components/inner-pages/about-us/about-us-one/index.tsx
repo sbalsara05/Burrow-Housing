@@ -1,7 +1,7 @@
 import FooterTwo from "../../../../layouts/footers/FooterTwo"
 import HeaderOne from "../../../../layouts/headers/HeaderOne"
 import BreadcrumbOne from "../../../common/breadcrumb/BreadcrumbOne"
-import AgentArea from "../../../homes/home-three/AgentArea"
+import AgentArea from "../../../homes/home/AgentArea"
 import BLockFeatureOne from "./BLockFeatureOne"
 
 const AboutUsOne = () => {
