@@ -1,7 +1,7 @@
 import Slider from "react-slick";
-import agent_data from "../../../data/home-data/AboutUsData";
+import about_us_data from "../../../data/home-data/AboutUsData";
 
-const AgentArea = ({style}: any) => {
+const AboutusArea = ({style}: any) => {
 
     const settings = {
         dots: false,
@@ -50,7 +50,7 @@ const AgentArea = ({style}: any) => {
                                   className="agent-slider-one"
 
                         >
-                            {agent_data.filter((items) => items.page === "home_1").map((item) => (
+                            {about_us_data.filter((items) => items.page === "home_1").map((item) => (
                                 <div key={item.id} className="item">
                                     <div className="agent-card-one position-relative">
                                         <div className="img border-20 tw-flex tw-justify-center tw-mb-4">
@@ -78,4 +78,4 @@ const AgentArea = ({style}: any) => {
     )
 }
 
-export default AgentArea;
+export default AboutusArea;
