@@ -26,7 +26,7 @@ const ProtectedRoute = () => {
     }
 
     // If we get here, it means loading is finished and the user is NOT authenticated. Redirect them.
-    return <Navigate to="/home-three" replace />;
+    return <Navigate to="/home" replace />;
 };
 
 export default ProtectedRoute;

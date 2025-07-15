@@ -1,14 +1,14 @@
 import Wrapper from '../layouts/Wrapper';
 import SEO from '../components/SEO';
-import HomeThreeMain from '../components/homes/home';
+import HomeMain from '../components/homes/home';
 
-const HomeThree = () => {
+const Home = () => {
   return (
     <Wrapper>
       <SEO pageTitle={'Burrow Housing'} />
-      <HomeThreeMain />
+      <HomeMain />
     </Wrapper>
   );
 };
 
-export default HomeThree;
+export default Home;

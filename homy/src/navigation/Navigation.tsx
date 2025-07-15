@@ -4,7 +4,7 @@ import {ToastContainer} from 'react-toastify';
 import ProtectedRoute from "./ProtectedRoutes";
 
 //import routes
-import HomeThree from '../pages/Home';
+import Home from '../pages/Home';
 import AboutUsOne from '../pages/AboutUsOne';
 import ListingOne from '../pages/ListingOne';
 import ListingFourteen from '../pages/ListingFourteen';
@@ -48,8 +48,8 @@ const AppNavigation = () => {
                 {/* --- PUBLIC ROUTES --- */}
                 {/* These routes are accessible to everyone, logged in or not. */}
 
-                <Route path="/" element={<Navigate to="/home-three" replace/>}/>
-                <Route path="/home-three" element={<HomeThree/>}/>
+                <Route path="/" element={<Navigate to="/home" replace/>}/>
+                <Route path="/home" element={<Home/>}/>
                 <Route path="/about_us_01" element={<AboutUsOne/>}/>
                 <Route path="/contact" element={<Contact/>}/>
                 <Route path="/faq" element={<Faq/>}/>
@@ -61,7 +61,7 @@ const AppNavigation = () => {
                 {/* --- PROTECTED ROUTES --- */}
                 {/* These routes are only accessible to authenticated users.
             If a non-authenticated user tries to access them, they will be
-            redirected to the login page ("/home-three"). */}
+            redirected to the login page ("/home"). */}
 
                 <Route element={<ProtectedRoute />}>
                     <Route path="/dashboard/dashboard-index" element={<DashboardIndex />} />

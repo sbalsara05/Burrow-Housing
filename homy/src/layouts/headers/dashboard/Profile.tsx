@@ -17,7 +17,7 @@ const Profile: React.FC = () => { // Use React.FC for type safety
         //     return;
         // }
         await dispatch(logoutUser());
-        navigate('/home-three'); // Redirect to home/login page after logout
+        navigate('/home'); // Redirect to home/login page after logout
     };
 
     return (

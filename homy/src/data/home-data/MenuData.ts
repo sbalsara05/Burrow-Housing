@@ -25,11 +25,11 @@ const menu_data: MenuItem[] = [
         has_dropdown: false,
         class_name: "mega-dropdown-sm",
         title: "Home",
-        link: "/home-three",
+        link: "/home",
         sub_menus: [
             { link: "/", title: "Home 01" },
             { link: "/home-two", title: "Home 02" },
-            { link: "/home-three", title: "Home 03" },
+            { link: "/home", title: "Home 03" },
             { link: "/home-four", title: "Home 04" },
             { link: "/home-five", title: "Home 05" },
             { link: "/home-six", title: "Home 06" },
