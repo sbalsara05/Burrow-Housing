@@ -25,7 +25,7 @@ const address_data: DataType[] = [
     {
         id: 3,
         title: "Live chat",
-        address_1: "www.homylivechat.com"
+        address_1: "www.Burrowlivechat.com"
     },
 ]
 

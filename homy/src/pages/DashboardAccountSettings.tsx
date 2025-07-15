@@ -5,7 +5,7 @@ import DashboardAccountSettingsMain from '../components/dashboard/account-settin
 const DashboardAccountSettings = () => {
    return (
       <Wrapper>
-         <SEO pageTitle={'Dashboard Account Settings  Homy'} />
+         <SEO pageTitle={'Dashboard Account Settings  Burrow'} />
          <DashboardAccountSettingsMain />
       </Wrapper>
    );

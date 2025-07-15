@@ -55,7 +55,7 @@ const FooterThree = () => {
                      <li><Link to="/faq">Privacy &amp; Terms</Link></li>
                      <li><Link to="/contact">Contact Us</Link></li>
                   </ul>
-                  <p className="mb-15 text-center text-lg-start fs-16 order-md-first">Copyright @2024 Homy inc.</p>
+                  <p className="mb-15 text-center text-lg-start fs-16 order-md-first">Copyright @2024 Burrow inc.</p>
                </div>
             </div>
          </div>

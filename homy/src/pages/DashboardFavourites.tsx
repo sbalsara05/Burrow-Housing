@@ -5,7 +5,7 @@ import DashboardFavouritesMain from '../components/dashboard/favourites'
 const DashboardFavourites = () => {
    return (
       <Wrapper>
-         <SEO pageTitle={'Dashboard Favourites  Homy'} />
+         <SEO pageTitle={'Dashboard Favourites  Burrow'} />
          <DashboardFavouritesMain />
       </Wrapper>
    );

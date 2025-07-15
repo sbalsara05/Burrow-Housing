@@ -5,7 +5,7 @@ import NotFoundMain from '../components/inner-pages/error'
 const NotFound = () => {
    return (
       <Wrapper>
-         <SEO pageTitle={'404 || Homy'} />
+         <SEO pageTitle={'404 || Burrow'} />
          <NotFoundMain />
       </Wrapper>
    );

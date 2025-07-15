@@ -5,7 +5,7 @@ import FaqMain from '../components/inner-pages/faq'
 const Faq = () => {
    return (
       <Wrapper>
-         <SEO pageTitle={'Faq Homy'} />
+         <SEO pageTitle={'Faq Burrow'} />
          <FaqMain />
       </Wrapper>
    );

@@ -5,7 +5,7 @@ import DashboardSavedSearchMain from '../components/dashboard/saved-search'
 const DashboardSavedSearch = () => {
    return (
       <Wrapper>
-         <SEO pageTitle={'Dashboard Saved Search  Homy'} />
+         <SEO pageTitle={'Dashboard Saved Search  Burrow'} />
          <DashboardSavedSearchMain />
       </Wrapper>
    );

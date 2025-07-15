@@ -5,7 +5,7 @@ import DashboardChatConversationMain from '../components/dashboard/chat/conversa
 const DashboardChatConversation = () => {
     return (
         <Wrapper>
-            <SEO pageTitle={'Dashboard Chat Conversation - Homy'} />
+            <SEO pageTitle={'Dashboard Chat Conversation - Burrow'} />
             <DashboardChatConversationMain />
         </Wrapper>
     );

@@ -5,7 +5,7 @@ import DashboardReviewMain from '../components/dashboard/review'
 const DashboardReview = () => {
    return (
       <Wrapper>
-         <SEO pageTitle={'Dashboard Review  Homy'} />
+         <SEO pageTitle={'Dashboard Review  Burrow'} />
          <DashboardReviewMain />
       </Wrapper>
    );
