@@ -2,7 +2,8 @@ const Profile = require("../models/profileModel");
 const User = require("../models/userModel");
 const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
 const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
-const crypto = require('crypto');
+const crypto = require("crypto");
+const mongoose = require("mongoose");
 
 // Fetch user profile
 exports.getProfile = async (req, res) => {
@@ -26,7 +27,7 @@ exports.getProfile = async (req, res) => {
 			console.log(
 				"Profile does not exist. Creating a new profile..."
 			); // Debug log when profile does not exist
-            
+
 			// More robust name parsing
 			let firstName = user.name.split(" ")[0]; // First part is always the first name
 			let lastName = user.name.split(" ").slice(1).join(" "); // Everything else is the last name
@@ -40,12 +41,10 @@ exports.getProfile = async (req, res) => {
 			await profile.save(); // Save the profile
 			console.log("Profile created:", profile); // Debug log after profile creation
 
-			return res
-				.status(200)
-				.json({
-					message: "Profile created and fetched successfully",
-					profile,
-				});
+			return res.status(200).json({
+				message: "Profile created and fetched successfully",
+				profile,
+			});
 		}
 
 		// If profile exists, return it
@@ -92,7 +91,7 @@ exports.getProfileImagePresignedUrl = async (req, res) => {
 
 	try {
 		const { filename, contentType } = req.body;
-		
+
 		// Validate input
 		if (!filename || !contentType) {
 			return res.status(400).json({
@@ -101,7 +100,12 @@ exports.getProfileImagePresignedUrl = async (req, res) => {
 		}
 
 		// Validate content type (only allow images)
-		const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+		const allowedTypes = [
+			"image/jpeg",
+			"image/jpg",
+			"image/png",
+			"image/webp",
+		];
 		if (!allowedTypes.includes(contentType.toLowerCase())) {
 			return res.status(400).json({
 				message: "Only JPEG, PNG, and WebP images are allowed.",
@@ -110,7 +114,10 @@ exports.getProfileImagePresignedUrl = async (req, res) => {
 
 		const userId = req.user.userId;
 		const uniqueSuffix = crypto.randomBytes(16).toString("hex");
-		const key = `profiles/${userId}/${uniqueSuffix}-${filename.replace(/\s+/g, "-")}`;
+		const key = `profiles/${userId}/${uniqueSuffix}-${filename.replace(
+			/\s+/g,
+			"-"
+		)}`;
 
 		const command = new PutObjectCommand({
 			Bucket: process.env.SPACES_BUCKET_NAME,
@@ -120,8 +127,8 @@ exports.getProfileImagePresignedUrl = async (req, res) => {
 		});
 
 		// Generate the temporary URL for uploading
-		const signedUrl = await getSignedUrl(s3Client, command, { 
-			expiresIn: 300 
+		const signedUrl = await getSignedUrl(s3Client, command, {
+			expiresIn: 300,
 		}); // Link is valid for 5 minutes
 
 		// Generate the final public URL to be stored in the database
@@ -130,14 +137,16 @@ exports.getProfileImagePresignedUrl = async (req, res) => {
 		res.status(200).json({
 			signedUrl,
 			publicUrl,
-			message: "Presigned URL generated successfully"
+			message: "Presigned URL generated successfully",
 		});
-
 	} catch (error) {
-		console.error("Error generating presigned URL for profile image:", error);
+		console.error(
+			"Error generating presigned URL for profile image:",
+			error
+		);
 		res.status(500).json({
 			message: "Could not generate upload link for profile image.",
-			error: error.message
+			error: error.message,
 		});
 	}
 };
@@ -179,7 +188,8 @@ exports.updateProfile = async (req, res) => {
 		profile.username = username || profile.username;
 		profile.school_email = school_email || profile.school_email;
 		profile.majors_minors = majors_minors || profile.majors_minors;
-		profile.school_attending = school_attending || profile.school_attending;
+		profile.school_attending =
+			school_attending || profile.school_attending;
 		profile.about = about || profile.about;
 
 		// Update image URL if provided
@@ -218,6 +228,50 @@ exports.updateProfile = async (req, res) => {
 		res.status(500).json({
 			message: "Error updating profile.",
 			error: error.message,
+		});
+	}
+};
+
+/**
+ * Controller to get a user's public profile information by their ID.
+ * This endpoint is public and does not require authentication.
+ */
+exports.getPublicProfile = async (req, res) => {
+	try {
+		const { userId } = req.params;
+
+		// Validate if the userId is a valid MongoDB ObjectId
+		if (!mongoose.Types.ObjectId.isValid(userId)) {
+			return res
+				.status(400)
+				.json({ message: "Invalid user ID format." });
+		}
+
+		// Find the profile and select only the fields we want to expose publicly
+		const profile = await Profile.findOne({ userId }).select(
+			"username school_attending image majors_minors about"
+		); // Whitelist public fields
+
+		if (!profile) {
+			// If no detailed profile, try finding the basic user to get their name
+			const user = await User.findById(userId).select("name");
+			if (user) {
+				// Return a fallback profile object with basic info
+				return res.status(200).json({
+					username: user.name,
+					// No other profile details are available
+				});
+			}
+			return res
+				.status(404)
+				.json({ message: "Profile not found." });
+		}
+
+		res.status(200).json(profile);
+	} catch (error) {
+		console.error("Error fetching public profile:", error);
+		res.status(500).json({
+			message: "Server error while fetching public profile.",
 		});
 	}
 };
