@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { getUserProfile, updateUserProfile, changePassword } = require('../controllers/userController');
 const { authenticateToken } = require('../middlewares/authMiddleware');
-const upload = require('../middlewares/upload').default;
+const upload = require('../middlewares/upload');
 const { getProfile, updateProfile, uploadProfileImage, getProfileImagePresignedUrl } = require('../controllers/profileController');
 
 

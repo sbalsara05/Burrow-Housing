@@ -1,8 +1,7 @@
-import multer, { diskStorage } from "multer";
-import { extname } from "path";
-
+const multer = require("multer");
+const { extname } = require('path');
 // Configure storage
-const storage = diskStorage({
+const storage = multer.diskStorage({
     destination: (req, file, cb) => {
         cb(null, "uploads/"); // Save in 'uploads' directory
     },
@@ -10,7 +9,6 @@ const storage = diskStorage({
         cb(null, `${Date.now()}-${file.originalname}`);
     },
 });
-
 // Filter only image files
 const fileFilter = (req, file, cb) => {
     const ext = extname(file.originalname);
@@ -19,7 +17,5 @@ const fileFilter = (req, file, cb) => {
     }
     cb(null, true);
 };
-
 const upload = multer({ storage, fileFilter }).single('image');
-
-export default upload;
+module.exports = upload;

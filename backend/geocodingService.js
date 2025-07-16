@@ -1,6 +1,6 @@
 
 // backend/utils/geocodingService.js
-const { geocodeAddress } = require('../backend/geocodeAddress');
+const { geocodeAddress } = require('./geocodeAddress');
 
 // Neighborhood fallback coordinates
 const neighborhoodCoordinates = {
