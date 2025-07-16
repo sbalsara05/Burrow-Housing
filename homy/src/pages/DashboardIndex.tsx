@@ -5,7 +5,7 @@ import DashboardIndexMain from '../components/dashboard/index'
 const DashboardIndex = () => {
    return (
       <Wrapper>
-         <SEO pageTitle={'Dashboard Index  Homy'} />
+         <SEO pageTitle={'Dashboard Index  Burrow'} />
          <DashboardIndexMain />
       </Wrapper>
    );

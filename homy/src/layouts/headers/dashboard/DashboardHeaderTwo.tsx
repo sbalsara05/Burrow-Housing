@@ -25,7 +25,7 @@ const DashboardHeaderTwo: React.FC<DashboardHeaderTwoProps> = ({ title }) => {
     const avatarSrc = useMemo(() => {
         if (profile?.image) {
             const normalizedPath = profile.image.replace(/\\/g, '/');
-            return `http://localhost:3000/${normalizedPath}`;
+            return `${normalizedPath}`;
         }
         return "/assets/images/dashboard/no-profile-pic.png";
     }, [profile?.image]);

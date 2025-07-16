@@ -1,5 +1,3 @@
-import RecentMessage from "./RecentMessage"
-import DashboardChart from "./DashboardChart"
 import DashboardHeaderTwo from "../../../layouts/headers/dashboard/DashboardHeaderTwo";
 import NiceSelect from "../../../ui/NiceSelect";
 
@@ -88,7 +86,6 @@ const DashboardBody = () => {
                      </div>
                      <div className="plr mt-50">
                         <div className="chart-wrapper">
-                           <DashboardChart />
                         </div>
                      </div>
                   </div>
@@ -97,7 +94,6 @@ const DashboardBody = () => {
                <div className="col-xl-5 col-lg-6 d-flex">
                   <div className="recent-job-tab bg-white border-20 mt-30 plr w-100">
                      <h5 className="dash-title-two">Recent Message</h5>
-                     <RecentMessage />
                   </div>
                </div>
             </div>

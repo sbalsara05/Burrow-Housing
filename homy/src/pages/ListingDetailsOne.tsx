@@ -5,7 +5,7 @@ import ListingDetailsOneMain from '../components/ListingDetails/listing-details-
 const ListingDetailsOne = () => {
    return (
       <Wrapper>
-         <SEO pageTitle={'Listing Details One Homy'} />
+         <SEO pageTitle={'Listing Details One Burrow'} />
          <ListingDetailsOneMain />
       </Wrapper>
    );

@@ -5,7 +5,7 @@ import DashboardAddPropertyMain from '../components/dashboard/add-property'
 const DashboardAddProperty = () => {
    return (
       <Wrapper>
-         <SEO pageTitle={'Dashboard Add Property  Homy'} />
+         <SEO pageTitle={'Dashboard Add Property  Burrow'} />
          <DashboardAddPropertyMain />
       </Wrapper>
    );

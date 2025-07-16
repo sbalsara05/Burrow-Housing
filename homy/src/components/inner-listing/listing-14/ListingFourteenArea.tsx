@@ -32,7 +32,7 @@ import {
 import DropdownSeven from "../../search-dropdown/inner-dropdown/DropdownSeven";
 import NiceSelect from "../../../ui/NiceSelect";
 import PropertyMap from './propertyMap';
-import PropertyCarousel from '../../homes/home-two/PropertyCarousel';
+import PropertyCarousel from '../../homes/home/PropertyCarousel';
 
 const ITEMS_PER_PAGE = 4;
 

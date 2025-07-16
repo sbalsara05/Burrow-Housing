@@ -1,5 +1,3 @@
-import React from "react";
-
 const UserAvatarSetting = ({ formData, handleChange }) => {
   return (
     <div className="row">

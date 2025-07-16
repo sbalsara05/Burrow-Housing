@@ -1,15 +1,15 @@
-import FooterTwo from '../../../layouts/footers/FooterTwo'
+import Footer from '../../../layouts/footers/Footer'
 import HeaderOne from '../../../layouts/headers/HeaderOne'
-import BreadcrumbOne from '../../common/breadcrumb/BreadcrumbOne'
+import Breadcrumb from '../../common/breadcrumb/Breadcrumb'
 import FaqArea from './FaqArea'
 
 const Faq = () => {
    return (
       <>
          <HeaderOne style={true} />
-         <BreadcrumbOne title="Question & Answers" link="#" link_title="Pages" sub_title="Faq’s" style={true} />
+         <Breadcrumb title="Question & Answers" link="#" link_title="Pages" sub_title="Faq’s" style={true} />
          <FaqArea/>
-         <FooterTwo />
+         <Footer />
       </>
    )
 }

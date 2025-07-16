@@ -17,7 +17,7 @@ const Profile: React.FC = () => { // Use React.FC for type safety
         //     return;
         // }
         await dispatch(logoutUser());
-        navigate('/home-three'); // Redirect to home/login page after logout
+        navigate('/home'); // Redirect to home/login page after logout
     };
 
     return (
@@ -44,7 +44,7 @@ const Profile: React.FC = () => { // Use React.FC for type safety
                     {/* Account Settings Link */}
                     <li>
                         <Link className="dropdown-item d-flex align-items-center" to="/dashboard/account-settings">
-                            <img src="/assets/images/dashboard/icon/icon_settings.svg" alt="" className="lazy-img me-2" /> {/* Different icon */}
+                            <img src="/assets/images/dashboard/icon/icon_4.svg" alt="" className="lazy-img me-2" /> {/* Different icon */}
                             <span>Account Settings</span>
                         </Link>
                     </li>
@@ -56,7 +56,7 @@ const Profile: React.FC = () => { // Use React.FC for type safety
                             onClick={handleLogout}
                             style={{ background: 'none', border: 'none', width: '100%', textAlign: 'left', padding: '0.25rem 1rem' }} // Basic button styling to mimic link
                         >
-                            <img src="/assets/images/dashboard/icon/icon_logout.svg" alt="" className="lazy-img me-2" /> {/* Logout icon */}
+                            <img src="/assets/images/dashboard/icon/arrow-left-from-line.svg" alt="" className="lazy-img me-2" /> {/* Logout icon */}
                             <span>Logout</span>
                         </button>
                     </li>

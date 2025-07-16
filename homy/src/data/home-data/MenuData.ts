@@ -25,11 +25,11 @@ const menu_data: MenuItem[] = [
         has_dropdown: false,
         class_name: "mega-dropdown-sm",
         title: "Home",
-        link: "/home-three",
+        link: "/home",
         sub_menus: [
             { link: "/", title: "Home 01" },
             { link: "/home-two", title: "Home 02" },
-            { link: "/home-three", title: "Home 03" },
+            { link: "/home", title: "Home 03" },
             { link: "/home-four", title: "Home 04" },
             { link: "/home-five", title: "Home 05" },
             { link: "/home-six", title: "Home 06" },
@@ -91,13 +91,13 @@ const menu_data: MenuItem[] = [
         has_dropdown: false,
         title: "About Us",
         class_name:"mega-dropdown-sm",
-        link: "/about_us_01",
+        link: "/about_us",
         menu_column: [
             {
                 id: 1,
                 mega_title: "Essential",
                 mega_menus: [
-                    { link: "/about_us_01", title: "About us -1" },
+                    { link: "/about_us", title: "About us -1" },
                     { link: "/about_us_02", title: "About us -2" },
                     { link: "/agency", title: "Agency" },
                     { link: "/agency_details", title: "Agency Details" },

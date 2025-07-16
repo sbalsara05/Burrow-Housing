@@ -1,12 +1,12 @@
 import Wrapper from '../layouts/Wrapper';
 import SEO from '../components/SEO';
-import HomeOneMain from '../components/homes/home-one';
+import HomeMain from '../components/homes/home';
 
 const Home = () => {
   return (
     <Wrapper>
-      <SEO pageTitle={'Homy'} />
-      <HomeOneMain />
+      <SEO pageTitle={'Burrow Housing'} />
+      <HomeMain />
     </Wrapper>
   );
 };

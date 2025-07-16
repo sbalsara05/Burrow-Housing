@@ -90,7 +90,7 @@ const DashboardHeaderOne: React.FC<DashboardHeaderOneProps> = ({ isActive, setIs
         try {
             await dispatch(logoutUser()).unwrap();
             console.log("Logout dispatch completed, navigating...");
-            navigate('/home-three');
+            navigate('/home');
             setIsActive(false);
         } catch (error) {
             console.error("Logout failed:", error);
@@ -133,7 +133,7 @@ const DashboardHeaderOne: React.FC<DashboardHeaderOneProps> = ({ isActive, setIs
             <div className="position-relative">
                 {/* Header: Logo and Close Button */}
                 <div className="logo d-md-block d-flex align-items-center justify-content-between plr bottom-line pb-30">
-                    <Link to="/home-three" onClick={() => handleNavigation('/home-three')}>
+                    <Link to="/home" onClick={() => handleNavigation('/home')}>
                         <img
                             src="/assets/images/logo/textlogo.png"
                             alt="Burrow Logo"
