@@ -8,6 +8,7 @@ const profileRoutes = require("./routes/profileRoutes");
 const propertyRoutes = require("./routes/propertyRoutes");
 const otpRoutes = require("./routes/otpRoutes");
 const nearbyRoutes = require("./routes/nearbyRoutes");
+const favoritesRoutes = require("./routes/favoritesRoutes"); // Add this line
 const {getRedisClient} = require("./redis");
 const app = express();
 
@@ -51,6 +52,8 @@ app.use("/api", profileRoutes); // Fetch Profile details
 app.use("/api", propertyRoutes);
 app.use("/api", otpRoutes); // OTP verification routes
 app.use("/api", nearbyRoutes); // Nearby places routes
+app.use("/api", favoritesRoutes); // Add this line
+
 
 
 // Start the Server

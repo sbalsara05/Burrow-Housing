@@ -1,14 +1,29 @@
+
 import React from 'react';
-import {Link} from "react-router-dom";
-import {toast} from 'react-toastify';
-import {Property} from '../../../redux/slices/propertySlice';
+import { Link } from "react-router-dom";
+import { useDispatch, useSelector } from 'react-redux';
+import { toast } from 'react-toastify';
+import { AppDispatch } from '../../../redux/slices/store';
+import { Property } from '../../../redux/slices/propertySlice';
+import {
+    addToFavorites,
+    removeFromFavorites,
+    selectFavoriteIds,
+    selectFavoritesLoading
+} from '../../../redux/slices/favoritesSlice';
+import { selectIsAuthenticated } from '../../../redux/slices/authSlice';
+import { authUtils } from '../../../utils/authUtils';
 
 interface CommonBannerProps {
     property: Property | null;
     style_3?: boolean;
 }
 
-const CommonBanner: React.FC<CommonBannerProps> = ({property, style_3}) => {
+const CommonBanner: React.FC<CommonBannerProps> = ({ property, style_3 }) => {
+    const dispatch = useDispatch<AppDispatch>();
+    const favoriteIds = useSelector(selectFavoriteIds);
+    const favoritesLoading = useSelector(selectFavoritesLoading);
+    const isAuthenticated = useSelector(selectIsAuthenticated);
 
     if (!property) {
         // Render placeholders if property data isn't ready
@@ -21,6 +36,46 @@ const CommonBanner: React.FC<CommonBannerProps> = ({property, style_3}) => {
             </div>
         );
     }
+
+    const isFavorited = favoriteIds.includes(property._id);
+
+    // Handle favorite toggle
+    const handleFavoriteToggle = async (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        if (!isAuthenticated) {
+            toast.error('Please login to add favorites');
+            return;
+        }
+
+        // Check if token is valid before making the request
+        if (!authUtils.isTokenValid()) {
+            toast.error('Your session has expired. Please login again.');
+            authUtils.redirectToLogin();
+            return;
+        }
+
+        try {
+            if (isFavorited) {
+                await dispatch(removeFromFavorites(property._id)).unwrap();
+                toast.success('Removed from favorites');
+            } else {
+                await dispatch(addToFavorites(property._id)).unwrap();
+                toast.success('Added to favorites');
+            }
+        } catch (error: any) {
+            console.error('Error updating favorites:', error);
+
+            // Check if it's a token-related error
+            if (error === 'Invalid token' || error === 'Not authenticated') {
+                toast.error('Your session has expired. Please login again.');
+                authUtils.redirectToLogin();
+            } else {
+                toast.error('Failed to update favorites');
+            }
+        }
+    };
 
     // --- Logic for Clickable Address ---
     const fullAddress = property.addressAndLocation?.address || '';
@@ -94,10 +149,27 @@ const CommonBanner: React.FC<CommonBannerProps> = ({property, style_3}) => {
                             </button>
                         </li>
                         <li>
-                            <Link to="#"
-                                  className={`d-flex align-items-center justify-content-center tran3s ${style_3 ? "" : "rounded-circle"}`}>
+                            <button
+                                onClick={handleFavoriteToggle}
+                                disabled={favoritesLoading}
+                                className={`d-flex align-items-center justify-content-center tran3s ${
+                                    style_3 ? "" : "rounded-circle"
+                                } ${
+                                    isFavorited 
+                                        ?  'text-white' 
+                                        : 'bg-white text-dark border'
+                                }`}
+                                title={isFavorited ? "Remove from favorites" : "Add to favorites"}
+                                style={{
+                                    width: '40px',
+                                    height: '40px',
+                                    cursor: favoritesLoading ? 'not-allowed' : 'pointer',
+                                    backgroundColor: isFavorited ? '#ff6b35' : '#ffffff',
+                                    border: isFavorited ? 'none' : '1px solid #e0e0e0'
+                                }}
+                            >
                                 <i className="fa-light fa-heart"></i>
-                            </Link>
+                            </button>
                         </li>
                     </ul>
                 </div>

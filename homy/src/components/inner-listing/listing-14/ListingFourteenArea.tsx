@@ -1,9 +1,11 @@
+
 import React, { useEffect, useState } from 'react';
 import ReactPaginate from "react-paginate";
 import { useDispatch, useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
 import { createSelector, PayloadAction } from '@reduxjs/toolkit';
 import store, { AppDispatch } from "../../../redux/slices/store"
+import { toast } from 'react-toastify';
 
 // Redux imports (adjust paths as needed)
 import {
@@ -24,9 +26,23 @@ import {
     setBedrooms,
     setCategory,
     setNeighborhood, setPriceRangeValues, setRentRange, setRoomType,
-    setSearchTerm, setSqftMax, setSqftMin, toggleAmenity
+    setSearchTerm, setSqftMax, setSqftMin, toggleAmenity,
+    resetFilters // Import the correct action name
     // ... your other filter imports
 } from '../../../redux/slices/filterSlice';
+
+// Import favorites functionality
+import {
+    addToFavorites,
+    removeFromFavorites,
+    fetchFavorites,
+    selectFavoriteIds,
+    selectFavoritesLoading,
+    selectIsPropertyFavorited
+} from '../../../redux/slices/favoritesSlice';
+
+// Auth selector
+import { selectIsAuthenticated } from '../../../redux/slices/authSlice';
 
 // Component imports (adjust paths as needed)
 import DropdownSeven from "../../search-dropdown/inner-dropdown/DropdownSeven";
@@ -73,13 +89,24 @@ const ListingFourteenArea = () => {
     const currentAmenities = useSelector(selectAmenities);
     const propertyStatus = useSelector(selectPropertyStatus);
 
+    // Favorites state
+    const favoriteIds = useSelector(selectFavoriteIds);
+    const favoritesLoading = useSelector(selectFavoritesLoading);
+    const isAuthenticated = useSelector(selectIsAuthenticated);
+
     // Get sorted properties
     const sortedProperties = useSelector(selectSortedPublicProperties);
 
-    // 👈 REPLACE YOUR OLD HOOK WITH THIS:
     // Local state for property selection (simpler approach)
     const [selectedPropertyId, setSelectedPropertyId] = useState<string | undefined>();
     const [hoveredPropertyId, setHoveredPropertyId] = useState<string | undefined>();
+
+    // Fetch favorites when component mounts (if authenticated)
+    useEffect(() => {
+        if (isAuthenticated) {
+            dispatch(fetchFavorites());
+        }
+    }, [dispatch, isAuthenticated]);
 
     // Handle property selection from map
     const handlePropertySelect = (property: Property) => {
@@ -97,6 +124,30 @@ const ListingFourteenArea = () => {
     // Handle property hover from cards
     const handlePropertyHover = (propertyId: string, isHovered: boolean) => {
         setHoveredPropertyId(isHovered ? propertyId : undefined);
+    };
+
+    // Handle favorite toggle
+    const handleFavoriteToggle = async (propertyId: string, e: React.MouseEvent) => {
+        e.stopPropagation();
+
+        if (!isAuthenticated) {
+            toast.error('Please login to add favorites');
+            return;
+        }
+
+        try {
+            const isFavorited = favoriteIds.includes(propertyId);
+
+            if (isFavorited) {
+                await dispatch(removeFromFavorites(propertyId)).unwrap();
+                toast.success('Removed from favorites');
+            } else {
+                await dispatch(addToFavorites(propertyId)).unwrap();
+                toast.success('Added to favorites');
+            }
+        } catch (error) {
+            toast.error('Failed to update favorites');
+        }
     };
 
     // Get property stats (simple version)
@@ -178,10 +229,10 @@ const ListingFourteenArea = () => {
         if (value === null || !isNaN(value)) updateFilterAndRefetch(setSqftMax(value));
     };
 
-    // Reset handler
+    // Reset handler - Fixed to use the correct action name
     const handleResetFilter = () => {
         console.log('Resetting filters');
-        dispatch(resetFilterAction());
+        dispatch(resetFilters()); // Use the correct action name
         setTimeout(() => {
             const defaultFilters = selectApiFormattedFilters(store.getState());
             dispatch(fetchAllPublicProperties({ page: 1, limit: ITEMS_PER_PAGE, ...defaultFilters }));
@@ -237,10 +288,9 @@ const ListingFourteenArea = () => {
                 </div>
             </div>
 
-
             {/* Listing Area */}
             <div className="row gx-0">
-                {/* Interactive Map Area - 👈 THIS IS WHERE THE MAP GOES */}
+                {/* Interactive Map Area */}
                 <div className="col-xxl-6 col-lg-5">
                     <div id="google-map-area" className="h-100 position-relative">
                         <PropertyMap
@@ -283,7 +333,7 @@ const ListingFourteenArea = () => {
                     </div>
                 </div>
 
-                {/* Property List Area - Keep all your existing code here */}
+                {/* Property List Area */}
                 <div className="col-xxl-6 col-lg-7">
                     <div className="bg-light pl-40 pr-40 pt-35 pb-60">
                         {/* Header and Sorting */}
@@ -310,15 +360,6 @@ const ListingFourteenArea = () => {
                                         placeholder="Default"
                                     />
                                 </div>
-                                {/*<Link*/}
-                                {/*    to="/listing_15"*/}
-                                {/*    className="tran3s layout-change rounded-circle ms-auto ms-sm-3 d-flex align-items-center justify-content-center"*/}
-                                {/*    data-bs-toggle="tooltip"*/}
-                                {/*    title="Switch To List View"*/}
-                                {/*    style={{ width: '40px', height: '40px' }}*/}
-                                {/*>*/}
-                                {/*    <i className="fa-regular fa-bars"></i>*/}
-                                {/*</Link>*/}
                             </div>
                         </div>
 
@@ -365,116 +406,125 @@ const ListingFourteenArea = () => {
                         {!isLoading && !error && sortedProperties.length > 0 && (
                             <>
                                 <div className="row">
-                                    {sortedProperties.map((item: Property) => (
-                                        <div
-                                            key={item._id}
-                                            id={`property-card-${item._id}`}
-                                            className="col-md-6 d-flex mb-40 transition-all duration-300"
-                                            onMouseEnter={() => handlePropertyHover(item._id, true)}
-                                            onMouseLeave={() => handlePropertyHover(item._id, false)}
-                                        >
+                                    {sortedProperties.map((item: Property) => {
+                                        const isFavorited = favoriteIds.includes(item._id);
+
+                                        return (
                                             <div
-                                                className={`listing-card-one style-three border-30 w-100 h-100 transition-all duration-300 cursor-pointer ${
-                                                    selectedPropertyId === item._id 
-                                                        ? 'border-primary shadow-lg transform -translate-y-1 ring-2 ring-blue-200' 
-                                                        : hoveredPropertyId === item._id 
-                                                            ? 'shadow-md transform -translate-y-0.5' 
-                                                            : 'hover:shadow-sm'
-                                                }`}
-                                                onClick={() => handlePropertySelect(item)}
+                                                key={item._id}
+                                                id={`property-card-${item._id}`}
+                                                className="col-md-6 d-flex mb-40 transition-all duration-300"
+                                                onMouseEnter={() => handlePropertyHover(item._id, true)}
+                                                onMouseLeave={() => handlePropertyHover(item._id, false)}
                                             >
-                                                <div className="img-gallery p-15">
-                                                    <div className="position-relative border-20 overflow-hidden">
-                                                        <div className="tag bg-white text-dark fw-500 border-20 position-absolute top-3 left-3 z-10">
-                                                            {item.overview.category}
+                                                <div
+                                                    className={`listing-card-one style-three border-30 w-100 h-100 transition-all duration-300 cursor-pointer ${
+                                                        selectedPropertyId === item._id 
+                                                            ? 'border-primary shadow-lg transform -translate-y-1 ring-2 ring-blue-200' 
+                                                            : hoveredPropertyId === item._id 
+                                                                ? 'shadow-md transform -translate-y-0.5' 
+                                                                : 'hover:shadow-sm'
+                                                    }`}
+                                                    onClick={() => handlePropertySelect(item)}
+                                                >
+                                                    <div className="img-gallery p-15">
+                                                        <div className="position-relative border-20 overflow-hidden">
+                                                            <div className="tag bg-white text-dark fw-500 border-20 position-absolute top-3 left-3 z-10">
+                                                                {item.overview.category}
+                                                            </div>
+                                                            <PropertyCarousel item={item} />
+                                                            <Link
+                                                                to={`/listing_details_01/${item._id}`}
+                                                                className="btn-four inverse rounded-circle position-absolute top-3 right-3"
+                                                                onClick={(e) => e.stopPropagation()}
+                                                            >
+                                                                <i className="bi bi-arrow-up-right"></i>
+                                                            </Link>
+
+                                                            {/* Property Details Badge */}
+                                                            <div className="position-absolute bottom-3 left-3">
+                                                                <div className="bg-dark bg-opacity-75 text-white px-2 py-1 rounded text-sm">
+                                                                    {item.listingDetails.bedrooms} bed • {item.listingDetails.bathrooms} bath • {item.listingDetails.size} sqft
+                                                                </div>
+                                                            </div>
+
+                                                            {/* Selected indicator */}
+                                                            {selectedPropertyId === item._id && (
+                                                                <div className="position-absolute top-3 left-1/2 transform -translate-x-1/2">
+                                                                    <div className="bg-primary text-white px-2 py-1 rounded-full text-xs font-medium">
+                                                                        <i className="fa-light fa-location-dot me-1"></i>
+                                                                        Selected
+                                                                    </div>
+                                                                </div>
+                                                            )}
                                                         </div>
-                                                        <PropertyCarousel item={item} />
+                                                    </div>
+
+                                                    <div className="property-info pe-4 ps-4">
                                                         <Link
                                                             to={`/listing_details_01/${item._id}`}
-                                                            className="btn-four inverse rounded-circle position-absolute top-3 right-3"
+                                                            className="title tran3s text-decoration-none"
                                                             onClick={(e) => e.stopPropagation()}
                                                         >
-                                                            <i className="bi bi-arrow-up-right"></i>
+                                                            {`${item.listingDetails.bedrooms} Bed ${item.overview.category}`}
                                                         </Link>
-
-                                                        {/* Property Details Badge */}
-                                                        <div className="position-absolute bottom-3 left-3">
-                                                            <div className="bg-dark bg-opacity-75 text-white px-2 py-1 rounded text-sm">
-                                                                {item.listingDetails.bedrooms} bed • {item.listingDetails.bathrooms} bath • {item.listingDetails.size} sqft
-                                                            </div>
+                                                        <div className="address text-muted mb-2">
+                                                            <i className="fa-light fa-location-dot me-1"></i>
+                                                            {item.addressAndLocation.address}
                                                         </div>
 
-                                                        {/* Selected indicator */}
-                                                        {selectedPropertyId === item._id && (
-                                                            <div className="position-absolute top-3 left-1/2 transform -translate-x-1/2">
-                                                                <div className="bg-primary text-white px-2 py-1 rounded-full text-xs font-medium">
-                                                                    <i className="fa-light fa-location-dot me-1"></i>
-                                                                    Selected
+                                                        {/* Amenities Preview */}
+                                                        {item.amenities && item.amenities.length > 0 && (
+                                                            <div className="mb-2">
+                                                                <div className="text-sm text-muted">
+                                                                    <i className="fa-light fa-check-circle me-1"></i>
+                                                                    {item.amenities.slice(0, 3).join(', ')}
+                                                                    {item.amenities.length > 3 && (
+                                                                        <span className="text-primary"> +{item.amenities.length - 3} more</span>
+                                                                    )}
                                                                 </div>
                                                             </div>
                                                         )}
-                                                    </div>
-                                                </div>
 
-                                                <div className="property-info pe-4 ps-4">
-                                                    <Link
-                                                        to={`/listing_details_01/${item._id}`}
-                                                        className="title tran3s text-decoration-none"
-                                                        onClick={(e) => e.stopPropagation()}
-                                                    >
-                                                        {`${item.listingDetails.bedrooms} Bed ${item.overview.category}`}
-                                                    </Link>
-                                                    <div className="address text-muted mb-2">
-                                                        <i className="fa-light fa-location-dot me-1"></i>
-                                                        {item.addressAndLocation.address}
-                                                    </div>
-
-                                                    {/* Amenities Preview */}
-                                                    {item.amenities && item.amenities.length > 0 && (
-                                                        <div className="mb-2">
-                                                            <div className="text-sm text-muted">
-                                                                <i className="fa-light fa-check-circle me-1"></i>
-                                                                {item.amenities.slice(0, 3).join(', ')}
-                                                                {item.amenities.length > 3 && (
-                                                                    <span className="text-primary"> +{item.amenities.length - 3} more</span>
-                                                                )}
-                                                            </div>
+                                                        <div className="pl-footer m0 d-flex align-items-center justify-content-between">
+                                                            <strong className="price fw-500 color-dark fs-5">
+                                                                ${item.overview.rent.toLocaleString()}
+                                                                <span className="fs-6 fw-normal text-muted">/month</span>
+                                                            </strong>
+                                                            <ul className="style-none d-flex action-icons">
+                                                                <li>
+                                                                    <button
+                                                                        className="action-btn bg-transparent border-0 text-muted hover:text-primary p-2 rounded transition-all duration-200"
+                                                                        onClick={(e) => {
+                                                                            e.stopPropagation();
+                                                                            handlePropertySelect(item);
+                                                                        }}
+                                                                        title="View on map"
+                                                                    >
+                                                                        <i className="fa-light fa-location-dot"></i>
+                                                                    </button>
+                                                                </li>
+                                                                <li>
+                                                                    <button
+                                                                        className={`action-btn bg-transparent border-0 p-2 rounded transition-all duration-200 ${
+                                                                            isFavorited 
+                                                                                ? 'text-danger' 
+                                                                                : 'text-muted hover:text-danger'
+                                                                        }`}
+                                                                        onClick={(e) => handleFavoriteToggle(item._id, e)}
+                                                                        title={isFavorited ? "Remove from favorites" : "Add to favorites"}
+                                                                        disabled={favoritesLoading}
+                                                                    >
+                                                                        <i className={`fa-${isFavorited ? 'solid' : 'light'} fa-heart`}></i>
+                                                                    </button>
+                                                                </li>
+                                                            </ul>
                                                         </div>
-                                                    )}
-
-                                                    <div className="pl-footer m0 d-flex align-items-center justify-content-between">
-                                                        <strong className="price fw-500 color-dark fs-5">
-                                                            ${item.overview.rent.toLocaleString()}
-                                                            <span className="fs-6 fw-normal text-muted">/month</span>
-                                                        </strong>
-                                                        <ul className="style-none d-flex action-icons">
-                                                            <li>
-                                                                <button
-                                                                    className="action-btn bg-transparent border-0 text-muted hover:text-primary p-2 rounded transition-all duration-200"
-                                                                    onClick={(e) => {
-                                                                        e.stopPropagation();
-                                                                        handlePropertySelect(item);
-                                                                    }}
-                                                                    title="View on map"
-                                                                >
-                                                                    <i className="fa-light fa-location-dot"></i>
-                                                                </button>
-                                                            </li>
-                                                            <li>
-                                                                <button
-                                                                    className="action-btn bg-transparent border-0 text-muted hover:text-danger p-2 rounded transition-all duration-200"
-                                                                    onClick={(e) => e.stopPropagation()}
-                                                                    title="Add to favorites"
-                                                                >
-                                                                    <i className="fa-light fa-heart"></i>
-                                                                </button>
-                                                            </li>
-                                                        </ul>
                                                     </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                    ))}
+                                        );
+                                    })}
                                 </div>
 
                                 {/* Pagination */}
