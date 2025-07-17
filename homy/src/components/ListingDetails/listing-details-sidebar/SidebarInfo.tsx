@@ -1,37 +1,49 @@
-
-// frontend/components/ListingDetails/listing-details-sidebar/SidebarInfo.tsx
 import React from 'react';
-import {Link} from "react-router-dom";
-import {BadgeCheck} from 'lucide-react';
+import { Link } from "react-router-dom";
+import { BadgeCheck } from 'lucide-react';
+import { Profile } from '../../../redux/slices/profileSlice';
 
-// Interface for the props
+// --- Define Props ---
 interface SidebarInfoProps {
-    agentId?: string | null;
-    onInterestedClick?: () => void; // Add the onInterestedClick prop
+    profile: Profile | null;
+    isLoading: boolean;
+    onInterestedClick: () => void; 
 }
 
-// Placeholder interface for fetched agent data
-interface StudentData {
-    name: string;
-    majors?: string;
-    school?: string;
-    expectedGrad: string;
-    responseTime: string;
-    avatarUrl?: string;
-    verified?: boolean;
-}
+const SkeletonLoader = () => {
+    return (
+        <div className="agent-info bg-white border-20 p-30 mb-40 placeholder-glow">
+            <div className="d-flex justify-content-center mb-3">
+                <div className="placeholder rounded-circle" style={{ width: '100px', height: '100px' }}></div>
+            </div>
+            <div className="text-center">
+                <h6 className="placeholder col-6"></h6>
+                <p className="placeholder col-8"></p>
+            </div>
+            <div className="divider-line mt-40 mb-45 pt-20">
+                <ul className="style-none">
+                    <li><span className="placeholder col-10"></span></li>
+                    <li><span className="placeholder col-8"></span></li>
+                </ul>
+            </div>
+            <div className="d-flex justify-content-center gap-2">
+                <div className="btn placeholder flex-fill" style={{ height: '50px' }}></div>
+                <div className="btn placeholder flex-fill" style={{ height: '50px' }}></div>
+                <div className="btn placeholder flex-fill" style={{ height: '50px' }}></div>
+            </div>
+        </div>
+    );
+};
 
-const SidebarInfo: React.FC<SidebarInfoProps> = ({ agentId, onInterestedClick }) => {
-    // Using static data directly until fetch is implemented
-    const displayData = {
-        name: "Sarah Johnson",
-        majors: "Biochemistry Student",
-        school: "Northeastern University",
-        expectedGrad: "Spring 2026",
-        responseTime: "< 1 hour",
-        avatarUrl: "https://randomuser.me/api/portraits/women/65.jpg",
-        verified: true,
-    };
+
+const SidebarInfo: React.FC<SidebarInfoProps> = ({ profile, isLoading, onInterestedClick }) => {
+    // ... (isLoading and !profile checks )
+    if (isLoading) return <SkeletonLoader />;
+    if (!profile) return (
+        <div className="agent-info bg-white border-20 p-30 mb-40 text-center">
+            <p>Lister information is not available.</p>
+        </div>
+    );
 
     // Handle interested button click
     const handleInterestedClick = (e: React.MouseEvent) => {
@@ -41,29 +53,29 @@ const SidebarInfo: React.FC<SidebarInfoProps> = ({ agentId, onInterestedClick })
         }
     };
 
-    return (
-        <>
-            <img
-                src={displayData.avatarUrl || "/assets/images/dashboard/no-profile-pic.png"}
-                alt={`${displayData.name || 'Agent'} Avatar`}
-                className="lazy-img rounded-circle ms-auto me-auto mt-3 avatar"
-                style={{width: '100px', height: '100px', objectFit: 'cover'}}
-            />
+    const avatarUrl = profile.image || "/assets/images/dashboard/no-profile-pic.png";
 
+    return (
+        <div className="agent-info bg-white border-20 p-30 mb-40">
+            <img src={avatarUrl} alt={`${profile.username}'s Avatar`} className="lazy-img rounded-circle ms-auto me-auto mt-3 avatar" style={{ width: '100px', height: '100px', objectFit: 'cover' }} />
             <div className="text-center mt-25">
                 <div className="d-flex align-items-center justify-content-center">
-                    <h6 className="name mb-0">{displayData.name || 'Student Name Unavailable'}</h6>
-                    {displayData.verified && (
-                        <BadgeCheck className="ms-1 text-primary" size={20} color="#1E88E5"/>
-                    )}
+                    <h6 className="name mb-0">{profile.username}</h6>
+                    <BadgeCheck className="ms-1 text-primary" size={20} color="#1E88E5" />
                 </div>
-                <p className="fs-16">{displayData.majors || 'Student'}</p>
+                <p className="fs-16">{profile.majors_minors || 'Student'}</p>
             </div>
-
             <div className="divider-line mt-40 mb-45 pt-20">
                 <ul className="style-none">
-                    {displayData.school && <li>School: <span>{displayData.school}</span></li>}
-                    <li>Response Time: <span>{displayData.responseTime || "N/A"}</span></li>
+                    {profile.school_attending &&
+                        <li className="d-flex justify-content-between">
+                            <span>School:</span> <span className="fw-500 color-dark">{profile.school_attending}</span>
+                        </li>
+                    }
+                    <li className="d-flex align-items-start justify-content-between">
+                        <span className="me-2">About:</span>
+                        <span className="fw-500 color-dark text-end">{profile.about || 'No information provided.'}</span>
+                    </li>
                 </ul>
             </div>
 
@@ -72,7 +84,6 @@ const SidebarInfo: React.FC<SidebarInfoProps> = ({ agentId, onInterestedClick })
                 gridTemplateColumns: '1fr 1fr 1fr',
                 gap: '8px'
             }}>
-                {/* Updated I'm Interested button to use modal instead of navigation */}
                 <button
                     onClick={handleInterestedClick}
                     className="btn text-center text-white"
@@ -91,16 +102,16 @@ const SidebarInfo: React.FC<SidebarInfoProps> = ({ agentId, onInterestedClick })
                 </button>
 
                 <Link to="/request" className="btn text-center py-3 text-white"
-                      style={{backgroundColor: '#f16040'}}>
+                    style={{ backgroundColor: '#f16040' }}>
                     Request Ambassador
                 </Link>
 
                 <Link to="#" className="btn text-center text-white"
-                      style={{backgroundColor: '#f16040', paddingTop: '30px', paddingBottom: '8px'}}>
+                    style={{ backgroundColor: '#f16040', paddingTop: '30px', paddingBottom: '8px' }}>
                     Save
                 </Link>
             </div>
-        </>
+        </div>
     );
 };
 
