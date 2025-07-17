@@ -11,25 +11,28 @@ import {
     selectPropertyLoading,
     selectPropertyError,
     clearPropertyError,
-    selectAllPublicProperties, // Needed to check if property is already in list state
-    Property // Import the Property interface
+    selectAllPublicProperties,
+    Property
 } from '../../../redux/slices/propertySlice';
+
+// Import favorites functionality
+import { fetchFavorites, selectFavoriteIds } from '../../../redux/slices/favoritesSlice';
+import { selectIsAuthenticated } from '../../../redux/slices/authSlice';
 
 // Import modal components
 import InterestedModal from '../../../modals/InterestedModal';
 import { useInterestedModal } from '../../../hooks/useInterestedModal';
 
 // Import sub-components
-import MediaGallery from "./MediaGallery"; // Assuming this uses props now
-import Sidebar from "./Sidebar";         // Assuming this uses props now
-import CommonBanner from "../listing-details-common/CommonBanner"; // Needs 'property' prop
-import CommonPropertyOverview from "../listing-details-common/CommonPropertyOverview"; // Needs 'property' prop
-import CommonPropertyFeatureList from "../listing-details-common/CommonPropertyFeatureList"; // Needs 'property' prop
-import CommonAmenities from "../listing-details-common/CommonAmenities"; // Needs 'amenities' prop from property
-import CommonNearbyList from "../listing-details-common/CommonNearbyList"; // Needs 'location' prop
-import CommonSimilarProperty from "../listing-details-common/CommonSimilarProperty"; // Needs 'currentPropertyId' prop
-import CommonLocation from "../listing-details-common/CommonLocation"; // Needs 'location' prop
-import NiceSelect from "../../../ui/NiceSelect"; // Keep for review sorting
+import MediaGallery from "./MediaGallery";
+import Sidebar from "./Sidebar";
+import CommonBanner from "../listing-details-common/CommonBanner";
+import CommonPropertyOverview from "../listing-details-common/CommonPropertyOverview";
+import CommonPropertyFeatureList from "../listing-details-common/CommonPropertyFeatureList";
+import CommonAmenities from "../listing-details-common/CommonAmenities";
+import CommonNearbyList from "../listing-details-common/CommonNearbyList";
+import CommonLocation from "../listing-details-common/CommonLocation";
+import NiceSelect from "../../../ui/NiceSelect";
 
 const ListingDetailsOneArea = () => {
     // 1. Get ID from URL
@@ -37,33 +40,25 @@ const ListingDetailsOneArea = () => {
     const dispatch = useDispatch<AppDispatch>();
 
     // 2. Select necessary state from Redux
-    const property = useSelector(selectCurrentProperty); // The specific property being viewed
+    const property = useSelector(selectCurrentProperty);
     const isLoading = useSelector(selectPropertyLoading);
     const error = useSelector(selectPropertyError);
-    const allProperties = useSelector(selectAllPublicProperties); // List of properties from listing pages
+    const allProperties = useSelector(selectAllPublicProperties);
+    const isAuthenticated = useSelector(selectIsAuthenticated);
+    const favoriteIds = useSelector(selectFavoriteIds);
+
+    // Debug logging
+    console.log('ListingDetailsOneArea Debug:', {
+        propertyId: id,
+        isAuthenticated,
+        favoriteIds,
+        favoritesCount: favoriteIds.length
+    });
 
     // 3. Initialize the interested modal hook
     const { isModalOpen, currentProperty, openModal, closeModal, handleSubmitInterest } = useInterestedModal({
         onSubmitInterest: async (data) => {
-            // Handle the interest submission here
             console.log('Interest submitted:', data);
-            
-            // TODO: Add API call to your backend
-            // Example:
-            // try {
-            //     await axios.post('/api/interests', {
-            //         propertyId: data.propertyId,
-            //         moveInDate: data.moveInDate,
-            //         message: data.message
-            //     });
-            //     // Show success message
-            //     toast.success('Interest submitted successfully!');
-            // } catch (error) {
-            //     console.error('Error submitting interest:', error);
-            //     toast.error('Failed to submit interest. Please try again.');
-            // }
-            
-            // For now, just show alert
             alert('Interest submitted successfully!');
         }
     });
@@ -71,59 +66,53 @@ const ListingDetailsOneArea = () => {
     // 4. Function to handle "I'm Interested" button click
     const handleInterestedClick = () => {
         if (property) {
-            // Extract property ADDRESS (not title) based on the Property interface structure
             const fullAddress = property.addressAndLocation?.address || 'Address not available';
-
-            // Clean up the address - remove common suffixes like in usePropertyMap
             const cleanAddress = fullAddress
                 .replace(/,\s*USA?$/i, '')
                 .replace(/,\s*United States$/i, '')
                 .trim();
-
-            // Try to extract just the street address part (number + street name)
             const addressParts = cleanAddress.split(',');
             const streetAddress = addressParts[0]?.trim() || cleanAddress;
-
-            console.log('Property address for modal:', {
-                fullAddress,
-                cleanAddress,
-                streetAddress,
-                addressAndLocation: property.addressAndLocation
-            });
 
             openModal(property._id, streetAddress);
         }
     };
 
-    // 5. Fetch or select property data on mount/ID change
+    // 5. Fetch favorites when user is authenticated
+    useEffect(() => {
+        console.log('Checking if should fetch favorites:', { isAuthenticated });
+        if (isAuthenticated) {
+            console.log('Fetching favorites...');
+            dispatch(fetchFavorites());
+        }
+    }, [dispatch, isAuthenticated]);
+
+    // 6. Fetch or select property data on mount/ID change
     useEffect(() => {
         if (id) {
-            dispatch(clearPropertyError()); // Clear errors from previous attempts
+            dispatch(clearPropertyError());
 
-            // Try finding in the already loaded list first
             const propertyFromList = allProperties.find(p => p._id === id);
 
             if (propertyFromList) {
-                // If found, set it directly (synchronous)
                 console.log(`ListingDetailsOneArea: Found property ${id} in allProperties list. Dispatching selectPropertyFromList.`);
                 dispatch(selectPropertyFromList(propertyFromList));
             } else {
-                // If not found, fetch from API (asynchronous fallback)
                 console.log(`ListingDetailsOneArea: Property ${id} not in list. Dispatching fetchPropertyById API call.`);
                 dispatch(fetchPropertyById(id));
             }
         } else {
             console.error("ListingDetailsOneArea: No property ID found in URL.");
-            dispatch(selectPropertyFromList(null)); // Clear property if ID is invalid/missing
+            dispatch(selectPropertyFromList(null));
         }
 
-        // 6. Cleanup Function: Clear the current property when leaving the page
+        // Cleanup Function
         return () => {
             console.log("ListingDetailsOneArea: Unmounting, dispatching clearCurrentProperty.");
             dispatch(clearCurrentProperty());
-            dispatch(clearPropertyError()); // Also clear errors on unmount
+            dispatch(clearPropertyError());
         };
-    }, [id, dispatch, allProperties]); // Rerun if ID changes or the list updates (might find it next time)
+    }, [id, dispatch, allProperties]);
 
     // 7. Handle loading state
     if (isLoading) {
@@ -136,7 +125,7 @@ const ListingDetailsOneArea = () => {
             property: {error}</div>;
     }
 
-    // 9. Handle property not found state (after loading/error check)
+    // 9. Handle property not found state
     if (!property) {
         return <div className="container pt-200 pb-200 text-center">Property details not available or ID is
             invalid.</div>;
@@ -144,24 +133,14 @@ const ListingDetailsOneArea = () => {
 
     // 10. Render details if property data is available
     const selectHandler = () => {
-    }; // Placeholder for review sort dropdown
+    };
 
-    // Debug the property structure to find address and location data
-    console.log("Property data:", property);
-    console.log("Overview:", property.overview);
-    console.log("AddressAndLocation object:", property.addressAndLocation);
-
-    // Prepare the location data to pass to CommonLocation
     const locationData = {
-        // Try to get address from multiple possible locations in the property object
         address: property.addressAndLocation?.address ||
                 property.overview?.title ||
                 'Property Location',
-
-        // Try to get coordinates from multiple possible locations
         latitude: property.addressAndLocation?.location?.lat ||
                  (property.geoLocation?.coordinates ? property.geoLocation.coordinates[1] : undefined),
-
         longitude: property.addressAndLocation?.location?.lng ||
                   (property.geoLocation?.coordinates ? property.geoLocation.coordinates[0] : undefined)
     };
@@ -169,9 +148,8 @@ const ListingDetailsOneArea = () => {
     return (
         <div className="listing-details-one theme-details-one bg-pink pt-180 lg-pt-150 pb-150 xl-pb-120">
             <div className="container">
-                {/* Pass fetched 'property' data down as props */}
                 <CommonBanner property={property}/>
-                <MediaGallery property={property}/> {/* Modify if gallery images come from property.images */}
+                <MediaGallery property={property}/>
 
                 <div className="property-feature-list bg-white shadow4 bg-whiterounded p-40 mt-50 mb-60 tw-rounded-md">
                     <h4 className="sub-title-one mb-40 lg-mb-20">Property Overview</h4>
@@ -180,13 +158,11 @@ const ListingDetailsOneArea = () => {
 
                 <div className="row">
                     <div className="col-xl-8">
-                        {/* Overview Description */}
                         <div className="property-overview mb-50 bg-white shadow4  p-40 tw-rounded-md">
                             <h4 className="mb-20">Overview</h4>
                             <p className="fs-20 lh-lg">{property.description || "No detailed description available."}</p>
                         </div>
 
-                        {/* Property Features */}
                         <div className="property-feature-accordion bg-white shadow4 p-40 mb-50 tw-rounded-md">
                             <h4 className="mb-20">Property Features</h4>
                             <p className="fs-20 lh-lg">Detailed characteristics of the property.</p>
@@ -195,15 +171,11 @@ const ListingDetailsOneArea = () => {
                             </div>
                         </div>
 
-                        {/* Amenities */}
                         <div className="property-amenities rounded shadow4 bg-white p-40 mb-50 tw-rounded-md">
-                            {/* Pass amenities array from property object */}
                             <CommonAmenities amenities={property.amenities}/>
                         </div>
 
-                        {/* Nearby */}
                         <div className=" bg-white shadow4 p-40 mb-50 tw-rounded-md">
-                            {/* Pass location details */}
                             <CommonNearbyList
                                 location={{
                                     address: property.addressAndLocation.address,
@@ -213,48 +185,14 @@ const ListingDetailsOneArea = () => {
                             />
                         </div>
 
-                        {/*/!* Similar Properties *!/*/}
-                        {/*/!* Pass current property ID to find similar ones *!/*/}
-                        {/*<CommonSimilarProperty currentPropertyId={property._id}/>*/}
-
-                        {/* Walk Score  (come back to this)*/}
-                        {/*<div className="property-score bg-white shadow4 p-40 mb-50 ">*/}
-                        {/*    /!* Pass relevant data if score depends on property *!/*/}
-                        {/*    <CommonProPertyScore property={property}/>*/}
-                        {/*</div>*/}
-
-                        {/* Location Map */}
                         <div className="property-location tw-pb-0 tw-w-full ">
                             <CommonLocation
                                 location={locationData}
                                 propertyName={property.overview?.title || property.addressAndLocation?.address || 'Property'}
                             />
                         </div>
-
-                        {/*/!* Reviews *!/*/}
-                        {/*<div className="review-panel-one bg-white shadow4 p-40 mb-50">*/}
-                        {/*    <div className="position-relative z-1">*/}
-                        {/*        <div className="d-sm-flex justify-content-between align-items-center mb-10">*/}
-                        {/*            <h4 className="m0 xs-pb-30">Reviews</h4>*/}
-                        {/*            <NiceSelect*/}
-                        {/*                className="nice-select"*/}
-                        {/*                options={[{value: "01", text: "Newest"}, {value: "02", text: "Best Rating"},]}*/}
-                        {/*                defaultCurrent={0}*/}
-                        {/*                onChange={selectHandler}*/}
-                        {/*                name="review-sort"*/}
-                        {/*                placeholder="Sort Reviews"*/}
-                        {/*            />*/}
-                        {/*        </div>*/}
-                        {/*        /!* Pass property ID to fetch/display relevant reviews *!/*/}
-                        {/*        /!* <Review propertyId={property._id} style={true}/> *!/*/}
-                        {/*    </div>*/}
-                        {/*</div>*/}
-
-                        {/* Review Form section removed as requested */}
                     </div>
 
-                    {/* Sidebar */}
-                    {/* Pass property data and the interested click handler to sidebar */}
                     <Sidebar
                         property={property}
                         onInterestedClick={handleInterestedClick}
@@ -262,7 +200,6 @@ const ListingDetailsOneArea = () => {
                 </div>
             </div>
 
-            {/* Interested Modal */}
             <InterestedModal
                 isOpen={isModalOpen}
                 onClose={closeModal}

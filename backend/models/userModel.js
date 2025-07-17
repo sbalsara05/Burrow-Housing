@@ -1,3 +1,4 @@
+
 const mongoose = require("mongoose");
 
 // Define the user schema
@@ -13,7 +14,8 @@ const userSchema = new mongoose.Schema({
   },
   isVerified: { type: Boolean, default: false }, // Email verification status
   properties: [{ type: mongoose.Schema.Types.ObjectId, ref: "Property" }], // Array of property IDs
-});
+  favorites: [{ type: mongoose.Schema.Types.ObjectId, ref: "Property" }], // Array of favorite property IDs
+}, { timestamps: true });
 
 // Create the user model
 const User = mongoose.model("User", userSchema);
