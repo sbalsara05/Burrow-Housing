@@ -1,5 +1,5 @@
 const User = require("../models/userModel"); // Mongoose User model
-const bcrypt = require("bcrypt");
+const bcrypt = require("bcryptjs");
 const { blacklistToken } = require("../services/tokenService");
 
 exports.getUserProfile = async (req, res) => {
