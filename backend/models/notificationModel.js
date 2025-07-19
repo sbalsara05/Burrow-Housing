@@ -15,8 +15,10 @@ const NotificationSchema = new mongoose.Schema(
 				"new_interest",
 				"interest_approved",
 				"interest_declined",
-				"new_message", // For future Stream webhook integration
-				"property_favorited", // For optional future features
+				"interest_withdrawn",
+				"property_deleted",
+				"new_message",
+				"property_favorited",
 			],
 			required: true,
 		},

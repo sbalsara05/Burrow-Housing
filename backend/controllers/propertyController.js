@@ -481,78 +481,93 @@ exports.getPresignedUrls = async (req, res) => {
  * Controller to delete a property owned by the authenticated user
  */
 exports.deleteProperty = async (req, res) => {
+	const { id: propertyId } = req.params;
+	const { userId } = req.user;
+
+	const session = await mongoose.startSession();
+	session.startTransaction();
+
 	try {
-		const { id: propertyId } = req.params; // Get property ID from URL params
-		const { userId } = req.user; // Get user ID from authenticated token
+		const property = await Property.findById(propertyId).session(
+			session
+		);
+		if (!property) throw new Error("Property not found.");
+		if (property.userId.toString() !== userId)
+			throw new Error("Forbidden");
 
-		// Validate if the propertyId is a valid MongoDB ObjectId
-		if (!mongoose.Types.ObjectId.isValid(propertyId)) {
-			return res.status(400).json({
-				message: "Invalid property ID format.",
-			});
-		}
+		// --- CASCADING LOGIC ---
+		const relatedInterests = await Interest.find({
+			propertyId,
+		}).session(session);
+		const streamClient = getStreamClient();
 
-		// Find the property by its ID
-		const property = await Property.findById(propertyId);
-
-		// Check if the property exists
-		if (!property) {
-			return res
-				.status(404)
-				.json({ message: "Property not found." });
-		}
-
-		// --- SECURITY CHECK: Verify Ownership ---
-		if (property.userId.toString() !== userId) {
-			return res.status(403).json({
-				message: "Forbidden: You do not have permission to delete this property.",
-			});
-		}
-
-		if (property.images && property.images.length > 0) {
-			console.log(
-				`Deleting ${property.images.length} associated images from S3.`
+		if (relatedInterests.length > 0) {
+			const renterIds = relatedInterests.map(
+				(i) => i.renterId
 			);
-			try {
-				// Attempt to delete all images concurrently
-				const deletionPromises = property.images.map(
-					(url) => deleteFileFromS3(url)
-				);
-				await Promise.all(deletionPromises);
-				console.log(
-					"All associated images have been processed for deletion."
-				);
-			} catch (s3Error) {
-				// We log the error but continue the process.
-				// The main goal is to remove the property from the user's view.
-				// Orphaned files can be handled by a separate cleanup process if necessary.
-				console.error(
-					"An error occurred during S3 image deletion, but proceeding with DB deletion.",
-					s3Error
+			const channelIdsToDelete = relatedInterests
+				.filter((i) => i.streamChannelId)
+				.map((i) => i.streamChannelId);
+
+			// 1. Delete Stream channels
+			if (channelIdsToDelete.length > 0) {
+				await streamClient.deleteChannels(
+					channelIdsToDelete,
+					{ hard_delete: true }
 				);
 			}
+
+			// 2. Create notifications for affected renters
+			const notifications = renterIds.map((renterId) => ({
+				userId: renterId,
+				type: "property_deleted",
+				message: `The property "${property.overview.title}" you were interested in is no longer available.`,
+				link: "/listing_14",
+				metadata: { propertyId },
+			}));
+			await Notification.insertMany(notifications, {
+				session,
+			});
+
+			// 3. Delete Interest documents
+			await Interest.deleteMany({ propertyId }).session(
+				session
+			);
 		}
 
-		// Delete the property document
-		await property.remove();
-
-		// Remove the property reference from the user's document
+		// --- ORIGINAL DELETE LOGIC ---
+		if (property.images && property.images.length > 0) {
+			const deletionPromises = property.images.map((url) =>
+				deleteFileFromS3(url)
+			);
+			await Promise.all(deletionPromises);
+		}
+		await property.remove({ session });
 		await User.findByIdAndUpdate(userId, {
 			$pull: { properties: propertyId },
-		});
+		}).session(session);
 
+		await session.commitTransaction();
 		res.status(200).json({
-			message: "Property deleted successfully.",
+			message: "Property and all related data deleted successfully.",
 		});
 	} catch (error) {
+		await session.abortTransaction();
 		console.error("Error deleting property:", error);
+		if (error.message === "Forbidden") {
+			return res
+				.status(403)
+				.json({
+					message: "You do not have permission to delete this property.",
+				});
+		}
 		res.status(500).json({
-			message: "Server error while deleting property.",
-			error: error.message,
+			message: "Server error during property deletion.",
 		});
+	} finally {
+		session.endSession();
 	}
 };
-
 /**
  * Controller to UPDATE a property owned by the authenticated user
  */
@@ -563,11 +578,9 @@ exports.updateProperty = async (req, res) => {
 		const { images: finalImageUrls, ...updatedData } = req.body;
 
 		if (!mongoose.Types.ObjectId.isValid(propertyId)) {
-			return res
-				.status(400)
-				.json({
-					message: "Invalid property ID format.",
-				});
+			return res.status(400).json({
+				message: "Invalid property ID format.",
+			});
 		}
 
 		const property = await Property.findById(propertyId);
@@ -579,11 +592,9 @@ exports.updateProperty = async (req, res) => {
 		}
 
 		if (property.userId.toString() !== userId) {
-			return res
-				.status(403)
-				.json({
-					message: "Forbidden: You do not have permission to edit this property.",
-				});
+			return res.status(403).json({
+				message: "Forbidden: You do not have permission to edit this property.",
+			});
 		}
 
 		// --- Image Deletion Logic ---
@@ -627,11 +638,9 @@ exports.updateProperty = async (req, res) => {
 		);
 
 		if (!updatedProperty) {
-			return res
-				.status(404)
-				.json({
-					message: "Property not found after update attempt.",
-				});
+			return res.status(404).json({
+				message: "Property not found after update attempt.",
+			});
 		}
 
 		res.status(200).json({

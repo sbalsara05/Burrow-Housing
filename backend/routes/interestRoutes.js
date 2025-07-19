@@ -4,8 +4,9 @@ const { authenticateToken } = require("../middlewares/authMiddleware");
 const {
 	submitInterest,
 	getReceivedInterests,
-	// approveInterestAndCreateChannel, // Will be in chatController for better separation
-	// declineInterest
+	getSentInterests,
+    getInterestStatusForProperty,
+    withdrawInterest
 } = require("../controllers/interestController");
 
 // A renter submits their interest for a property
@@ -13,8 +14,10 @@ router.post("/interests", authenticateToken, submitInterest);
 
 // A lister gets all the requests they have received
 router.get("/interests/received", authenticateToken, getReceivedInterests);
+router.get('/interests/sent', authenticateToken, getSentInterests);
+router.get('/interests/status', authenticateToken, getInterestStatusForProperty);
 
-// We will place the approve/decline routes in chatRoutes or a new requestRoutes file
-// for better organization, as they are actions that modify state and trigger chat.
+// A renter withdraws their interest
+router.delete('/interests/:interestId', authenticateToken, withdrawInterest);
 
 module.exports = router;

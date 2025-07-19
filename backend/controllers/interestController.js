@@ -27,11 +27,9 @@ exports.submitInterest = async (req, res) => {
 
 		// Prevent lister from showing interest in their own property
 		if (listerId.toString() === renterId) {
-			return res
-				.status(400)
-				.json({
-					message: "You cannot show interest in your own property.",
-				});
+			return res.status(400).json({
+				message: "You cannot show interest in your own property.",
+			});
 		}
 
 		// Check for existing interest to prevent duplicates
@@ -40,11 +38,9 @@ exports.submitInterest = async (req, res) => {
 			renterId,
 		});
 		if (existingInterest) {
-			return res
-				.status(409)
-				.json({
-					message: "You have already shown interest in this property.",
-				});
+			return res.status(409).json({
+				message: `You have already submitted a request for this property. Current status: ${existingInterest.status}.`,
+			});
 		}
 
 		const newInterest = new Interest({
@@ -111,6 +107,116 @@ exports.getReceivedInterests = async (req, res) => {
 	}
 };
 
-// PUT /api/interests/:interestId (Handles approve/decline)
-// Note: This endpoint is now split into two more specific endpoints as per the plan.
-// We will create approveInterest and declineInterest controllers instead.
+// GET /api/interests/sent
+exports.getSentInterests = async (req, res) => {
+	const renterId = req.user.userId;
+	try {
+		const interests = await Interest.find({ renterId })
+			.populate({
+				path: "listerId",
+				select: "name",
+			})
+			.populate({
+				path: "propertyId",
+				select: "overview images addressAndLocation",
+			})
+			.sort({ createdAt: -1 });
+
+		res.status(200).json(interests);
+	} catch (error) {
+		console.error("Error fetching sent interests:", error);
+		res.status(500).json({
+			message: "Server error while fetching sent interests.",
+		});
+	}
+};
+
+// GET /api/interests/status?propertyId=:id
+exports.getInterestStatusForProperty = async (req, res) => {
+	const renterId = req.user.userId;
+	const { propertyId } = req.query;
+	try {
+		if (!propertyId) {
+			return res
+				.status(400)
+				.json({ message: "Property ID is required." });
+		}
+		const interest = await Interest.findOne({
+			renterId,
+			propertyId,
+		}).select("status");
+		if (!interest) {
+			return res.status(200).json({ status: null }); // No interest found
+		}
+		res.status(200).json({ status: interest.status });
+	} catch (error) {
+		console.error("Error fetching interest status:", error);
+		res.status(500).json({
+			message: "Server error fetching interest status.",
+		});
+	}
+};
+
+// DELETE /api/interests/:interestId
+exports.withdrawInterest = async (req, res) => {
+	const renterId = req.user.userId;
+	const { interestId } = req.params;
+	try {
+		const interest = await Interest.findById(interestId);
+		if (!interest) {
+			return res
+				.status(404)
+				.json({
+					message: "Interest request not found.",
+				});
+		}
+		// Security Check: Only the renter who created it can withdraw
+		if (interest.renterId.toString() !== renterId) {
+			return res
+				.status(403)
+				.json({
+					message: "You are not authorized to withdraw this request.",
+				});
+		}
+		if (interest.status !== "pending") {
+			return res
+				.status(400)
+				.json({
+					message: `Cannot withdraw a request with status '${interest.status}'.`,
+				});
+		}
+
+		interest.status = "withdrawn";
+		await interest.save();
+
+		// --- Create Notification for the Lister ---
+		const renter = await User.findById(renterId).select("name");
+		const property = await Property.findById(
+			interest.propertyId
+		).select("overview.title");
+		const notificationMessage = `${renter.name} withdrew their request for "${property.overview.title}".`;
+
+		const newNotification = new Notification({
+			userId: interest.listerId,
+			type: "interest_withdrawn",
+			message: notificationMessage,
+			link: "/dashboard/requests",
+			metadata: {
+				propertyId: interest.propertyId,
+				renterId: renterId,
+			},
+		});
+		await newNotification.save();
+		// -----------------------------------------
+
+		res.status(200).json({
+			message: "Request withdrawn successfully.",
+			interest,
+		});
+	} catch (error) {
+		console.error("Error withdrawing interest:", error);
+		res.status(500).json({
+			message: "Server error while withdrawing interest.",
+		});
+	}
+};
