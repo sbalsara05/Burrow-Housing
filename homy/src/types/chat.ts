@@ -1,4 +1,7 @@
-// src/types/chat.ts
+// keep core types as they are still useful for custom components.
+// The `stream-chat` and `stream-chat-react` libraries also export their own
+// more detailed types which can be used directly in components when needed.
+
 export interface User {
     id: string;
     name: string;
@@ -22,7 +25,7 @@ export interface Message {
     isCurrentUser: boolean;
     type: 'text' | 'image' | 'file' | 'system';
     attachments?: MessageAttachment[];
-    replyTo?: string; // Message ID being replied to
+    replyTo?: string;
     isEdited?: boolean;
     isDeleted?: boolean;
     reactions?: MessageReaction[];
@@ -64,80 +67,4 @@ export interface ChannelMember {
     role: 'owner' | 'admin' | 'member';
     joinedAt: string;
     isActive: boolean;
-}
-
-export interface ChatState {
-    users: User[];
-    channels: Channel[];
-    messages: { [channelId: string]: Message[] };
-    activeChannel: string | null;
-    currentUser: User | null;
-    isLoading: boolean;
-    error: string | null;
-    typingUsers: { [channelId: string]: string[] };
-    onlineUsers: string[];
-}
-
-export interface TypingIndicator {
-    channelId: string;
-    userId: string;
-    userName: string;
-    timestamp: string;
-}
-
-export interface ChatNotification {
-    id: string;
-    type: 'message' | 'mention' | 'channel_invite' | 'user_joined';
-    channelId: string;
-    senderId: string;
-    title: string;
-    body: string;
-    timestamp: string;
-    isRead: boolean;
-}
-
-// API Response Types
-export interface ChatApiResponse<T> {
-    success: boolean;
-    data: T;
-    message?: string;
-    pagination?: {
-        page: number;
-        limit: number;
-        total: number;
-        hasMore: boolean;
-    };
-}
-
-export interface SendMessageRequest {
-    channelId: string;
-    text: string;
-    attachments?: File[];
-    replyTo?: string;
-}
-
-export interface CreateChannelRequest {
-    name?: string;
-    type: 'direct' | 'group' | 'public';
-    members: string[];
-    description?: string;
-}
-
-export interface UpdateChannelRequest {
-    name?: string;
-    description?: string;
-    avatar?: File;
-}
-
-export interface GetMessagesRequest {
-    channelId: string;
-    page?: number;
-    limit?: number;
-    before?: string; // Message ID for pagination
-}
-
-export interface SearchRequest {
-    query: string;
-    type?: 'users' | 'channels' | 'messages';
-    limit?: number;
 }

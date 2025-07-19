@@ -1,109 +1,74 @@
-import React, { useState, useEffect } from 'react';
+import DashboardHeaderOne from "../../../layouts/headers/dashboard/DashboardHeaderOne";
 import DashboardHeaderTwo from '../../../layouts/headers/dashboard/DashboardHeaderTwo';
-import ChatList from './ChatList';
-import ChatWindow from './ChatWindow';
-import { useChatService } from '../../../hooks/useChatService';
-import { Channel } from '../../../types/chat';
+import ChatProvider from './ChatProvider'; // Import our provider
+import { Channel, ChannelList, Window, MessageList, MessageInput, Thread } from 'stream-chat-react';
 
-const DashboardChatMain = () => {
-    const [isMobileView, setIsMobileView] = useState(false);
+// Import the default Stream Chat CSS for styling
+import 'stream-chat-react/dist/css/v2/index.css';
+// custom CSS 
+import "../../../../public/assets/css/custom-chat.css";
 
-    const {
-        channels,
-        activeChannel,
-        messages,
-        user,
-        isLoadingChannels,
-        isLoadingMessages,
-        isSendingMessage,
-        setActiveChannel,
-        sendMessage,
-        loadMoreMessages,
-        error,
-        clearError
-    } = useChatService();
-
-    // Handle responsive layout
-    useEffect(() => {
-        const handleResize = () => {
-            setIsMobileView(window.innerWidth < 768);
-        };
-
-        handleResize(); // Initial check
-        window.addEventListener('resize', handleResize);
-        return () => window.removeEventListener('resize', handleResize);
-    }, []);
-
-    const handleChannelSelect = (channel: Channel) => {
-        setActiveChannel(channel);
-        if (error) clearError();
-    };
-
-    const handleBackToList = () => {
-        setActiveChannel(null);
-    };
-
-    const handleCreateChannel = () => {
-        // TODO: Implement channel creation modal/functionality
-        console.log('Create channel clicked');
-    };
-
+// This component now renders the entire UI for the chat dashboard.
+const ChatUIComponent = () => {
     return (
         <div className="dashboard-body">
             <div className="position-relative">
                 <DashboardHeaderTwo title="Chat" />
-                
-                {/* Error Alert */}
-                {error && (
-                    <div className="alert alert-danger alert-dismissible fade show tw-mb-4 tw-rounded-lg">
-                        <i className="bi bi-exclamation-triangle me-2"></i>
-                        {error}
-                        <button
-                            type="button"
-                            className="btn-close"
-                            onClick={clearError}
-                            aria-label="Close"
-                        ></button>
-                    </div>
-                )}
-
-                {/* Chat Interface */}
-                <div className="bg-white card-box p0 border-20 tw-rounded-lg tw-overflow-hidden">
-                    <div className="tw-h-[70vh] tw-min-h-[500px] tw-max-h-[800px]">
+                <div className="bg-white card-box p-0 border-20 tw-rounded-lg tw-overflow-hidden">
+                    <div className="tw-h-[75vh] tw-min-h-[600px] tw-max-h-[850px]">
                         <div className="tw-flex tw-h-full">
-                            {/* Chat List - Left Sidebar */}
-                            <div className={`tw-w-full md:tw-w-2/5 lg:tw-w-1/3 ${activeChannel && isMobileView ? 'tw-hidden' : ''}`}>
-                                <div className="tw-bg-gray-50 tw-h-full tw-border-r tw-border-gray-200">
-                                    <ChatList
-                                        channels={channels}
-                                        activeChannel={activeChannel}
-                                        onChannelSelect={handleChannelSelect}
-                                        onCreateChannel={handleCreateChannel}
-                                        isLoading={isLoadingChannels}
-                                    />
-                                </div>
+                            {/* 
+                                ChannelList: This component from the library automatically
+                                fetches and displays the user's channels. It handles
+                                clicks, unread counts, and real-time updates.
+                            */}
+                            <div className="tw-w-full md:tw-w-2/5 lg:tw-w-1/3 tw-border-r tw-border-gray-200">
+                                <ChannelList />
                             </div>
 
-                            {/* Chat Window - Main Content */}
-                            <div className={`tw-w-full md:tw-w-3/5 lg:tw-w-2/3 ${!activeChannel && isMobileView ? 'tw-hidden' : ''}`}>
-                                <div className="tw-h-full tw-bg-white">
-                                    <ChatWindow
-                                        activeChannel={activeChannel}
-                                        messages={messages}
-                                        currentUserId={user?.id || ''}
-                                        isLoadingMessages={isLoadingMessages}
-                                        isSendingMessage={isSendingMessage}
-                                        onSendMessage={sendMessage}
-                                        onBackToList={isMobileView ? handleBackToList : undefined}
-                                        onLoadMoreMessages={loadMoreMessages}
-                                    />
-                                </div>
+                            {/* 
+                                Channel: The main container for the active conversation.
+                                It provides context for the components inside it.
+                            */}
+                            <div className="tw-w-full md:tw-w-3/5 lg:tw-w-2/3">
+                                <Channel>
+                                    {/* 
+                                        Window: A wrapper providing the header for the active channel.
+                                    */}
+                                    <Window>
+                                        {/* 
+                                            MessageList: Automatically displays messages and handles pagination.
+                                        */}
+                                        <MessageList />
+                                        {/* 
+                                            MessageInput: A complete input component with file uploads,
+                                            emojis, and sending logic.
+                                        */}
+                                        <MessageInput />
+                                    </Window>
+                                    {/* 
+                                        Thread: Handles threaded replies. Only renders when a thread is active.
+                                    */}
+                                    <Thread />
+                                </Channel>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
+    );
+};
+
+// This is the main exported component for the page, which sets up the provider.
+const DashboardChatMain = () => {
+    return (
+        <>
+            <DashboardHeaderOne />
+            <ChatProvider>
+                <ChatUIComponent />
+            </ChatProvider>
+        </>
     );
 };
 
