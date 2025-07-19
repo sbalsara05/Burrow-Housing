@@ -13,7 +13,7 @@ router.get('/profile/public/:userId', getPublicProfile);
 
 router.put('/updateUser', authenticateToken, updateUserProfile);
 router.put('/user/change-password', authenticateToken, changePassword);
-router.put("/profile", authenticateToken, upload, updateProfile);
+router.put("/profile", authenticateToken, updateProfile);
 
 router.post('/upload-url', authenticateToken, getProfileImagePresignedUrl);
 
