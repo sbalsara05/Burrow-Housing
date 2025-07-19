@@ -9,7 +9,9 @@ import SidebarInfo from "../listing-details-sidebar/SidebarInfo";
 // --- Define Props ---
 interface SidebarProps {
     property: Property | null;
-    onInterestedClick: () => void; 
+    onInterestedClick: () => void;
+    interestStatus: string | null;
+    isStatusLoading: boolean;
 }
 
 const formatUserToProfile = (user: any, profile: any) => {
@@ -26,7 +28,7 @@ const formatUserToProfile = (user: any, profile: any) => {
     };
 };
 
-const Sidebar: React.FC<SidebarProps> = ({ property, onInterestedClick }) => { // CORRECTED
+const Sidebar: React.FC<SidebarProps> = ({ property, onInterestedClick, interestStatus, isStatusLoading }) => {
     const listerUserId = property?.userId;
     const loggedInUser = useSelector(selectCurrentUser);
     const loggedInUserProfile = useSelector(selectProfile);
@@ -45,6 +47,9 @@ const Sidebar: React.FC<SidebarProps> = ({ property, onInterestedClick }) => { /
                     profile={profileToDisplay}
                     isLoading={isLoadingDisplay}
                     onInterestedClick={onInterestedClick}
+                    interestStatus={interestStatus}
+                    isStatusLoading={isStatusLoading}
+                    isOwner={isOwner}
                 />
                 {fetchError && <div className="alert alert-warning small">{fetchError}</div>}
             </div>
