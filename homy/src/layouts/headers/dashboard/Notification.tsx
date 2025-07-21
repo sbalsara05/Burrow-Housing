@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch } from '../../../redux/slices/store';
@@ -30,6 +30,9 @@ const Notification: React.FC = () => {
     const dispatch = useDispatch<AppDispatch>();
     const navigate = useNavigate();
     const notifications = useSelector(selectAllNotifications);
+
+    // State to track which notifications are expanded
+    const [expandedNotifications, setExpandedNotifications] = useState<Set<string>>(new Set());
 
     const handleDelete = async (e: React.MouseEvent, notification: NotificationType) => {
         e.preventDefault(); // Prevent link navigation
@@ -65,6 +68,33 @@ const Notification: React.FC = () => {
         navigate(link);
     };
 
+    const toggleExpanded = (e: React.MouseEvent, notificationId: string) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const newExpanded = new Set(expandedNotifications);
+        if (newExpanded.has(notificationId)) {
+            newExpanded.delete(notificationId);
+        } else {
+            newExpanded.add(notificationId);
+        }
+        setExpandedNotifications(newExpanded);
+    };
+
+    // Function to truncate message and check if it needs truncation
+    const getTruncatedMessage = (message: string, isExpanded: boolean) => {
+        const maxLength = 50; // Adjust this value as needed
+        if (message.length <= maxLength) {
+            return { text: message, needsTruncation: false };
+        }
+
+        if (isExpanded) {
+            return { text: message, needsTruncation: true };
+        } else {
+            return { text: message.substring(0, maxLength), needsTruncation: true };
+        }
+    };
+
     const hasReadNotifications = notifications.some(n => n.isRead);
 
     return (
@@ -73,7 +103,7 @@ const Notification: React.FC = () => {
                 <div className="d-flex justify-content-between align-items-center">
                     <h4>Notifications</h4>
                     {hasReadNotifications && (
-                        <button onClick={handleClearRead} className="btn btn-sm btn-link text-decoration-underline p-0">
+                        <button onClick={handleClearRead} className="btn btn-sm btn-link text-decoration-underline tw-pb-6">
                             Clear Read
                         </button>
                     )}
@@ -81,26 +111,71 @@ const Notification: React.FC = () => {
 
                 {notifications.length > 0 ? (
                     <ul className="style-none notify-list">
-                        {notifications.map((item) => (
-                            <li
-                                key={item._id}
-                                className={`d-flex align-items-center ${!item.isRead ? 'unread' : ''}`}
-                                onClick={() => handleNotificationClick(item.link)}
-                                style={{ cursor: 'pointer' }}
-                            >
-                                <div className="flex-fill ps-2">
-                                    <h6>{item.message}</h6>
-                                    <span className="time">{timeSince(item.createdAt)}</span>
-                                </div>
-                                <button
-                                    onClick={(e) => handleDelete(e, item)}
-                                    className="btn btn-sm btn-link text-danger p-0 ms-2"
-                                    title="Delete notification"
+                        {notifications.map((item) => {
+                            const isExpanded = expandedNotifications.has(item._id);
+                            const messageData = getTruncatedMessage(item.message, isExpanded);
+
+                            return (
+                                <li
+                                    key={item._id}
+                                    className={`d-flex align-items-start ${!item.isRead ? 'unread' : ''}`}
+                                    style={{ cursor: 'pointer', padding: '8px 12px', position: 'relative' }}
                                 >
-                                    <i className="fa-regular fa-times-circle"></i>
-                                </button>
-                            </li>
-                        ))}
+                                    <div
+                                        className="flex-fill pe-3"
+                                        onClick={() => handleNotificationClick(item.link)}
+                                        style={{ minWidth: 0 }} // This allows the flex item to shrink
+                                    >
+                                        <h6 className="mb-1" style={{ wordBreak: 'break-word' }}>
+                                            {messageData.text}
+                                            {messageData.needsTruncation && !isExpanded && (
+                                                <button
+                                                    onClick={(e) => toggleExpanded(e, item._id)}
+                                                    className="btn btn-link p-0 text-primary"
+                                                    style={{
+                                                        fontSize: '0.875rem',
+                                                        textDecoration: 'none',
+                                                        marginLeft: '8px' // Added more spacing
+                                                    }}
+                                                >
+                                                    ...
+                                                </button>
+                                            )}
+                                            {messageData.needsTruncation && isExpanded && (
+                                                <button
+                                                    onClick={(e) => toggleExpanded(e, item._id)}
+                                                    className="btn btn-link p-0 text-primary"
+                                                    style={{
+                                                        fontSize: '0.875rem',
+                                                        textDecoration: 'none',
+                                                        marginLeft: '8px' // Added more spacing
+                                                    }}
+                                                >
+                                                    Show less
+                                                </button>
+                                            )}
+                                        </h6>
+                                        <span className="time text-muted" style={{ fontSize: '0.75rem' }}>
+                                            {timeSince(item.createdAt)}
+                                        </span>
+                                    </div>
+                                    <button
+                                        onClick={(e) => handleDelete(e, item)}
+                                        className="btn btn-sm btn-link text-danger p-1 flex-shrink-0"
+                                        title="Delete notification"
+                                        style={{
+                                            minWidth: 'auto',
+                                            lineHeight: 1,
+                                            position: 'absolute',
+                                            right: '8px',
+                                            top: '8px'
+                                        }}
+                                    >
+                                        <i className="fa-regular fa-times-circle"></i>
+                                    </button>
+                                </li>
+                            );
+                        })}
                     </ul>
                 ) : (
                     <div className="text-center p-3 text-muted">

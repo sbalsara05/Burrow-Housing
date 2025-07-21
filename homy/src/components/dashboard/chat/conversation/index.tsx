@@ -2,8 +2,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import DashboardHeaderOne from "../../../../layouts/headers/dashboard/DashboardHeaderOne";
-import ChatWindow from '../ChatWindow';
-import { useChatService } from '../../../../hooks/useChatService';
 
 const DashboardChatConversationMain = () => {
     const { id } = useParams<{ id: string }>();

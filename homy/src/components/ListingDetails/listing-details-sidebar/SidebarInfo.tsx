@@ -129,7 +129,6 @@ const SidebarInfo: React.FC<SidebarInfoProps> = ({ profile, isLoading, onInteres
 
             <div className="d-flex justify-content-center gap-2">
                 {renderActionButton()}
-                <Link to="#" className="btn flex-fill d-flex align-items-center justify-content-center text-white" style={{ backgroundColor: '#f16040' }}>Save</Link>
                 <Link to="#" className="btn flex-fill d-flex align-items-center justify-content-center text-white" style={{ backgroundColor: '#f16040' }}>Request Ambassador</Link>
             </div>
         </div>
