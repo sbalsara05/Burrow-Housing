@@ -13,8 +13,12 @@ try {
 		);
 	}
 
+    const streamApiOptions = {
+		timeout: 10000, // Set timeout to 10 seconds (10000 milliseconds)
+	};
+
 	// Initialize a single, server-side admin client
-	streamClient = StreamChat.getInstance(apiKey, apiSecret);
+	streamClient = StreamChat.getInstance(apiKey, apiSecret, streamApiOptions);
 	console.log("Stream Chat admin client initialized successfully.");
 } catch (error) {
 	console.error(

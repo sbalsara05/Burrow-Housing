@@ -32,40 +32,36 @@ exports.approveInterestAndCreateChannel = async (req, res) => {
 	try {
 		const interest = await Interest.findById(interestId);
 		if (!interest) {
-			return res
-				.status(404)
-				.json({
-					message: "Interest request not found.",
-				});
+			return res.status(404).json({
+				message: "Interest request not found.",
+			});
 		}
 
 		// Security check: ensure the user making the request is the lister
 		if (interest.listerId.toString() !== listerId) {
-			return res
-				.status(403)
-				.json({
-					message: "You are not authorized to approve this request.",
-				});
+			return res.status(403).json({
+				message: "You are not authorized to approve this request.",
+			});
 		}
 
 		if (interest.status === "approved") {
-			return res
-				.status(400)
-				.json({
-					message: "This request has already been approved.",
-				});
+			return res.status(400).json({
+				message: "This request has already been approved.",
+			});
 		}
 
 		const { renterId, propertyId } = interest;
 		const client = getStreamClient();
 
 		// Create a unique and predictable channel ID
-		const channelId = `listing-${propertyId}-from-${renterId}-to-${listerId}`;
+		const channelId = `interest-${interestId}`;
 
 		const channel = client.channel("messaging", channelId, {
 			name: `Inquiry for Property`, // You can customize this
 			members: [listerId.toString(), renterId.toString()],
 			created_by_id: listerId.toString(),
+			propertyId: propertyId.toString(),
+			interestId: interestId.toString(),
 		});
 
 		await channel.create();
@@ -94,9 +90,16 @@ exports.approveInterestAndCreateChannel = async (req, res) => {
 		await newNotification.save();
 		// -----------------------------------------
 
+		const populatedInterest = await Interest.findById(interestId)
+			.populate({ path: "renterId", select: "name" })
+			.populate({
+				path: "propertyId",
+				select: "overview images",
+			});
+
 		res.status(200).json({
 			message: "Request approved and chat channel created.",
-			interest,
+			interest: populatedInterest,
 		});
 	} catch (error) {
 		console.error("Error approving interest:", error);
@@ -114,27 +117,21 @@ exports.declineInterest = async (req, res) => {
 	try {
 		const interest = await Interest.findById(interestId);
 		if (!interest) {
-			return res
-				.status(404)
-				.json({
-					message: "Interest request not found.",
-				});
+			return res.status(404).json({
+				message: "Interest request not found.",
+			});
 		}
 
 		if (interest.listerId.toString() !== listerId) {
-			return res
-				.status(403)
-				.json({
-					message: "You are not authorized to decline this request.",
-				});
+			return res.status(403).json({
+				message: "You are not authorized to decline this request.",
+			});
 		}
 
 		if (interest.status !== "pending") {
-			return res
-				.status(400)
-				.json({
-					message: `This request is already ${interest.status}.`,
-				});
+			return res.status(400).json({
+				message: `This request is already ${interest.status}.`,
+			});
 		}
 
 		interest.status = "declined";
@@ -159,9 +156,16 @@ exports.declineInterest = async (req, res) => {
 		await newNotification.save();
 		// -----------------------------------------
 
+		const populatedInterest = await Interest.findById(interestId)
+			.populate({ path: "renterId", select: "name" })
+			.populate({
+				path: "propertyId",
+				select: "overview images",
+			});
+
 		res.status(200).json({
 			message: "Request declined successfully.",
-			interest,
+			interest: populatedInterest,
 		});
 	} catch (error) {
 		console.error("Error declining interest:", error);

@@ -61,7 +61,7 @@ const MyRequestsBody = () => {
                                 <img src={req.propertyId.images[0] || '/assets/images/listing/img_placeholder.jpg'} alt="property" className="img-fluid rounded" />
                             </div>
                             <div className="col-md-6">
-                                <h5>Request for: <Link to={`/listing_details_01/${req.propertyId._id}`} className="text-decoration-underline">{req.propertyId.overview.title}</Link></h5>
+                                <h5>Request for: <Link to={`/listing_details_01/${req.propertyId._id}`} className="text-decoration-underline">{req.propertyId.overview?.title}</Link></h5>
                                 <p><strong>Status:</strong> <span className={`fw-500 text-capitalize text-${req.status === 'approved' ? 'success' :
                                     req.status === 'declined' ? 'danger' :
                                         req.status === 'withdrawn' ? 'secondary' : 'warning'

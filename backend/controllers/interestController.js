@@ -61,7 +61,7 @@ exports.submitInterest = async (req, res) => {
 			userId: listerId,
 			type: "new_interest",
 			message: notificationMessage,
-			link: "/dashboard/requests",
+			link: "/dashboard/received-requests",
 			metadata: {
 				propertyId: property._id,
 				renterId: renterId,

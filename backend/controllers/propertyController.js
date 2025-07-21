@@ -13,6 +13,9 @@ const {
 	generatePresignedUrls,
 	deleteFileFromS3,
 } = require("../services/s3Service");
+const Interest = require("../models/interestModel");
+const Notification = require("../models/notificationModel");
+const { getStreamClient } = require("../services/streamService");
 
 /**
  * Controller to get the properties of a user
@@ -555,11 +558,9 @@ exports.deleteProperty = async (req, res) => {
 		await session.abortTransaction();
 		console.error("Error deleting property:", error);
 		if (error.message === "Forbidden") {
-			return res
-				.status(403)
-				.json({
-					message: "You do not have permission to delete this property.",
-				});
+			return res.status(403).json({
+				message: "You do not have permission to delete this property.",
+			});
 		}
 		res.status(500).json({
 			message: "Server error during property deletion.",
