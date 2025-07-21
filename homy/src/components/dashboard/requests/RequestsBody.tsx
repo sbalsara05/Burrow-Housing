@@ -132,11 +132,11 @@ const RequestsBody = () => {
                                 <div className="mt-auto pt-4">
                                     {req.status === 'pending' ? (
                                         <div className="d-flex gap-2">
-                                            <button onClick={() => handleDecline(req._id)} className="btn btn-outline-danger flex-fill" disabled={isLoading}>Decline</button>
-                                            <button onClick={() => handleApprove(req._id)} className="btn btn-success flex-fill" disabled={isLoading}>Approve</button>
+                                            <button onClick={() => handleDecline(req._id)} className="btn btn-outline-danger flex-fill" disabled={isLoading} style={{ backgroundColor: "#FF6725", border: "1px solid #FF3F25"}}>Decline</button>
+                                            <button onClick={() => handleApprove(req._id)} className="btn btn-success flex-fill" disabled={isLoading} style={{ backgroundColor: "#FF6725", border: "1px solid #FF3F25"}}>Approve</button>
                                         </div>
                                     ) : req.status === 'approved' ? (
-                                        <button onClick={() => navigate('/dashboard/chat')} className="btn btn-primary w-100">Go to Chat</button>
+                                        <button onClick={() => navigate('/dashboard/chat')} className="btn btn-primary w-100" style={{ backgroundColor: "#FF6725", border: "1px solid #FF3F25"}}>Go to Chat</button>
                                     ) : (
                                         <div className={`alert alert-${getStatusBadgeClass(req.status)} text-center`}>
                                             Status: {req.status}

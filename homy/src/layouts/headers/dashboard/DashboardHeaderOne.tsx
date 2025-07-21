@@ -47,7 +47,7 @@ const DashboardHeaderOne: React.FC<DashboardHeaderOneProps> = ({ isActive, setIs
             ]
         },
         {
-            title: 'Listing',
+            title: 'Manage Listings', // For Listers
             showDivider: true,
             items: [
                 {
@@ -63,28 +63,40 @@ const DashboardHeaderOne: React.FC<DashboardHeaderOneProps> = ({ isActive, setIs
                     activeIconPath: '/assets/images/dashboard/icon/icon_7_active.svg'
                 },
                 {
-                    path: '/dashboard/favourites',
-                    label: 'Favourites',
-                    iconPath: '/assets/images/dashboard/icon/icon_8.svg',
-                    activeIconPath: '/assets/images/dashboard/icon/icon_8_active.svg'
-                },
-                {
-                    path: '/dashboard/chat',
-                    label: 'Chat',
-                    iconPath: '/assets/images/icon/message-circle-more.svg',
-                    activeIconPath: '/assets/images/icon/message-circle-more-active.svg'
-                },
-                {
                     path: '/dashboard/received-requests',
                     label: 'Received Requests',
                     iconPath: '/assets/images/dashboard/icon/icon_1.svg', 
                     activeIconPath: '/assets/images/dashboard/icon/icon_1_active.svg',
                 },
+            ]
+        },
+        {
+            title: 'My Activity', // For Renters
+            showDivider: true,
+            items: [
                 {
                     path: '/dashboard/my-requests',
                     label: 'My Requests',
-                    iconPath: '/assets/images/dashboard/icon/icon_2.svg', 
+                    iconPath: '/assets/images/dashboard/icon/icon_2.svg', // Reusing an icon, can be changed
                     activeIconPath: '/assets/images/dashboard/icon/icon_2_active.svg',
+                },
+                {
+                    path: '/dashboard/favourites',
+                    label: 'Favourites',
+                    iconPath: '/assets/images/dashboard/icon/icon_8.svg',
+                    activeIconPath: '/assets/images/dashboard/icon/icon_8_active.svg'
+                },
+            ]
+        },
+        {
+            title: 'Messaging', // Dedicated Chat section
+            showDivider: true,
+            items: [
+                {
+                    path: '/dashboard/chat',
+                    label: 'Chat',
+                    iconPath: '/assets/images/icon/message-circle-more.svg',
+                    activeIconPath: '/assets/images/icon/message-circle-more-active.svg'
                 }
             ]
         }
