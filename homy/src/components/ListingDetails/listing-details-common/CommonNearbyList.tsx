@@ -1,4 +1,3 @@
-// frontend/components/ListingDetails/listing-details-common/CommonNearbyList.tsx
 import React, {useState, useEffect} from 'react';
 
 // Add this at the top of your file
@@ -15,19 +14,14 @@ interface CommonNearbyListProps {
     location?: LocationData | null;
 }
 
-// Static data as fallback
+// Static data as fallback - only the 6 items you want to keep
 const static_list_data = [
     {title: "School & College:", count: "0.9km"},
     {title: "Grocery Center:", count: "0.2km"},
     {title: "Metro Station:", count: "0.7km"},
     {title: "Gym:", count: "2.3km"},
     {title: "University:", count: "2.7km"},
-    {title: "Hospital:", count: "1.7km"},
-    {title: "Shopping Mall:", count: "1.1km"},
     {title: "Police Station:", count: "1.2km"},
-    {title: "Bus Station:", count: "1.1km"},
-    {title: "River:", count: "3.1km"},
-    {title: "Market:", count: "3.4km"},
 ];
 
 const CommonNearbyList: React.FC<CommonNearbyListProps> = ({location}) => {
@@ -35,7 +29,7 @@ const CommonNearbyList: React.FC<CommonNearbyListProps> = ({location}) => {
     const [nearbyPlaces, setNearbyPlaces] = useState(static_list_data);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [dataSource, setDataSource] = useState<string>('static'); // Track data source
+    const [isApiDataLoaded, setIsApiDataLoaded] = useState(false);
 
     // Effect to fetch nearby places using location prop
     useEffect(() => {
@@ -79,9 +73,20 @@ const CommonNearbyList: React.FC<CommonNearbyListProps> = ({location}) => {
                     console.log("📦 DEBUG - Response data:", data);
 
                     if (data.success && data.places && data.places.length > 0) {
-                        setNearbyPlaces(data.places);
-                        setDataSource('API');
-                        console.log('✅ SUCCESS: Fetched nearby places from API:', data.places);
+                        // Filter out unwanted categories and limit to 6 places
+                        const unwantedKeywords = ['management office', 'office building', 'corporate'];
+                        const filteredPlaces = data.places.filter(place =>
+                            !unwantedKeywords.some(keyword =>
+                                place.title.toLowerCase().includes(keyword.toLowerCase())
+                            )
+                        ).slice(0, 6);
+
+                        // If we don't have enough after filtering, fall back to original data
+                        const finalPlaces = filteredPlaces.length >= 6 ? filteredPlaces : data.places.slice(0, 6);
+
+                        setNearbyPlaces(finalPlaces);
+                        setIsApiDataLoaded(true);
+                        console.log('✅ SUCCESS: Fetched nearby places from API:', finalPlaces);
 
                         // Log the first few results for debugging
                         data.places.slice(0, 3).forEach((place: any, i: number) => {
@@ -91,7 +96,7 @@ const CommonNearbyList: React.FC<CommonNearbyListProps> = ({location}) => {
                         console.warn("⚠️ No nearby places found in API response, using static data");
                         console.log("🔍 API Response details:", {success: data.success, places: data.places});
                         setNearbyPlaces(static_list_data);
-                        setDataSource('static-fallback');
+                        setIsApiDataLoaded(false);
                     }
                 } catch (error) {
                     console.error("❌ DEBUG - Full error object:", error);
@@ -100,8 +105,8 @@ const CommonNearbyList: React.FC<CommonNearbyListProps> = ({location}) => {
 
                     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
                     setError(errorMessage);
-                    setNearbyPlaces(static_list_data); // Fallback to static on error
-                    setDataSource('static-error');
+                    setNearbyPlaces(static_list_data); // Always fallback to the same 6 items
+                    setIsApiDataLoaded(false);
 
                     console.log("🔄 Falling back to static data due to error");
                 } finally {
@@ -112,7 +117,7 @@ const CommonNearbyList: React.FC<CommonNearbyListProps> = ({location}) => {
 
             fetchNearby();
         } else {
-            // Use static data if no coordinates provided
+            // Use static data if no coordinates provided - same 6 items
             console.log("📍 No coordinates available, using static nearby data");
             console.log("🔍 Missing:", {
                 hasLat: location?.lat !== undefined,
@@ -121,7 +126,7 @@ const CommonNearbyList: React.FC<CommonNearbyListProps> = ({location}) => {
                 lng: location?.lng
             });
             setNearbyPlaces(static_list_data);
-            setDataSource('static-no-coords');
+            setIsApiDataLoaded(false);
         }
     }, [location?.lat, location?.lng]);
 
@@ -129,7 +134,7 @@ const CommonNearbyList: React.FC<CommonNearbyListProps> = ({location}) => {
         <>
             <h4 className="mb-20">What's Nearby</h4>
             <p className="fs-20 lh-lg pb-30">
-                {location?.lat && location?.lng
+                {isApiDataLoaded
                     ? `Real-time distances to points of interest near ${location?.address || 'this location'}.`
                     : `Approximate distances to points of interest near ${location?.address || 'the property'}.`
                 }
