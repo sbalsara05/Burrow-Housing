@@ -23,7 +23,8 @@
     "multer": "^1.4.5-lts.1",
     "nodemailer": "^6.10.0",
     "nodemon": "^3.1.9",
-    "redis": "^4.6.7"
+    "redis": "^4.6.7",
+    "stream-chat": "^9.11.0"
   },
   "author": "",
   "license": "ISC"

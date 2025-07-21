@@ -1,11 +1,14 @@
 import { configureStore, combineReducers } from '@reduxjs/toolkit';
 import { persistStore, persistReducer, FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER } from 'redux-persist';
 import storage from 'redux-persist/lib/storage';
+// Import your slices
 import authReducer from './authSlice.ts';
 import profileReducer from './profileSlice.ts';
 import propertyReducer from './propertySlice.ts';
 import filterReducer from './filterSlice.ts';
-import favoritesReducer from './favoritesSlice'; // Add this import
+import favoritesReducer from './favoritesSlice';
+import notificationReducer from './notificationSlice';
+import interestsReducer from './interestsSlice';
 
 
 // --- Redux Persist Configuration ---
@@ -26,8 +29,9 @@ const rootReducer = combineReducers({
     profile: profileReducer,
     properties: propertyReducer,
     filters: filterReducer,
-    favorites: favoritesReducer, // Add this line
-
+    favorites: favoritesReducer,
+    notifications: notificationReducer,
+    interests: interestsReducer,
 });
 
 // Create the persisted reducer

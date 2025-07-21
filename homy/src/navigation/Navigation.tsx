@@ -1,6 +1,6 @@
-import {Route, BrowserRouter as Router, Routes, Navigate} from 'react-router-dom';
+import { Route, BrowserRouter as Router, Routes, Navigate } from 'react-router-dom';
 import ScrollToTop from '../components/common/ScrollToTop';
-import {ToastContainer} from 'react-toastify';
+import { ToastContainer } from 'react-toastify';
 import ProtectedRoute from "./ProtectedRoutes";
 
 //import routes
@@ -23,11 +23,13 @@ import DashboardReview from '../pages/DashboardReview';
 import PasswordChange from '../components/dashboard/account-settings/password-change';
 import DashboardChatMain from '../components/dashboard/chat/index';
 import DashboardEditProperty from '../pages/DashboardEditProperty';
+import DashboardReceivedRequests from '../pages/DashboardReceivedRequests';
+import DashboardMyRequests from '../pages/DashboardMyRequests';
 
 const AppNavigation = () => {
     return (
         <Router>
-            <ScrollToTop/>
+            <ScrollToTop />
             <ToastContainer
                 position="top-center"
                 autoClose={3000}
@@ -39,7 +41,7 @@ const AppNavigation = () => {
                 draggable
                 pauseOnHover
                 theme="light"
-                style={{zIndex: 9999}} // Ensure proper z-index
+                style={{ zIndex: 9999 }} // Ensure proper z-index
             />
 
 
@@ -47,14 +49,14 @@ const AppNavigation = () => {
                 {/* --- PUBLIC ROUTES --- */}
                 {/* These routes are accessible to everyone, logged in or not. */}
 
-                <Route path="/" element={<Navigate to="/home" replace/>}/>
-                <Route path="/home" element={<Home/>}/>
-                <Route path="/about_us" element={<AboutUs/>}/>
-                <Route path="/contact" element={<Contact/>}/>
-                <Route path="/faq" element={<Faq/>}/>
-                <Route path="/listing_01" element={<ListingOne/>}/>
-                <Route path="/listing_14" element={<ListingFourteen/>}/>
-                <Route path="/listing_details_01/:id" element={<ListingDetailsOne/>}/>
+                <Route path="/" element={<Navigate to="/home" replace />} />
+                <Route path="/home" element={<Home />} />
+                <Route path="/about_us" element={<AboutUs />} />
+                <Route path="/contact" element={<Contact />} />
+                <Route path="/faq" element={<Faq />} />
+                <Route path="/listing_01" element={<ListingOne />} />
+                <Route path="/listing_14" element={<ListingFourteen />} />
+                <Route path="/listing_details_01/:id" element={<ListingDetailsOne />} />
 
 
                 {/* --- PROTECTED ROUTES --- */}
@@ -75,12 +77,14 @@ const AppNavigation = () => {
                     <Route path="/dashboard/favourites" element={<DashboardFavourites />} />
                     <Route path="/dashboard/review" element={<DashboardReview />} />
                     <Route path="/dashboard/edit-property/:id" element={<DashboardEditProperty />} />
+                    <Route path="/dashboard/received-requests" element={<DashboardReceivedRequests />} />
+                    <Route path="/dashboard/my-requests" element={<DashboardMyRequests />} />
                     {/* Add any other future protected routes inside this wrapper */}
                 </Route>
 
                 {/* --- CATCH-ALL / NOT FOUND ROUTE --- */}
                 {/* This route will match any URL that hasn't been matched above. */}
-                <Route path="*" element={<NotFound/>}/>
+                <Route path="*" element={<NotFound />} />
             </Routes>
         </Router>
     );

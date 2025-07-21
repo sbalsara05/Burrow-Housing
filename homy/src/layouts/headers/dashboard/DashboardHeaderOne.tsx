@@ -73,6 +73,18 @@ const DashboardHeaderOne: React.FC<DashboardHeaderOneProps> = ({ isActive, setIs
                     label: 'Chat',
                     iconPath: '/assets/images/icon/message-circle-more.svg',
                     activeIconPath: '/assets/images/icon/message-circle-more-active.svg'
+                },
+                {
+                    path: '/dashboard/received-requests',
+                    label: 'Received Requests',
+                    iconPath: '/assets/images/dashboard/icon/icon_1.svg', 
+                    activeIconPath: '/assets/images/dashboard/icon/icon_1_active.svg',
+                },
+                {
+                    path: '/dashboard/my-requests',
+                    label: 'My Requests',
+                    iconPath: '/assets/images/dashboard/icon/icon_2.svg', 
+                    activeIconPath: '/assets/images/dashboard/icon/icon_2_active.svg',
                 }
             ]
         }
