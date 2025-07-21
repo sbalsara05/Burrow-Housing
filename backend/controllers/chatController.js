@@ -72,10 +72,13 @@ exports.approveInterestAndCreateChannel = async (req, res) => {
 		await interest.save();
 
 		// --- Create Notification for the Renter ---
-		const property = await Property.findById(propertyId).select(
-			"overview.title"
-		);
-		const notificationMessage = `Your request for "${property.overview.title}" was approved! You can now chat with the lister.`;
+		const property = await Property.findById(propertyId)
+			.select("overview.title")
+			.lean();
+		const propertyTitle =
+			property?.overview?.title ||
+			"the property you requested";
+		const notificationMessage = `Your request for "${propertyTitle}" was approved! You can now chat with the lister.`;
 
 		const newNotification = new Notification({
 			userId: renterId,
@@ -138,10 +141,13 @@ exports.declineInterest = async (req, res) => {
 		await interest.save();
 
 		// --- Create Notification for the Renter ---
-		const property = await Property.findById(
-			interest.propertyId
-		).select("overview.title");
-		const notificationMessage = `Unfortunately, your request for "${property.overview.title}" was declined.`;
+		const property = await Property.findById(interest.propertyId)
+			.select("overview.title")
+			.lean();
+		const propertyTitle =
+			property?.overview?.title ||
+			"the property you requested";
+		const notificationMessage = `Unfortunately, your request for "${propertyTitle}" was declined.`;
 
 		const newNotification = new Notification({
 			userId: interest.renterId,

@@ -2,6 +2,7 @@ const Interest = require("../models/interestModel");
 const Property = require("../models/propertyModel");
 const Notification = require("../models/notificationModel");
 const User = require("../models/userModel");
+const Profile = require('../models/profileModel');
 const mongoose = require("mongoose");
 
 // POST /api/interests
@@ -90,15 +91,36 @@ exports.getReceivedInterests = async (req, res) => {
 		const interests = await Interest.find({ listerId })
 			.populate({
 				path: "renterId",
-				select: "name", // Only get the renter's name initially
+				select: "name email", // Only get the renter's name initially
 			})
 			.populate({
 				path: "propertyId",
 				select: "overview images", // Get key property details
 			})
-			.sort({ createdAt: -1 }); // Show newest requests first
+			.sort({ createdAt: -1 }) // Show newest requests first
+            .lean();
 
-		res.status(200).json(interests);
+        const populatedInterests = await Promise.all(interests.map(async (interest) => {
+            if (interest.renterId) {
+                // Select all necessary public fields from the Profile model
+                const renterProfile = await Profile.findOne({ userId: interest.renterId._id })
+                    .select('username school_attending majors_minors image')
+                    .lean();
+                
+                // Merge the profile info into the renterId object for the frontend
+                if (renterProfile) {
+                    Object.assign(interest.renterId, renterProfile);
+                }
+
+				// Fallback for username if it doesn't exist on profile
+				if (!interest.renterId.username) {
+					interest.renterId.username = interest.renterId.name;
+				}
+            }
+            return interest;
+        }));
+
+		res.status(200).json(populatedInterests);
 	} catch (error) {
 		console.error("Error fetching received interests:", error);
 		res.status(500).json({
