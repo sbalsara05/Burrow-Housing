@@ -5,8 +5,6 @@ import { Channel, ChannelList, Window, MessageList, MessageInput, Thread } from 
 
 // Import the default Stream Chat CSS for styling
 import 'stream-chat-react/dist/css/v2/index.css';
-// custom CSS 
-import "../../../../public/assets/css/custom-chat.css";
 
 // This component now renders the entire UI for the chat dashboard.
 const ChatUIComponent = () => {
