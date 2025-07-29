@@ -6,7 +6,11 @@ import { AppDispatch, RootState } from '../../../redux/slices/store';
 import { fetchPropertyById, selectCurrentProperty } from '../../../redux/slices/propertySlice';
 import { selectCurrentUser } from '../../../redux/slices/authSlice';
 
-const CustomChannelHeader: React.FC = () => {
+interface CustomChannelHeaderProps {
+    toggleSidebar: () => void;
+}
+
+const CustomChannelHeader: React.FC<CustomChannelHeaderProps> = ({ toggleSidebar }) => {
     const dispatch = useDispatch<AppDispatch>();
     const { channel } = useChannelStateContext();
     const { client } = useChatContext();
@@ -34,28 +38,40 @@ const CustomChannelHeader: React.FC = () => {
     const otherUser = members.length > 0 ? members[0].user : null;
 
     return (
-        <div className="str-chat__header-livestream burrow-chat-header">
-            <div className="burrow-chat-header__left">
-                {otherUser && (
-                    <div className="str-chat__avatar str-chat__avatar--rounded">
-                        <img src={otherUser.image || '/assets/images/dashboard/no-profile-pic.png'} alt={otherUser.name} className="str-chat__avatar-image" />
-                    </div>
-                )}
-                <div className="burrow-chat-header__details">
-                    <p className="str-chat__header-livestream-left--title">
-                        {/* We will link this to a public profile page in the future */}
-                        <Link to="#" className="burrow-user-link">
-                            {otherUser?.name || 'User'}
-                        </Link>
-                    </p>
-                    {property && (
-                        <p className="str-chat__header-livestream-left--subtitle">
-                            Inquiry for: <Link to={`/listing_details_01/${property._id}`} className="burrow-property-link">{property.overview.title}</Link>
-                        </p>
+        <div className="burrow-chat-header-container">
+            <div className="str-chat__header-livestream burrow-chat-header">
+                <div className="burrow-chat-header__left">
+                    <button onClick={toggleSidebar} className="burrow-chat-header__sidebar-toggle">
+                        <i className="fa-solid fa-bars"></i>
+                    </button>
+                    {otherUser && (
+                        <div className="str-chat__avatar str-chat__avatar--rounded">
+                            <img src={otherUser.image || '/assets/images/dashboard/no-profile-pic.png'} alt={otherUser.name} className="str-chat__avatar-image" />
+                        </div>
                     )}
+                    <div className="burrow-chat-header__details">
+                        <p className="str-chat__header-livestream-left--title">
+                            {/* We will link this to a public profile page in the future */}
+                            <Link to="#" className="burrow-user-link">
+                                {otherUser?.name || 'User'}
+                            </Link>
+                        </p>
+                    </div>
                 </div>
             </div>
-            {/* You can add actions (e.g., a "View Property" button) on the right side if needed */}
+
+            {property && (
+                <div className="burrow-property-banner">
+                    <img src={property.images?.[0] || '/assets/images/listing/img_placeholder.jpg'} alt={property.overview.title} className="burrow-property-banner__img" />
+                    <div className="burrow-property-banner__info">
+                        <p className="burrow-property-banner__title">{property.overview.title}</p>
+                        <p className="burrow-property-banner__price">${property.overview.rent.toLocaleString()}/month</p>
+                    </div>
+                    <Link to={`/listing_details_01/${property._id}`} className="burrow-property-banner__btn">
+                        View Listing
+                    </Link>
+                </div>
+            )}
         </div>
     );
 };
