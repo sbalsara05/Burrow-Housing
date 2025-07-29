@@ -2,7 +2,7 @@ import DashboardHeaderOne from "../../../layouts/headers/dashboard/DashboardHead
 import DashboardHeaderTwo from '../../../layouts/headers/dashboard/DashboardHeaderTwo';
 import ChatProvider from './ChatProvider'; // Import our provider
 import { Channel, ChannelList, Window, MessageList, MessageInput, Thread } from 'stream-chat-react';
-
+import CustomChannelHeader from './CustomChannelHeader';
 // Import the default Stream Chat CSS for styling
 import 'stream-chat-react/dist/css/v2/index.css';
 
@@ -34,6 +34,7 @@ const ChatUIComponent = () => {
                                         Window: A wrapper providing the header for the active channel.
                                     */}
                                     <Window>
+                                        <CustomChannelHeader />
                                         {/* 
                                             MessageList: Automatically displays messages and handles pagination.
                                         */}
