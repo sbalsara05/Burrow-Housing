@@ -25,6 +25,7 @@ import DashboardChatMain from '../components/dashboard/chat/index';
 import DashboardEditProperty from '../pages/DashboardEditProperty';
 import DashboardReceivedRequests from '../pages/DashboardReceivedRequests';
 import DashboardMyRequests from '../pages/DashboardMyRequests';
+import PublicProfilePage from '../pages/PublicProfilePage';
 
 const AppNavigation = () => {
     return (
@@ -57,6 +58,7 @@ const AppNavigation = () => {
                 <Route path="/listing_01" element={<ListingOne />} />
                 <Route path="/listing_14" element={<ListingFourteen />} />
                 <Route path="/listing_details_01/:id" element={<ListingDetailsOne />} />
+                <Route path="/profile/:userId" element={<PublicProfilePage />} />
 
 
                 {/* --- PROTECTED ROUTES --- */}

@@ -36,7 +36,6 @@
     // 1. Channel List (Left Sidebar)
     .str-chat__channel-list-messenger {
 
-        // *** THIS IS THE NEW FIX FOR THE HORIZONTAL SCROLLBAR ***
         .str-chat__channel-list-messenger__main {
             overflow-x: hidden !important; // Explicitly hide horizontal overflow
         }
@@ -118,7 +117,7 @@
 
     // 4. Send Button
     .str-chat__send-button {
-        background-color: var(--str-chat__primary-color) !important;
+        //background-color: var(--str-chat__primary-color) !important;
         border-radius: 50%;
         width: 38px;
         height: 38px;
@@ -126,6 +125,7 @@
         align-items: center;
         justify-content: center;
         transition: background-color 0.2s ease;
+        color: #fff !important;
 
         svg {
             fill: #fff !important;
@@ -134,7 +134,7 @@
         }
 
         &:hover {
-            background-color: #{$color-two} !important;
+            background-color: #c8b8ab !important;
         }
 
         &:disabled {
@@ -271,6 +271,59 @@
             font-weight: 500;
         }
     }
+
+    .str-chat__li {
+
+        // This targets the container for each entire message line (avatar + bubble)
+        &.str-chat__li--me {
+            justify-content: flex-end; // Pushes the message content to the right
+
+            .str-chat__message-simple--me {
+
+                // Hides your own avatar for a cleaner look, common in modern chats
+                .str-chat__avatar {
+                    display: none;
+                }
+            }
+        }
+    }
+
+    .str-chat__message-text {
+        padding: 0px !important;
+    }
+
+    .str-chat__message-text-inner,
+    .str-chat__message-simple-text-inner {
+        padding: 7px 15px;
+    }
+
+    @media (max-width: 767px) {
+        .burrow-chat-container {
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        .burrow-chat-sidebar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            width: 85%;
+            max-width: 320px;
+            transform: translateX(-100%);
+            transition: transform 0.3s ease-in-out;
+            z-index: 100;
+
+            &.visible {
+                transform: translateX(0);
+                box-shadow: 4px 0px 15px rgba(0, 0, 0, 0.1);
+            }
+        }
+
+        .burrow-chat-header__sidebar-toggle {
+            display: block;
+        }
+    }
 }
 
 // --- LAYOUT & RESPONSIVENESS FIXES ---
@@ -283,32 +336,4 @@
 .burrow-chat-sidebar {
     overflow-x: hidden;
     width: 25%;
-}
-
-@media (max-width: 767px) {
-    .burrow-chat-container {
-        position: relative;
-        overflow-x: hidden;
-    }
-
-    .burrow-chat-sidebar {
-        position: absolute;
-        top: 0;
-        left: 0;
-        bottom: 0;
-        width: 85%;
-        max-width: 320px;
-        transform: translateX(-100%);
-        transition: transform 0.3s ease-in-out;
-        z-index: 100;
-
-        &.visible {
-            transform: translateX(0);
-            box-shadow: 4px 0px 15px rgba(0, 0, 0, 0.1);
-        }
-    }
-
-    .burrow-chat-header__sidebar-toggle {
-        display: block;
-    }
 }

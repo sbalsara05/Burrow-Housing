@@ -9,9 +9,7 @@ const ProtectedRoute = () => {
     const isAuthenticated = useSelector(selectIsAuthenticated);
     const authStatus = useSelector(selectAuthStatus);
     const token = useSelector(selectAuthToken);
-    // Show the loading spinner ONLY IF:
-    // 1. The status is 'loading' (actively fetching).
-    // 2. The status is 'idle' BUT a token exists (meaning App.tsx is about to fetch).
+    // If the auth status is loading or idle with a token, show a loading state.
     if (authStatus === 'loading' || (authStatus === 'idle' && token)) {
         return (
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', backgroundColor: '#f0f2f5' }}>

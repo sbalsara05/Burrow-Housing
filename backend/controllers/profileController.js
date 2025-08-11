@@ -240,34 +240,51 @@ exports.getPublicProfile = async (req, res) => {
 	try {
 		const { userId } = req.params;
 
-		// Validate if the userId is a valid MongoDB ObjectId
 		if (!mongoose.Types.ObjectId.isValid(userId)) {
 			return res
 				.status(400)
 				.json({ message: "Invalid user ID format." });
 		}
 
-		// Find the profile and select only the fields we want to expose publicly
-		const profile = await Profile.findOne({ userId }).select(
-			"username school_attending image majors_minors about"
-		); // Whitelist public fields
+		// Fetch both profile and user data in parallel
+		const [profile, user] = await Promise.all([
+			Profile.findOne({ userId })
+				// *** THE FIX IS HERE: Add 'createdAt' to the select string ***
+				.select(
+					"username school_attending image majors_minors about userId createdAt"
+				)
+				.lean(),
+			User.findById(userId).select("createdAt name").lean(), // Still needed for fallback
+		]);
 
-		if (!profile) {
-			// If no detailed profile, try finding the basic user to get their name
-			const user = await User.findById(userId).select("name");
-			if (user) {
-				// Return a fallback profile object with basic info
-				return res.status(200).json({
-					username: user.name,
-					// No other profile details are available
-				});
-			}
+		if (!user) {
 			return res
 				.status(404)
-				.json({ message: "Profile not found." });
+				.json({ message: "User not found." });
 		}
 
-		res.status(200).json(profile);
+		// If a detailed profile exists, it now contains the `createdAt` field.
+		if (profile) {
+			// We no longer need to merge manually, as `profile.createdAt` is now available.
+			// We can add a fallback just in case, but it should be present.
+			const publicProfile = {
+				...profile,
+				createdAt: profile.createdAt || user.createdAt,
+			};
+			return res.status(200).json(publicProfile);
+		}
+
+		// If NO detailed profile exists, use the User model's data as fallback.
+		const fallbackProfile = {
+			userId: user._id,
+			username: user.name,
+			createdAt: user.createdAt, // This was already correct
+			school_attending: "Not specified",
+			majors_minors: "Not specified",
+			about: "No bio provided.",
+			image: null,
+		};
+		res.status(200).json(fallbackProfile);
 	} catch (error) {
 		console.error("Error fetching public profile:", error);
 		res.status(500).json({

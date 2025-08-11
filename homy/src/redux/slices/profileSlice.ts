@@ -4,7 +4,7 @@ import axios from 'axios';
 import { RootState } from './store.ts'; // Import RootState type
 
 // --- Configuration ---
-const API_URL = 'http://localhost:3000/api'; // Ensure this matches your backend URL
+const API_URL = 'http://localhost:3000/api'; // Ensure this matches our backend URL
 
 // --- Interfaces ---
 // Define the shape of the Profile object based on your backend's profileModel.js
@@ -17,6 +17,7 @@ export interface Profile {
     school_attending?: string;
     about?: string;
     image?: string | null; // Stores the *URL* of the image from S3
+    createdAt?: string;
     // Add other fields from profileModel if needed
 }
 
@@ -39,18 +40,24 @@ interface UpdateProfilePayload {
 // Define the shape of the Profile state within Redux
 interface ProfileState {
     profile: Profile | null;    // Holds the detailed profile data
+    publicProfile: Profile | null;
     isLoading: boolean;         // Is a profile operation (fetch/update) in progress?
     isUpdatingProfile: boolean; // Specific loading state for profile updates
+    isPublicProfileLoading: boolean;
     error: string | null;        // Stores error messages from profile API calls
+    publicProfileError: string | null;
     status: 'idle' | 'loading' | 'succeeded' | 'failed'; // Detailed status
 }
 
 // --- Initial State ---
 const initialState: ProfileState = {
     profile: null,
+    publicProfile: null,
     isLoading: false,
     isUpdatingProfile: false,
+    isPublicProfileLoading: false,
     error: null,
+    publicProfileError: null,
     status: 'idle',
 };
 
@@ -80,6 +87,31 @@ export const fetchProfile = createAsyncThunk(
     }
 );
 
+//Thunk to Fetch a Public Profile by User ID
+export const fetchPublicProfile = createAsyncThunk(
+    'profile/fetchPublicProfile',
+    async (userId: string, { rejectWithValue }) => {
+        try {
+            console.log(`[profileSlice] 1. Dispatching fetchPublicProfile for userId: ${userId}`);
+            const response = await axios.get(`${API_URL}/profile/public/${userId}`);
+
+            // *** ADD THIS LOG ***
+            console.log("[profileSlice] 2. API Success. Data received from backend:", JSON.stringify(response.data, null, 2));
+            // Let's explicitly check for the 'createdAt' field here.
+            if (response.data.createdAt) {
+                console.log(`[profileSlice] 2a. 'createdAt' field is PRESENT in API response: ${response.data.createdAt}`);
+            } else {
+                console.warn("[profileSlice] 2a. 'createdAt' field is MISSING from API response!");
+            }
+
+            return response.data as Profile;
+        } catch (error: any) {
+            console.error("[profileSlice] fetchPublicProfile error:", error.response?.data || error.message);
+            return rejectWithValue(error.response?.data?.message || 'Failed to fetch profile.');
+        }
+    }
+);
+
 // Thunk to Update Profile with Image Upload (Similar to Property Pattern)
 export const updateProfileWithImage = createAsyncThunk(
     'profile/updateProfileWithImage',
@@ -95,13 +127,13 @@ export const updateProfileWithImage = createAsyncThunk(
             // Phase 1: Upload image if provided
             if (imageFile) {
                 console.log("Phase 1: Uploading profile image...");
-                
+
                 // Get presigned URL for image upload
                 const presignedUrlResponse = await axios.post(
                     `${API_URL}/upload-url`,
-                    { 
-                        filename: imageFile.name, 
-                        contentType: imageFile.type 
+                    {
+                        filename: imageFile.name,
+                        contentType: imageFile.type
                     },
                     { headers: { Authorization: `Bearer ${token}` } }
                 );
@@ -135,7 +167,7 @@ export const updateProfileWithImage = createAsyncThunk(
             };
 
             const response = await axios.put(
-                `${API_URL}/profile`, 
+                `${API_URL}/profile`,
                 finalProfileData,
                 { headers: { Authorization: `Bearer ${token}` } }
             );
@@ -159,7 +191,7 @@ export const updateProfile = createAsyncThunk(
         try {
             // Extract image file from FormData if present
             const imageFile = profileData.get('image') as File | null;
-            
+
             // Convert FormData to regular object for the new thunk
             const dataObject: Omit<ProfileUpdateData, 'imageUrl'> = {
                 username: profileData.get('username') as string,
@@ -195,15 +227,12 @@ const profileSlice = createSlice({
     reducers: {
         clearProfileError: (state) => {
             state.error = null;
+            state.publicProfileError = null;
         },
         // Action to clear profile data, e.g., on logout
         clearProfile: (state) => {
             console.log("Reducer: clearProfile");
-            state.profile = null;
-            state.status = 'idle';
-            state.error = null;
-            state.isLoading = false;
-            state.isUpdatingProfile = false;
+            Object.assign(state, initialState);
         },
     },
     // Handle async thunk lifecycle actions
@@ -228,6 +257,25 @@ const profileSlice = createSlice({
                 state.error = action.payload as string; // Store the error message
                 state.status = 'failed';
                 // state.profile = null; // Optionally clear profile on fetch error
+            })
+
+            // --- Fetch Public Profile ---
+            .addCase(fetchPublicProfile.pending, (state) => {
+                state.isPublicProfileLoading = true; state.publicProfileError = null; state.publicProfile = null;
+            })
+            .addCase(fetchPublicProfile.fulfilled, (state, action: PayloadAction<Profile>) => {
+                // *** ADD THIS LOG ***
+                console.log("[profileSlice] 3. Reducer updating state with payload:", JSON.stringify(action.payload, null, 2));
+                if (action.payload.createdAt) {
+                    console.log(`[profileSlice] 3a. 'createdAt' is being set in Redux state: ${action.payload.createdAt}`);
+                } else {
+                    console.warn("[profileSlice] 3a. Payload for reducer is MISSING 'createdAt' field!");
+                }
+
+                state.isPublicProfileLoading = false; state.publicProfile = action.payload;
+            })
+            .addCase(fetchPublicProfile.rejected, (state, action) => {
+                state.isPublicProfileLoading = false; state.publicProfileError = action.payload as string;
             })
 
             // --- Update Profile with Image ---
@@ -288,5 +336,8 @@ export const selectProfileLoading = (state: RootState) => state.profile.isLoadin
 export const selectIsUpdatingProfile = (state: RootState) => state.profile.isUpdatingProfile;
 export const selectProfileError = (state: RootState) => state.profile.error;
 export const selectProfileStatus = (state: RootState) => state.profile.status;
+export const selectPublicProfile = (state: RootState) => state.profile.publicProfile;
+export const selectIsPublicProfileLoading = (state: RootState) => state.profile.isPublicProfileLoading;
+export const selectPublicProfileError = (state: RootState) => state.profile.publicProfileError;
 
 export default profileSlice.reducer;
