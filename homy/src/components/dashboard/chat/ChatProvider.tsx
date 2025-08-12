@@ -1,10 +1,10 @@
-// fe/src/components/dashboard/chat/ChatProvider.tsx
 import React, { useState, useEffect } from 'react';
 import { StreamChat } from 'stream-chat';
 import { Chat } from 'stream-chat-react';
 import axios from 'axios';
 import { useSelector } from 'react-redux';
 import { selectCurrentUser } from '../../../redux/slices/authSlice';
+import { selectProfile, selectProfileStatus } from '../../../redux/slices/profileSlice';
 
 // --- Configuration ---
 const STREAM_API_KEY = import.meta.env.VITE_STREAM_API_KEY;
@@ -12,7 +12,6 @@ if (!STREAM_API_KEY) {
     throw new Error("VITE_STREAM_API_KEY is not set in environment variables.");
 }
 
-// Initialize the Stream client instance. This is done only once.
 const chatClient = StreamChat.getInstance(STREAM_API_KEY);
 
 interface ChatProviderProps {
@@ -22,26 +21,39 @@ interface ChatProviderProps {
 const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
     const [isClientReady, setIsClientReady] = useState(false);
     const currentUser = useSelector(selectCurrentUser);
+    const profile = useSelector(selectProfile);
+    const profileStatus = useSelector(selectProfileStatus);
 
     useEffect(() => {
         let didUnmount = false;
 
         const setupChatClient = async () => {
-            if (!currentUser) {
-                console.log("ChatProvider: No current user, waiting...");
-                return;
+            if (!currentUser || !profile || profileStatus !== 'succeeded') {
+                return; // Wait for all data to be ready
             }
 
-            if (chatClient.userID === currentUser._id && chatClient.wsConnection) {
-                console.log("ChatProvider: Client is already connected for this user.");
+            const userToConnect = {
+                id: currentUser._id,
+                name: profile.username || currentUser.name,
+                image: profile.image || undefined,
+            };
+
+            // If client is already connected with the correct user, just ensure data is fresh
+            if (chatClient.userID === currentUser._id) {
+                console.log("ChatProvider: Client already connected. Forcing user data update...");
+                await chatClient.upsertUser(userToConnect); // Force update user data
                 if (!didUnmount) setIsClientReady(true);
                 return;
             }
 
-            console.log(`ChatProvider: Setting up client for user ${currentUser.name} (${currentUser._id})`);
+            console.log(`ChatProvider: Setting up new client connection for user ${currentUser.name}`);
 
             try {
-                // 1. Fetch the secure user token from our backend
+                // Disconnect any previous user first to ensure a clean connection
+                if (chatClient.userID) {
+                    await chatClient.disconnectUser();
+                }
+
                 const response = await axios.get('http://localhost:3000/api/chat/token');
                 const userToken = response.data.token;
 
@@ -49,14 +61,8 @@ const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
                     throw new Error("No token received from backend");
                 }
 
-                // 2. Connect the user to Stream with the secure token
-                await chatClient.connectUser(
-                    {
-                        id: currentUser._id,
-                        name: currentUser.name,
-                    },
-                    userToken
-                );
+                console.log("ChatProvider: Connecting user with complete data:", userToConnect);
+                await chatClient.connectUser(userToConnect, userToken);
 
                 console.log("ChatProvider: Stream user connected successfully.");
                 if (!didUnmount) {
@@ -64,9 +70,6 @@ const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
                 }
             } catch (error) {
                 console.error("ChatProvider: Failed to connect to Stream Chat.", error);
-                if (chatClient.userID) {
-                    await chatClient.disconnectUser();
-                }
                 if (!didUnmount) {
                     setIsClientReady(false);
                 }
@@ -77,7 +80,6 @@ const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
 
         return () => {
             didUnmount = true;
-            console.log("ChatProvider: Unmounting. Disconnecting user from Stream.");
             if (chatClient.userID) {
                 chatClient.disconnectUser().catch(err => {
                     console.error("ChatProvider: Error during disconnect on unmount.", err);
@@ -85,7 +87,7 @@ const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
             }
             setIsClientReady(false);
         };
-    }, [currentUser]);
+    }, [currentUser, profile, profileStatus]);
 
     if (!isClientReady) {
         return (

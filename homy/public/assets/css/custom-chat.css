@@ -6,7 +6,19 @@
  * It works by overriding the default CSS variables provided by Stream.
 */
 .str-chat__theme-light {
-  --str-chat__font-family: Gordita, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --str-chat__font-family: Gordita,
+  -apple-system,
+  BlinkMacSystemFont,
+  "Segoe UI",
+  Roboto,
+  "Helvetica Neue",
+  Arial,
+  "Noto Sans",
+  sans-serif,
+  "Apple Color Emoji",
+  "Segoe UI Emoji",
+  "Segoe UI Symbol",
+  "Noto Color Emoji";
   --str-chat__color-text: #000;
   --str-chat__color-text-low-emphasis: rgba(0, 0, 0, 0.7);
   --str-chat__primary-color: #FF6725;
@@ -14,8 +26,8 @@
   --str-chat__primary-color-alpha-10: rgba(255, 103, 37, 0.1);
   --str-chat__bg-color-main-content: #FFF8F4;
   --str-chat__bg-color-main: #ffffff;
-  --str-chat__bg-color-hover: #f7f7f7;
-  --str-chat__border-color: #e3e1e1;
+  --str-chat__bg-color-hover: rgba(255, 248, 244, 0.6);
+  --str-chat__border-color: #E9E9E9;
   --str-chat__channel-list-box-shadow: none;
 }
 

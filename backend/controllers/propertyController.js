@@ -418,6 +418,9 @@ exports.getAllProperties = async (req, res) => {
 	}
 };
 
+/**
+ * Controller to Get Property by ID
+ */
 exports.getPropertyById = async (req, res) => {
 	try {
 		const propertyId = req.params.id;
@@ -455,7 +458,9 @@ exports.getPropertyById = async (req, res) => {
 	}
 };
 
-// Generate Presigned URLs for Direct Upload ---
+/**
+ * Controller to Get Presigned URLs for file uploads
+ */
 exports.getPresignedUrls = async (req, res) => {
 	try {
 		const { files } = req.body;
@@ -569,6 +574,7 @@ exports.deleteProperty = async (req, res) => {
 		session.endSession();
 	}
 };
+
 /**
  * Controller to UPDATE a property owned by the authenticated user
  */
@@ -660,5 +666,41 @@ exports.updateProperty = async (req, res) => {
 			message: "Server error while updating property.",
 			error: error.message,
 		});
+	}
+};
+
+/**
+ * Controller to get all PUBLIC properties for a specific user ID
+ */
+exports.getPropertiesByUserId = async (req, res) => {
+	try {
+		const { userId } = req.params;
+		console.log(
+			`Fetching public properties for user ID: ${userId}`
+		);
+
+		if (!mongoose.Types.ObjectId.isValid(userId)) {
+			return res
+				.status(400)
+				.json({ message: "Invalid User ID format." });
+		}
+
+		// Find properties that belong to the user AND are active
+		const properties = await Property.find({
+			userId: userId,
+			status: "Active", // Only show active listings on public profiles
+		})
+			.sort({ createdAt: -1 }) // Show newest first
+			.lean();
+
+		if (!properties) {
+			// This case is unlikely with find(), which returns [], but good practice
+			return res.status(200).json([]);
+		}
+
+		res.status(200).json(properties);
+	} catch (error) {
+		console.error("Error fetching properties by user ID:", error);
+		res.status(500).json({ message: "Server error" });
 	}
 };

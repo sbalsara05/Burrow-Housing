@@ -987,3 +987,54 @@
         }
     }
 }
+
+.media-gallery {
+    .media-gallery-main-image-container {
+        height: 700px; // The fixed height for the main image display
+        max-height: 70vh; // Ensure it doesn't take up too much vertical space on smaller screens
+        width: 100%;
+        background-color: #f1f1f1; // A fallback background color
+        border-radius: 20px; // Match the container's border radius
+        overflow: hidden; // Crucial to contain the image
+
+        img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover; // This is the key property! It makes the image cover the area without distortion.
+            object-position: center; // Center the image within the container
+        }
+    }
+
+    // Styles for the thumbnail indicators on the side
+    .thumb-indicators-vertical {
+        .nav-link {
+            height: 120px; // Give thumbnails a consistent height
+            margin-bottom: 15px;
+            padding: 0;
+
+            img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                border-radius: 10px; // Rounded corners for thumbnails
+                border: 2px solid transparent;
+                transition: border-color 0.3s ease;
+            }
+
+            &.active img,
+            &:hover img {
+                border-color: var(--burrow-primary, #FF6725); // Highlight active/hovered thumbnail
+            }
+        }
+    }
+}
+
+// Responsive adjustments for the media gallery
+@media (max-width: 991px) {
+    .media-gallery .media-gallery-main-image-container {
+        height: 400px;
+    }
+
+    // On smaller screens, the vertical thumbnails will likely wrap or be hidden by default Bootstrap behavior.
+    // We can add styles here to make them a horizontal scroll if needed.
+}

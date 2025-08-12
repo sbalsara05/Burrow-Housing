@@ -86,14 +86,17 @@ interface PropertyState {
     allProperties: Property[]; // Holds the properties for the *current* page of public listings
     userProperties: Property[]; // Holds full property objects added by the logged-in user
     userPropertiesSort: string; // Holds the sort order for user properties (e.g., "Newest", "Oldest", etc.)
+    userPublicProperties: Property[]; // Holds public properties added by the logged-in user
     userPropertyIds: string[]; // Holds only the IDs fetched from /api/properties initially
     currentProperty: Property | null; // Holds details for a single property view
     publicPagination: PaginationInfo | null; // Holds pagination data for public listings
     isLoading: boolean; // General loading state for property operations
     isUserPropertiesLoading: boolean; // Specific loading for user properties
     isPublicPropertiesLoading: boolean; // Specific loading for public properties
+    isUserPublicPropertiesLoading: boolean; // Specific loading for user public properties
     isAddingProperty: boolean; // Specific loading for adding property
     error: string | null; // Stores error messages
+    userPublicPropertiesError: string | null; // Error for user public properties
     status: 'idle' | 'loading' | 'succeeded' | 'failed'; // Overall status
 }
 
@@ -108,14 +111,17 @@ const initialState: PropertyState = {
     allProperties: [],
     userProperties: [],
     userPropertiesSort: 'newest',
+    userPublicProperties: [],
     userPropertyIds: [], // Initialize IDs array
     currentProperty: null,
     publicPagination: null,
     isLoading: false, // Combined loading state
     isUserPropertiesLoading: false,
     isPublicPropertiesLoading: false,
+    isUserPublicPropertiesLoading: false,
     isAddingProperty: false,
     error: null,
+    userPublicPropertiesError: null,
     status: 'idle',
 };
 
@@ -135,6 +141,19 @@ interface FetchPropertiesPayload {
 interface PresignedUrlPayload {
     files: { filename: string; contentType: string; }[];
 }
+
+//Thunk to Fetch Public Properties for a specific User ID
+export const fetchPropertiesByUserId = createAsyncThunk(
+    'properties/fetchByUserId',
+    async (userId: string, { rejectWithValue }) => {
+        try {
+            const response = await axios.get(`${API_URL}/properties/user/${userId}`);
+            return response.data as Property[];
+        } catch (error: any) {
+            return rejectWithValue(error.response?.data?.message || 'Failed to fetch user listings.');
+        }
+    }
+);
 
 export const fetchAllPublicProperties = createAsyncThunk(
     'properties/fetchAllPublicProperties',
@@ -438,6 +457,20 @@ const propertySlice = createSlice({
                 state.publicPagination = null;
             })
 
+            // --- Fetch Properties by User ID (for Public Profile) ---
+            .addCase(fetchPropertiesByUserId.pending, (state) => {
+                state.isUserPublicPropertiesLoading = true;
+                state.userPublicPropertiesError = null;
+            })
+            .addCase(fetchPropertiesByUserId.fulfilled, (state, action: PayloadAction<Property[]>) => {
+                state.isUserPublicPropertiesLoading = false;
+                state.userPublicProperties = action.payload;
+            })
+            .addCase(fetchPropertiesByUserId.rejected, (state, action) => {
+                state.isUserPublicPropertiesLoading = false;
+                state.userPublicPropertiesError = action.payload as string;
+            })
+
             // --- Fetch Full User Properties ---
             .addCase(fetchUserProperties.pending, (state) => {
                 console.log("Reducer: fetchUserProperties.pending");
@@ -445,136 +478,136 @@ const propertySlice = createSlice({
                 state.isLoading = true;
                 state.error = null;
             })
-            .addCase(fetchUserProperties.fulfilled, (state, action: PayloadAction<Property[]>) => {
-                console.log("Reducer: fetchUserProperties.fulfilled");
-                state.isUserPropertiesLoading = false;
-                state.isLoading = false;
-                state.userProperties = action.payload;
-                state.status = 'succeeded';
-            })
-            .addCase(fetchUserProperties.rejected, (state, action) => {
-                console.log("Reducer: fetchUserProperties.rejected", action.payload);
-                state.isUserPropertiesLoading = false;
-                state.isLoading = false;
-                state.error = action.payload as string;
-                state.status = 'failed';
-                state.userProperties = [];
-            })
+        .addCase(fetchUserProperties.fulfilled, (state, action: PayloadAction<Property[]>) => {
+            console.log("Reducer: fetchUserProperties.fulfilled");
+            state.isUserPropertiesLoading = false;
+            state.isLoading = false;
+            state.userProperties = action.payload;
+            state.status = 'succeeded';
+        })
+        .addCase(fetchUserProperties.rejected, (state, action) => {
+            console.log("Reducer: fetchUserProperties.rejected", action.payload);
+            state.isUserPropertiesLoading = false;
+            state.isLoading = false;
+            state.error = action.payload as string;
+            state.status = 'failed';
+            state.userProperties = [];
+        })
 
-            // --- Fetch User Property IDs ---
-            .addCase(fetchUserPropertyIds.pending, (state) => {
-                console.log("Reducer: fetchUserPropertyIds.pending");
-                state.isUserPropertiesLoading = true;
-                state.isLoading = true;
-                state.error = null;
-            })
-            .addCase(fetchUserPropertyIds.fulfilled, (state, action: PayloadAction<string[]>) => {
-                console.log("Reducer: fetchUserPropertyIds.fulfilled");
-                state.isUserPropertiesLoading = false;
-                state.isLoading = false;
-                state.userPropertyIds = action.payload;
-                state.status = 'succeeded';
-            })
-            .addCase(fetchUserPropertyIds.rejected, (state, action) => {
-                console.log("Reducer: fetchUserPropertyIds.rejected", action.payload);
-                state.isUserPropertiesLoading = false;
-                state.isLoading = false;
-                state.error = action.payload as string;
-                state.status = 'failed';
-                state.userPropertyIds = [];
-            })
+        // --- Fetch User Property IDs ---
+        .addCase(fetchUserPropertyIds.pending, (state) => {
+            console.log("Reducer: fetchUserPropertyIds.pending");
+            state.isUserPropertiesLoading = true;
+            state.isLoading = true;
+            state.error = null;
+        })
+        .addCase(fetchUserPropertyIds.fulfilled, (state, action: PayloadAction<string[]>) => {
+            console.log("Reducer: fetchUserPropertyIds.fulfilled");
+            state.isUserPropertiesLoading = false;
+            state.isLoading = false;
+            state.userPropertyIds = action.payload;
+            state.status = 'succeeded';
+        })
+        .addCase(fetchUserPropertyIds.rejected, (state, action) => {
+            console.log("Reducer: fetchUserPropertyIds.rejected", action.payload);
+            state.isUserPropertiesLoading = false;
+            state.isLoading = false;
+            state.error = action.payload as string;
+            state.status = 'failed';
+            state.userPropertyIds = [];
+        })
 
-            // --- Add New Property ---
-            .addCase(addNewProperty.pending, (state) => {
-                console.log("Reducer: addNewProperty.pending");
-                state.isAddingProperty = true;
-                state.isLoading = true;
-                state.error = null;
-            })
-            .addCase(addNewProperty.fulfilled, (state, action: PayloadAction<Property>) => {
-                console.log("Reducer: addNewProperty.fulfilled");
-                state.isAddingProperty = false;
-                state.isLoading = false;
-                // Add the new property to the beginning of the userProperties array
-                state.userProperties.unshift(action.payload);
-                state.status = 'succeeded';
-            })
-            .addCase(addNewProperty.rejected, (state, action) => {
-                console.log("Reducer: addNewProperty.rejected", action.payload);
-                state.isAddingProperty = false;
-                state.isLoading = false;
-                state.error = action.payload as string;
-                state.status = 'failed';
-            })
+        // --- Add New Property ---
+        .addCase(addNewProperty.pending, (state) => {
+            console.log("Reducer: addNewProperty.pending");
+            state.isAddingProperty = true;
+            state.isLoading = true;
+            state.error = null;
+        })
+        .addCase(addNewProperty.fulfilled, (state, action: PayloadAction<Property>) => {
+            console.log("Reducer: addNewProperty.fulfilled");
+            state.isAddingProperty = false;
+            state.isLoading = false;
+            // Add the new property to the beginning of the userProperties array
+            state.userProperties.unshift(action.payload);
+            state.status = 'succeeded';
+        })
+        .addCase(addNewProperty.rejected, (state, action) => {
+            console.log("Reducer: addNewProperty.rejected", action.payload);
+            state.isAddingProperty = false;
+            state.isLoading = false;
+            state.error = action.payload as string;
+            state.status = 'failed';
+        })
 
-            // --- Fetch Single Property By ID ---
-            .addCase(fetchPropertyById.pending, (state) => {
-                console.log("Reducer: fetchPropertyById.pending");
-                state.isLoading = true;
-                state.status = 'loading';
-                state.error = null;
-                state.currentProperty = null;
-            })
-            .addCase(fetchPropertyById.fulfilled, (state, action: PayloadAction<Property>) => {
-                console.log("Reducer: fetchPropertyById.fulfilled");
-                state.isLoading = false;
+        // --- Fetch Single Property By ID ---
+        .addCase(fetchPropertyById.pending, (state) => {
+            console.log("Reducer: fetchPropertyById.pending");
+            state.isLoading = true;
+            state.status = 'loading';
+            state.error = null;
+            state.currentProperty = null;
+        })
+        .addCase(fetchPropertyById.fulfilled, (state, action: PayloadAction<Property>) => {
+            console.log("Reducer: fetchPropertyById.fulfilled");
+            state.isLoading = false;
+            state.currentProperty = action.payload;
+            state.status = 'succeeded';
+        })
+        .addCase(fetchPropertyById.rejected, (state, action) => {
+            console.log("Reducer: fetchPropertyById.rejected", action.payload);
+            state.isLoading = false;
+            state.error = action.payload as string;
+            state.status = 'failed';
+            state.currentProperty = null;
+        })
+
+        // --- Delete User Property ---
+        .addCase(deleteUserProperty.pending, (state) => {
+            console.log("Reducer: deleteUserProperty.pending");
+            state.isLoading = true; // Use general loading state for this
+            state.error = null;
+        })
+        .addCase(deleteUserProperty.fulfilled, (state, action: PayloadAction<string>) => {
+            console.log("Reducer: deleteUserProperty.fulfilled");
+            state.isLoading = false;
+            // Filter out the deleted property from the userProperties array
+            state.userProperties = state.userProperties.filter(
+                (property) => property._id !== action.payload
+            );
+        })
+        .addCase(deleteUserProperty.rejected, (state, action) => {
+            console.log("Reducer: deleteUserProperty.rejected", action.payload);
+            state.isLoading = false;
+            state.error = action.payload as string;
+        })
+
+        // --- Update User Property ---
+        .addCase(updateUserProperty.pending, (state) => {
+            state.isLoading = true;
+            state.isAddingProperty = true; // Reuse this state for the submit button
+            state.error = null;
+        })
+        .addCase(updateUserProperty.fulfilled, (state, action: PayloadAction<Property>) => {
+            state.isLoading = false;
+            state.isAddingProperty = false;
+            // Find the index of the property to update
+            const index = state.userProperties.findIndex(p => p._id === action.payload._id);
+            if (index !== -1) {
+                // Replace the old property with the updated one
+                state.userProperties[index] = action.payload;
+            }
+            // Also update the currentProperty if it's the one being edited
+            if (state.currentProperty?._id === action.payload._id) {
                 state.currentProperty = action.payload;
-                state.status = 'succeeded';
-            })
-            .addCase(fetchPropertyById.rejected, (state, action) => {
-                console.log("Reducer: fetchPropertyById.rejected", action.payload);
-                state.isLoading = false;
-                state.error = action.payload as string;
-                state.status = 'failed';
-                state.currentProperty = null;
-            })
-
-            // --- Delete User Property ---
-            .addCase(deleteUserProperty.pending, (state) => {
-                console.log("Reducer: deleteUserProperty.pending");
-                state.isLoading = true; // Use general loading state for this
-                state.error = null;
-            })
-            .addCase(deleteUserProperty.fulfilled, (state, action: PayloadAction<string>) => {
-                console.log("Reducer: deleteUserProperty.fulfilled");
-                state.isLoading = false;
-                // Filter out the deleted property from the userProperties array
-                state.userProperties = state.userProperties.filter(
-                    (property) => property._id !== action.payload
-                );
-            })
-            .addCase(deleteUserProperty.rejected, (state, action) => {
-                console.log("Reducer: deleteUserProperty.rejected", action.payload);
-                state.isLoading = false;
-                state.error = action.payload as string;
-            })
-
-            // --- Update User Property ---
-            .addCase(updateUserProperty.pending, (state) => {
-                state.isLoading = true;
-                state.isAddingProperty = true; // Reuse this state for the submit button
-                state.error = null;
-            })
-            .addCase(updateUserProperty.fulfilled, (state, action: PayloadAction<Property>) => {
-                state.isLoading = false;
-                state.isAddingProperty = false;
-                // Find the index of the property to update
-                const index = state.userProperties.findIndex(p => p._id === action.payload._id);
-                if (index !== -1) {
-                    // Replace the old property with the updated one
-                    state.userProperties[index] = action.payload;
-                }
-                // Also update the currentProperty if it's the one being edited
-                if (state.currentProperty?._id === action.payload._id) {
-                    state.currentProperty = action.payload;
-                }
-            })
-            .addCase(updateUserProperty.rejected, (state, action) => {
-                state.isLoading = false;
-                state.isAddingProperty = false;
-                state.error = action.payload as string;
-            });
-    },
+            }
+        })
+        .addCase(updateUserProperty.rejected, (state, action) => {
+            state.isLoading = false;
+            state.isAddingProperty = false;
+            state.error = action.payload as string;
+        });
+},
 });
 
 // --- Export Actions and Reducer ---
@@ -599,5 +632,8 @@ export const selectUserPropertiesLoading = (state: RootState) => state.propertie
 export const selectIsAddingProperty = (state: RootState) => state.properties.isAddingProperty;
 export const selectPropertyError = (state: RootState) => state.properties.error;
 export const selectPropertyStatus = (state: RootState) => state.properties.status;
+export const selectUserPublicProperties = (state: RootState) => state.properties.userPublicProperties;
+export const selectIsUserPublicPropertiesLoading = (state: RootState) => state.properties.isUserPublicPropertiesLoading;
+export const selectUserPublicPropertiesError = (state: RootState) => state.properties.userPublicPropertiesError;
 
 export default propertySlice.reducer;

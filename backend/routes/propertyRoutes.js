@@ -13,6 +13,7 @@ const {
     getPresignedUrls,
     deleteProperty, 
     updateProperty,
+    getPropertiesByUserId,
 } = require("../controllers/propertyController");
 
 // api for image uploads
@@ -22,6 +23,7 @@ router.post("/properties/add", authenticateToken, addNewProperty);
 router.get("/properties", authenticateToken, getMyProperties);
 router.get("/properties/all", getAllProperties);
 router.get('/properties/id/:id', getPropertyById);
+router.get('/properties/user/:userId', getPropertiesByUserId);
 
 router.delete("/properties/:id", authenticateToken, deleteProperty);
 
