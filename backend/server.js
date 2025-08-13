@@ -57,6 +57,31 @@ app.get("/api/data", (req, res) => {
 	});
 });
 
+// Add this ROOT route handler
+app.get("/", (req, res) => {
+	res.json({
+		message: "Burrow Housing API is running!",
+		status: "OK",
+		version: "1.0.0",
+		timestamp: new Date().toISOString(),
+		endpoints: {
+			api: "/api/*",
+			health: "/health"
+		}
+	});
+});
+
+// Optional: Add a health check endpoint
+app.get("/health", (req, res) => {
+	res.json({
+		status: "healthy",
+		uptime: process.uptime(),
+		timestamp: new Date().toISOString()
+	});
+});
+
+
+
 // Routes
 app.use("/api", authRoutes); // Authentication routes (register, login)
 app.use("/api", profileRoutes); // Fetch Profile details

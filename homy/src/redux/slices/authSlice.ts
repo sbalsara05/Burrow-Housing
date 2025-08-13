@@ -5,7 +5,7 @@ import { clearProfile } from './profileSlice';
 import { clearAllPropertyData } from './propertySlice';
 
 // --- Configuration ---
-const API_URL = 'http://localhost:3000/api';
+const API_URL = 'http://localhost:5001/api';
 
 // --- Interfaces ---
 // Define the shape of the User object based on your backend's /api/user response
