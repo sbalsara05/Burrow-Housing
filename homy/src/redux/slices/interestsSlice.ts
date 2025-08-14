@@ -1,188 +1,171 @@
-// fe/src/redux/slices/interestsSlice.ts
+import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit'
+import axios from 'axios'
+import type { RootState } from './store'
 
-import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import axios from 'axios';
-import { RootState } from './store';
-import { Property } from './propertySlice';
-import { Profile } from './profileSlice';
-
-const API_URL = 'http://localhost:3000/api';
-
-// --- Interfaces ---
 export interface Interest {
-    _id: string;
-    propertyId: Property;
-    listerId: Profile; // Populated
-    renterId: Profile; // Populated
-    message: string;
-    moveInDate: string;
-    status: 'pending' | 'approved' | 'declined' | 'withdrawn';
-    streamChannelId?: string;
-    createdAt: string;
+  _id: string
+  propertyId: any
+  listerId: any
+  renterId: any
+  message: string
+  moveInDate: string
+  status: 'pending' | 'approved' | 'declined' | 'withdrawn'
+  streamChannelId?: string
+  createdAt: string
 }
+
+const API_URL = 'http://localhost:5001/api'
 
 interface InterestsState {
-    sentInterests: Interest[];
-    receivedInterests: Interest[];
-    isLoading: boolean;
-    error: string | null;
-    status: 'idle' | 'loading' | 'succeeded' | 'failed';
+  receivedInterests: Interest[]
+  sentInterests: Interest[]
+  isLoading: boolean
+  error: string | null
 }
 
-// --- Initial State ---
 const initialState: InterestsState = {
-    sentInterests: [],
-    receivedInterests: [],
-    isLoading: false,
-    error: null,
-    status: 'idle',
-};
+  receivedInterests: [],
+  sentInterests: [],
+  isLoading: false,
+  error: null,
+}
 
-// --- Async Thunks ---
-
-export const fetchSentInterests = createAsyncThunk(
-    'interests/fetchSent',
-    async (_, { rejectWithValue }) => {
-        try {
-            const response = await axios.get(`${API_URL}/interests/sent`);
-            return response.data as Interest[];
-        } catch (error: any) {
-            return rejectWithValue(error.response?.data?.message || 'Failed to fetch sent requests');
-        }
+export const fetchReceivedInterests = createAsyncThunk<
+  Interest[],
+  void,
+  { state: RootState }
+>(
+  'interests/fetchReceived',
+  async (_, { getState, rejectWithValue }) => {
+    try {
+      const token = getState().auth.token
+      if (!token) {
+        return rejectWithValue('Not authenticated.')
+      }
+      const res = await axios.get(`${API_URL}/interests/received`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      const data = Array.isArray(res.data) ? res.data : (res.data?.interests ?? [])
+      return data as Interest[]
+    } catch (e: any) {
+      return rejectWithValue(e.response?.data?.message || 'Failed to fetch received interests.')
     }
-);
+  }
+)
 
-export const fetchReceivedInterests = createAsyncThunk(
-    'interests/fetchReceived',
-    async (_, { rejectWithValue }) => {
-        try {
-            const response = await axios.get(`${API_URL}/interests/received`);
-            return response.data as Interest[];
-        } catch (error: any) {
-            return rejectWithValue(error.response?.data?.message || 'Failed to fetch received requests');
-        }
+export const fetchSentInterests = createAsyncThunk<
+  Interest[],
+  void,
+  { state: RootState }
+>(
+  'interests/fetchSent',
+  async (_, { getState, rejectWithValue }) => {
+    try {
+      const token = getState().auth.token
+      if (!token) {
+        return rejectWithValue('Not authenticated.')
+      }
+      const res = await axios.get(`${API_URL}/interests/sent`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      const data = Array.isArray(res.data) ? res.data : (res.data?.interests ?? [])
+      return data as Interest[]
+    } catch (e: any) {
+      return rejectWithValue(e.response?.data?.message || 'Failed to fetch sent interests.')
     }
-);
+  }
+)
 
-export const withdrawInterest = createAsyncThunk(
-    'interests/withdraw',
-    async (interestId: string, { rejectWithValue }) => {
-        try {
-            const response = await axios.delete(`${API_URL}/interests/${interestId}`);
-            return response.data.interest as Interest;
-        } catch (error: any) {
-            return rejectWithValue(error.response?.data?.message || 'Failed to withdraw request');
-        }
+/**
+ * Withdraw an interest (remove/cancel a sent request)
+ * Adjust the endpoint if your backend uses a different route.
+ */
+export const withdrawInterest = createAsyncThunk<
+  string,
+  string,
+  { state: RootState }
+>(
+  'interests/withdraw',
+  async (interestId, { getState, rejectWithValue }) => {
+    try {
+      const token = getState().auth.token
+      if (!token) {
+        return rejectWithValue('Not authenticated.')
+      }
+      await axios.delete(`${API_URL}/interests/${interestId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      return interestId
+    } catch (e: any) {
+      return rejectWithValue(e.response?.data?.message || 'Failed to withdraw interest.')
     }
-);
+  }
+)
 
-export const approveInterest = createAsyncThunk(
-    'interests/approve',
-    async (interestId: string, { rejectWithValue }) => {
-        try {
-            const response = await axios.put(`${API_URL}/interests/${interestId}/approve`);
-            return response.data.interest as Interest;
-        } catch (error: any) {
-            return rejectWithValue(error.response?.data?.message || 'Failed to approve request');
-        }
-    }
-);
-
-export const declineInterest = createAsyncThunk(
-    'interests/decline',
-    async (interestId: string, { rejectWithValue }) => {
-        try {
-            const response = await axios.put(`${API_URL}/interests/${interestId}/decline`);
-            return response.data.interest as Interest;
-        } catch (error: any) {
-            return rejectWithValue(error.response?.data?.message || 'Failed to decline request');
-        }
-    }
-);
-
-// --- Slice Definition ---
 const interestsSlice = createSlice({
-    name: 'interests',
-    initialState,
-    reducers: {
-        clearInterestsState: (state) => {
-            Object.assign(state, initialState);
-        },
-    },
-    extraReducers: (builder) => {
-        const handlePending = (state: InterestsState) => {
-            state.isLoading = true;
-            state.status = 'loading';
-            state.error = null;
-        };
-        const handleRejected = (state: InterestsState, action: PayloadAction<any>) => {
-            state.isLoading = false;
-            state.status = 'failed';
-            state.error = action.payload;
-        };
+  name: 'interests',
+  initialState,
+  reducers: {},
+  extraReducers: (builder) => {
+    builder
+      // Received
+      .addCase(fetchReceivedInterests.pending, (state) => {
+        state.isLoading = true
+        state.error = null
+      })
+      .addCase(fetchReceivedInterests.fulfilled, (state, action: PayloadAction<Interest[]>) => {
+        state.isLoading = false
+        state.receivedInterests = action.payload ?? []
+      })
+      .addCase(fetchReceivedInterests.rejected, (state, action) => {
+        state.isLoading = false
+        state.error = action.payload as string
+        state.receivedInterests = []
+      })
 
-        // Fetch Sent
-        builder.addCase(fetchSentInterests.pending, handlePending);
-        builder.addCase(fetchSentInterests.fulfilled, (state, action) => {
-            state.isLoading = false;
-            state.status = 'succeeded';
-            state.sentInterests = action.payload;
-        });
-        builder.addCase(fetchSentInterests.rejected, handleRejected);
+      // Sent
+      .addCase(fetchSentInterests.pending, (state) => {
+        state.isLoading = true
+        state.error = null
+      })
+      .addCase(fetchSentInterests.fulfilled, (state, action: PayloadAction<Interest[]>) => {
+        state.isLoading = false
+        state.sentInterests = action.payload ?? []
+      })
+      .addCase(fetchSentInterests.rejected, (state, action) => {
+        state.isLoading = false
+        state.error = action.payload as string
+        state.sentInterests = []
+      })
 
-        // Fetch Received
-        builder.addCase(fetchReceivedInterests.pending, handlePending);
-        builder.addCase(fetchReceivedInterests.fulfilled, (state, action) => {
-            state.isLoading = false;
-            state.status = 'succeeded';
-            state.receivedInterests = action.payload;
-        });
-        builder.addCase(fetchReceivedInterests.rejected, handleRejected);
+      // Withdraw
+      .addCase(withdrawInterest.pending, (state) => {
+        state.isLoading = true
+        state.error = null
+      })
+      .addCase(withdrawInterest.fulfilled, (state, action: PayloadAction<string>) => {
+        state.isLoading = false
+        const id = action.payload
+        state.sentInterests = state.sentInterests.filter(i => i._id !== id)
+        state.receivedInterests = state.receivedInterests.filter(i => i._id !== id)
+      })
+      .addCase(withdrawInterest.rejected, (state, action) => {
+        state.isLoading = false
+        state.error = action.payload as string
+      })
+  },
+})
 
-        // Withdraw (updates a sent interest)
-        builder.addCase(withdrawInterest.pending, handlePending);
-        builder.addCase(withdrawInterest.fulfilled, (state, action) => {
-            state.isLoading = false;
-            state.status = 'succeeded';
-            const index = state.sentInterests.findIndex(i => i._id === action.payload._id);
-            if (index !== -1) {
-                state.sentInterests[index] = action.payload;
-            }
-        });
-        builder.addCase(withdrawInterest.rejected, handleRejected);
+export const selectReceivedInterests = (state: RootState) =>
+  state.interests?.receivedInterests || []
 
-        // Approve (updates a received interest)
-        builder.addCase(approveInterest.pending, handlePending);
-        builder.addCase(approveInterest.fulfilled, (state, action) => {
-            state.isLoading = false;
-            state.status = 'succeeded';
-            const index = state.receivedInterests.findIndex(i => i._id === action.payload._id);
-            if (index !== -1) {
-                state.receivedInterests[index] = action.payload;
-            }
-        });
-        builder.addCase(approveInterest.rejected, handleRejected);
+export const selectSentInterests = (state: RootState) =>
+  state.interests?.sentInterests || []
 
-        // Decline (updates a received interest)
-        builder.addCase(declineInterest.pending, handlePending);
-        builder.addCase(declineInterest.fulfilled, (state, action) => {
-            state.isLoading = false;
-            state.status = 'succeeded';
-            const index = state.receivedInterests.findIndex(i => i._id === action.payload._id);
-            if (index !== -1) {
-                state.receivedInterests[index] = action.payload;
-            }
-        });
-        builder.addCase(declineInterest.rejected, handleRejected);
-    },
-});
+export const selectInterestsLoading = (state: RootState) =>
+  state.interests?.isLoading || false
 
-export const { clearInterestsState } = interestsSlice.actions;
+export const selectInterestsError = (state: RootState) =>
+  state.interests?.error || null
 
-// --- Selectors ---
-export const selectSentInterests = (state: RootState) => state.interests.sentInterests;
-export const selectReceivedInterests = (state: RootState) => state.interests.receivedInterests;
-export const selectInterestsLoading = (state: RootState) => state.interests.isLoading;
-export const selectInterestsError = (state: RootState) => state.interests.error;
-
-export default interestsSlice.reducer;
+export default interestsSlice.reducer

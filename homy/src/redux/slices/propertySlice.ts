@@ -4,7 +4,7 @@ import { RootState } from './store.ts';
 // import {clearProfile} from './profileSlice';
 
 // --- Configuration ---
-const API_URL = 'http://localhost:3000/api';
+const API_URL = 'http://localhost:5001/api';
 
 // --- Interfaces ---
 export interface Property {
@@ -322,25 +322,26 @@ export const fetchPropertyById = createAsyncThunk(
 
 // Thunk to Delete a User Property
 export const deleteUserProperty = createAsyncThunk(
-    'properties/deleteUserProperty',
-    async (propertyId: string, { getState, rejectWithValue }) => {
-        const token = (getState() as RootState).auth.token;
-        if (!token) {
-            return rejectWithValue('Not authenticated.');
-        }
-        console.log(`Dispatching deleteUserProperty for ID: ${propertyId}`);
-        try {
-            const response = await axios.delete(`${API_URL}/properties/${propertyId}`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            // On success, return the ID to remove it from the local state
-            return propertyId;
-        } catch (error: any) {
-            console.error("deleteUserProperty Error:", error.response?.data || error.message);
-            return rejectWithValue(error.response?.data?.message || 'Failed to delete property.');
-        }
+  'properties/deleteUserProperty',
+  async (propertyId: string, { getState, rejectWithValue }) => {
+    const token = (getState() as RootState).auth.token;
+    if (!token) {
+      return rejectWithValue('Not authenticated.');
     }
+    console.log(`Dispatching deleteUserProperty for ID: ${propertyId}`);
+    try {
+      // Remove unused variable warning
+      await axios.delete(`${API_URL}/properties/${propertyId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      return propertyId;
+    } catch (error: any) {
+      console.error("deleteUserProperty Error:", error.response?.data || error.message);
+      return rejectWithValue(error.response?.data?.message || 'Failed to delete property.');
+    }
+  }
 );
+
 
 // Thunk to Update a User Property
 export const updateUserProperty = createAsyncThunk(
@@ -622,7 +623,8 @@ export const {
 
 // --- Selectors ---
 export const selectPropertyState = (state: RootState) => state.properties;
-export const selectAllPublicProperties = (state: RootState) => state.properties.allProperties;
+export const selectAllPublicProperties = (state: RootState) =>
+  state.properties?.allProperties || [];
 export const selectUserProperties = (state: RootState) => state.properties.userProperties;
 export const selectUserPropertiesSort = (state: RootState) => state.properties.userPropertiesSort;
 export const selectCurrentProperty = (state: RootState) => state.properties.currentProperty;
