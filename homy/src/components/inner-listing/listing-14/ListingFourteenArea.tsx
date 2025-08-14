@@ -56,6 +56,10 @@ const ITEMS_PER_PAGE = 4;
 const selectSortedPublicProperties = createSelector(
     [selectAllPublicProperties, selectSortBy],
     (properties: Property[], sortBy) => {
+         if (!properties || !Array.isArray(properties)) {
+            return [];
+        }
+
         const sorted = [...properties];
         switch (sortBy) {
             case 'price_low':
@@ -77,20 +81,20 @@ const ListingFourteenArea = () => {
     const dispatch = useDispatch<AppDispatch>();
 
     // Redux state
-    const properties = useSelector(selectAllPublicProperties);
+    const properties = useSelector(selectAllPublicProperties) || [];
     const pagination = useSelector(selectPublicPagination);
     const isLoading = useSelector(selectPropertyLoading);
     const error = useSelector(selectPropertyError);
     const filters = useSelector(selectFilters);
     const apiFormattedFilters = useSelector(selectApiFormattedFilters);
-    const sortBy = useSelector(selectSortBy);
+    const sortBy = useSelector(selectSortBy) || 'newest';
     const maxPriceForSlider = useSelector(selectMaxPriceForSlider);
-    const currentPriceRangeValues = useSelector(selectPriceRangeValues);
-    const currentAmenities = useSelector(selectAmenities);
+    const currentPriceRangeValues = useSelector(selectPriceRangeValues) || [0, 10000];
+    const currentAmenities = useSelector(selectAmenities) || [];
     const propertyStatus = useSelector(selectPropertyStatus);
 
     // Favorites state
-    const favoriteIds = useSelector(selectFavoriteIds);
+    const favoriteIds = useSelector(selectFavoriteIds) || [];
     const favoritesLoading = useSelector(selectFavoritesLoading);
     const isAuthenticated = useSelector(selectIsAuthenticated);
 

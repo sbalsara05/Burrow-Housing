@@ -6,8 +6,8 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies
-RUN npm ci --only=production
+# Install all dependencies (including devDependencies for development)
+RUN npm install
 
 # Copy source code
 COPY . .
@@ -19,5 +19,5 @@ EXPOSE 5000
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
   CMD curl -f http://localhost:5000/health || exit 1
 
-# Start the application
+# Use node directly or npm start instead of npm run dev
 CMD ["node", "server.js"]

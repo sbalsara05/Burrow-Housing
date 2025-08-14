@@ -2,7 +2,7 @@ import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import axios from 'axios';
 import { RootState } from './store';
 
-const API_URL = 'http://localhost:3000/api';
+const API_URL = 'http://localhost:5001/api';
 
 // --- Interfaces ---
 export interface Notification {

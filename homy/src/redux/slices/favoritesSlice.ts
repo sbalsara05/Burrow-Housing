@@ -5,7 +5,7 @@ import { RootState } from './store';
 import { Property } from './propertySlice';
 
 // --- Configuration ---
-const API_URL = 'http://localhost:3000/api';
+const API_URL = 'http://localhost:5001/api';
 
 // --- Interfaces ---
 interface FavoritesState {

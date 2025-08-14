@@ -1,0 +1,28 @@
+FROM node:18-alpine
+
+# Set working directory
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+
+# Clear cache and remove lock files
+RUN rm -rf node_modules package-lock.json
+RUN npm cache clean --force
+
+# Install dependencies
+RUN npm install
+
+# Force specific esbuild installation for Alpine Linux ARM64
+RUN npm uninstall esbuild
+RUN npm install esbuild@latest --save-dev
+RUN npm rebuild esbuild
+
+# Copy source code
+COPY . .
+
+# Expose port (match Vite's default)
+EXPOSE 5173
+
+# Start development server
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]

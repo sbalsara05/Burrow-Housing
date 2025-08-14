@@ -13,20 +13,33 @@ services:
     depends_on:
       - mongo
       - redis
-    # Remove all volume mounts - let container handle its own files
+    volumes:
+      # Mount source code for live development
+      - ./backend:/app
+      # Preserve node_modules in container (avoid conflicts)
+      - /app/node_modules
     networks:
       - burrow-network
 
-  # Frontend service
+  # Frontend service - Development Mode
   frontend:
-    build: ./homy
+    build:
+      context: ./homy
+      dockerfile: Dockerfile.dev
     container_name: burrow-frontend
     ports:
-      - "3000:80"
+      - "3000:5173"  # Map external 3000 to internal 5173 (Vite default)
     depends_on:
       - backend
+    volumes:
+      # Mount source code for live development
+      - ./homy:/app
+      # Preserve node_modules in container
+      - /app/node_modules
     networks:
       - burrow-network
+    environment:
+      - CHOKIDAR_USEPOLLING=true  # Enable file watching in container
 
   # MongoDB service
   mongo:

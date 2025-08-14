@@ -1,17 +1,21 @@
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { AppDispatch } from '../../../redux/slices/store';
 import { toast } from 'react-toastify';
+import DashboardHeaderTwo from '../../../layouts/headers/dashboard/DashboardHeaderTwo';
+import { Link, useNavigate } from 'react-router-dom';
+
+// Try importing without AppDispatch first to isolate the issue
 import {
     fetchSentInterests,
     withdrawInterest,
     selectSentInterests,
     selectInterestsLoading,
     selectInterestsError,
-    Interest
+    type Interest
 } from '../../../redux/slices/interestsSlice';
-import DashboardHeaderTwo from '../../../layouts/headers/dashboard/DashboardHeaderTwo';
-import { Link, useNavigate } from 'react-router-dom';
+
+// Import types separately
+import type { AppDispatch } from '../../../redux/store'; // Changed path
 
 const MyRequestsBody = () => {
     const dispatch = useDispatch<AppDispatch>();
@@ -58,22 +62,50 @@ const MyRequestsBody = () => {
                     <div key={req._id} className="bg-white card-box border-20 p-4 mb-4">
                         <div className="row">
                             <div className="col-md-2">
-                                <img src={req.propertyId.images[0] || '/assets/images/listing/img_placeholder.jpg'} alt="property" className="img-fluid rounded" />
+                                <img
+                                    src={req.propertyId?.images?.[0] || '/assets/images/listing/img_placeholder.jpg'}
+                                    alt="property"
+                                    className="img-fluid rounded"
+                                />
                             </div>
                             <div className="col-md-6">
-                                <h5>Request for: <Link to={`/listing_details_01/${req.propertyId._id}`} className="text-decoration-underline">{req.propertyId.overview?.title}</Link></h5>
-                                <p><strong>Status:</strong> <span className={`fw-500 text-capitalize text-${req.status === 'approved' ? 'success' :
-                                    req.status === 'declined' ? 'danger' :
+                                <h5>
+                                    Request for:
+                                    <Link to={`/listing_details_01/${req.propertyId?._id}`} className="text-decoration-underline">
+                                        {req.propertyId?.overview?.title || 'Property'}
+                                    </Link>
+                                </h5>
+                                <p>
+                                    <strong>Status:</strong>
+                                    <span className={`fw-500 text-capitalize text-${
+                                        req.status === 'approved' ? 'success' :
+                                        req.status === 'declined' ? 'danger' :
                                         req.status === 'withdrawn' ? 'secondary' : 'warning'
-                                    }`}>{req.status}</span></p>
-                                <p className="mb-0"><strong>Sent on:</strong> {new Date(req.createdAt).toLocaleDateString()}</p>
+                                    }`}>
+                                        {req.status}
+                                    </span>
+                                </p>
+                                <p className="mb-0">
+                                    <strong>Sent on:</strong> {new Date(req.createdAt).toLocaleDateString()}
+                                </p>
                             </div>
                             <div className="col-md-4 d-flex align-items-center justify-content-md-end">
                                 {req.status === 'pending' && (
-                                    <button onClick={() => handleWithdraw(req._id)} className="btn btn-outline-danger" disabled={isLoading}>Withdraw Request</button>
+                                    <button
+                                        onClick={() => handleWithdraw(req._id)}
+                                        className="btn btn-outline-danger"
+                                        disabled={isLoading}
+                                    >
+                                        Withdraw Request
+                                    </button>
                                 )}
                                 {req.status === 'approved' && (
-                                    <button onClick={() => navigate('/dashboard/chat')} className="btn btn-primary">Go to Chat</button>
+                                    <button
+                                        onClick={() => navigate('/dashboard/chat')}
+                                        className="btn btn-primary"
+                                    >
+                                        Go to Chat
+                                    </button>
                                 )}
                             </div>
                         </div>
