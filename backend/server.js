@@ -29,6 +29,7 @@ const corsOptions = {
 		"http://127.0.0.1:5173",
         "http://localhost:3000",    // Add this line
         "http://127.0.0.1:3000",
+        "http://45.55.166.69:3000"
 
 	], // Allow this specific origin
 	methods: ["GET", "POST", "PUT", "DELETE"],
