@@ -68,7 +68,7 @@ const ListingDetailsOneArea = () => {
             if (isAuthenticated && propertyId && currentUser?._id !== property?.userId) {
                 setIsStatusLoading(true);
                 try {
-                    const response = await axios.get(`http://localhost:5001/api/interests/status?propertyId=${propertyId}`);
+                    const response = await axios.get(`http://burrowhousing.com/api/interests/status?propertyId=${propertyId}`);
                     setInterestStatus(response.data.status);
                 } catch (err) {
                     console.error("Failed to fetch interest status", err);
@@ -93,7 +93,7 @@ const ListingDetailsOneArea = () => {
             return;
         }
         try {
-            await axios.post('http://localhost:5001/api/interests', {
+            await axios.post('http://burrowhousing.com/api/interests', {
                 propertyId: property._id,
                 message: data.message,
                 moveInDate: data.moveInDate,

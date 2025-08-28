@@ -103,7 +103,7 @@ export const fetchUserProfile = createAsyncThunk(
                 return rejectWithValue('Invalid or expired token');
             }
 
-            const response = await authUtils.fetchWithAuth('http://localhost:3000/api/user');
+            const response = await authUtils.fetchWithAuth('http://burrowhousing.com/api/user');
 
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({ message: 'Unknown error' }));

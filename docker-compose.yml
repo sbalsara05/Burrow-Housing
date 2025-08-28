@@ -25,31 +25,7 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - root@Burrow-Housing:~/app# docker-compose up -d
-      - Command 'docker-compose' not found, but can be installed with:
-      - snap install docker          # version 28.1.1+1, or
-      - apt  install docker-compose  # version 1.29.2-1
-      - See 'snap info docker' for additional versions.
-      - root@Burrow-Housing:~/app#
-      - root@Burrow-Housing:~/app# # Check if they're running
-      - root@Burrow-Housing:~/app# docker-compose ps
-      - Command 'docker-compose' not found, but can be installed with:
-      - snap install docker          # version 28.1.1+1, or
-      - apt  install docker-compose  # version 1.29.2-1
-      - See 'snap info docker' for additional versions.
-      - root@Burrow-Housing:~/app#
-      - root@Burrow-Housing:~/app# # Check logs
-      - root@Burrow-Housing:~/app# docker-compose logs frontend
-      - Command 'docker-compose' not found, but can be installed with:
-      - snap install docker          # version 28.1.1+1, or
-      - apt  install docker-compose  # version 1.29.2-1
-      - See 'snap info docker' for additional versions.
-      - root@Burrow-Housing:~/app# docker-compose logs backend
-      - Command 'docker-compose' not found, but can be installed with:
-      - snap install docker          # version 28.1.1+1, or
-      - apt  install docker-compose  # version 1.29.2-1
-      - See 'snap info docker' for additional versions.
-      - root@Burrow-Housing:~/app# REACT_APP_API_URL=http://45.55.166.69:5001
+      - REACT_APP_API_URL=http://45.55.166.69:5001
       - NODE_ENV=production
     depends_on:
       - backend
