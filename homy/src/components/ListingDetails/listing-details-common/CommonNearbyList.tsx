@@ -1,7 +1,5 @@
-import React, {useState, useEffect} from 'react';
-
-// Add this at the top of your file
-const API_BASE_URL = 'https://burrowhousing.com';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 
 // Define props interface (accepting location object)
 interface LocationData {
@@ -16,15 +14,15 @@ interface CommonNearbyListProps {
 
 // Static data as fallback - only the 6 items you want to keep
 const static_list_data = [
-    {title: "School & College:", count: "0.9km"},
-    {title: "Grocery Center:", count: "0.2km"},
-    {title: "Metro Station:", count: "0.7km"},
-    {title: "Gym:", count: "2.3km"},
-    {title: "University:", count: "2.7km"},
-    {title: "Police Station:", count: "1.2km"},
+    { title: "School & College:", count: "0.9km" },
+    { title: "Grocery Center:", count: "0.2km" },
+    { title: "Metro Station:", count: "0.7km" },
+    { title: "Gym:", count: "2.3km" },
+    { title: "University:", count: "2.7km" },
+    { title: "Police Station:", count: "1.2km" },
 ];
 
-const CommonNearbyList: React.FC<CommonNearbyListProps> = ({location}) => {
+const CommonNearbyList: React.FC<CommonNearbyListProps> = ({ location }) => {
     // State for dynamically fetched nearby places
     const [nearbyPlaces, setNearbyPlaces] = useState(static_list_data);
     const [isLoading, setIsLoading] = useState(false);
@@ -56,20 +54,14 @@ const CommonNearbyList: React.FC<CommonNearbyListProps> = ({location}) => {
                     }
 
                     console.log(`📡 Fetching nearby places for coordinates: ${lat}, ${lng}`);
-                    const url = `${API_BASE_URL}/api/nearby?lat=${lat}&lng=${lng}`;
-                    console.log("🔗 DEBUG - Fetch URL:", url);
+                    const response = await axios.get('/api/nearby', {
+                        params: { lat, lng }
+                    });
 
-                    const response = await fetch(url);
                     console.log("📊 DEBUG - Response status:", response.status);
-                    console.log("✅ DEBUG - Response ok:", response.ok);
 
-                    if (!response.ok) {
-                        const errorText = await response.text();
-                        console.log("❌ DEBUG - Response error text:", errorText);
-                        throw new Error(`Failed to fetch nearby places: ${response.status} ${response.statusText}`);
-                    }
+                    const data = response.data; // axios automatically parses the JSON
 
-                    const data = await response.json();
                     console.log("📦 DEBUG - Response data:", data);
 
                     if (data.success && data.places && data.places.length > 0) {
@@ -94,7 +86,7 @@ const CommonNearbyList: React.FC<CommonNearbyListProps> = ({location}) => {
                         });
                     } else {
                         console.warn("⚠️ No nearby places found in API response, using static data");
-                        console.log("🔍 API Response details:", {success: data.success, places: data.places});
+                        console.log("🔍 API Response details:", { success: data.success, places: data.places });
                         setNearbyPlaces(static_list_data);
                         setIsApiDataLoaded(false);
                     }
