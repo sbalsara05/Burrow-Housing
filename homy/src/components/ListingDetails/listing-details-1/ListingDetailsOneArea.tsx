@@ -23,6 +23,7 @@ import CommonAmenities from "../listing-details-common/CommonAmenities";
 import CommonNearbyList from "../listing-details-common/CommonNearbyList";
 import CommonLocation from "../listing-details-common/CommonLocation";
 import InterestedModal from '../../../modals/InterestedModal.tsx';
+import LoginModal from '../../../modals/LoginModal';
 import CommonPropertyFeatureList from "../listing-details-common/CommonPropertyFeatureList";
 
 const ListingDetailsOneArea = () => {
@@ -40,6 +41,7 @@ const ListingDetailsOneArea = () => {
 
     // Local state for modal and interest status
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [loginModalOpen, setLoginModalOpen] = useState(false);
     const [interestStatus, setInterestStatus] = useState<string | null>(null);
     const [isStatusLoading, setIsStatusLoading] = useState(true);
 
@@ -70,6 +72,8 @@ const ListingDetailsOneArea = () => {
                 try {
                     const response = await axios.get(`/api/interests/status?propertyId=${propertyId}`);
                     setInterestStatus(response.data.status);
+                    console.log("📊 DEBUG - Interest status response:", response.data);
+
                 } catch (err) {
                     console.error("Failed to fetch interest status", err);
                     setInterestStatus(null);
@@ -81,10 +85,21 @@ const ListingDetailsOneArea = () => {
                 setInterestStatus(null);
             }
         };
-        if (property && currentUser) {
+        if (property) {
             checkInterestStatus();
         }
     }, [isAuthenticated, propertyId, property, currentUser]);
+
+    const handleInterestedClick = () => {
+        if (isAuthenticated) {
+            // If the user is logged in, open the interest form
+            setIsModalOpen(true);
+        } else {
+            // If the user is NOT logged in, show a toast and open the login modal
+            toast.info("Please log in to express your interest.");
+            setLoginModalOpen(true);
+        }
+    };
 
     // Handler for submitting the interest form
     const handleSubmitInterest = async (data: { message: string; moveInDate: string; }) => {
@@ -180,7 +195,7 @@ const ListingDetailsOneArea = () => {
 
                         <Sidebar
                             property={property}
-                            onInterestedClick={() => setIsModalOpen(true)}
+                            onInterestedClick={handleInterestedClick}
                             interestStatus={interestStatus}
                             isStatusLoading={isStatusLoading}
                         />
@@ -194,6 +209,7 @@ const ListingDetailsOneArea = () => {
                 property={property}
                 onSubmit={handleSubmitInterest}
             />
+            <LoginModal loginModal={loginModalOpen} setLoginModal={setLoginModalOpen} />
         </>
     );
 };
