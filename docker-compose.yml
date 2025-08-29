@@ -17,13 +17,14 @@ services:
   # Frontend service
   frontend:
     build:
-    context: ./homy
-    args:
-      - VITE_GOOGLE_MAPS_API_KEY=${VITE_GOOGLE_MAPS_API_KEY}
-      - VITE_STREAM_API_KEY=${VITE_STREAM_API_KEY}
-      - VITE_EMAILJS_SERVICE_ID=${VITE_EMAILJS_SERVICE_ID}
-      - VITE_EMAILJS_TEMPLATE_ID=${VITE_EMAILJS_TEMPLATE_ID}
-      - VITE_EMAILJS_PUBLIC_KEY=${VITE_EMAILJS_PUBLIC_KEY}
+      context: ./homy
+      args:
+        - VITE_API_URL=${VITE_API_URL}
+        - VITE_GOOGLE_MAPS_API_KEY=${VITE_GOOGLE_MAPS_API_KEY}
+        - VITE_STREAM_API_KEY=${VITE_STREAM_API_KEY}
+        - VITE_EMAILJS_SERVICE_ID=${VITE_EMAILJS_SERVICE_ID}
+        - VITE_EMAILJS_TEMPLATE_ID=${VITE_EMAILJS_TEMPLATE_ID}
+        - VITE_EMAILJS_PUBLIC_KEY=${VITE_EMAILJS_PUBLIC_KEY}
     image: burrow-housing-frontend:latest
     container_name: burrow-frontend
     ports:
