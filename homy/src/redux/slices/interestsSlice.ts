@@ -14,7 +14,7 @@ export interface Interest {
   createdAt: string
 }
 
-const API_URL = 'http://localhost:5001/api'
+const API_URL = '/api'
 
 interface InterestsState {
   receivedInterests: Interest[]

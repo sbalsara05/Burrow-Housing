@@ -35,7 +35,7 @@ const HeaderOne = ({style}: any) => {
             if (profile.image.startsWith('http')) {
                 return profile.image;
             } else {
-                return `http://localhost:3000/${profile.image.replace(/\\/g, '/')}`;
+                return `http://burrowhousing.com/${profile.image.replace(/\\/g, '/')}`;
             }
         }
         return "/assets/images/dashboard/no-profile-pic.png";
