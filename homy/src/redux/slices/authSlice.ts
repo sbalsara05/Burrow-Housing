@@ -5,7 +5,7 @@ import { clearProfile } from './profileSlice';
 import { clearAllPropertyData } from './propertySlice';
 
 // --- Configuration ---
-const API_URL = 'http://burrowhousing.com/api';
+const API_URL = '/api';
 
 // --- Interfaces ---
 // Define the shape of the User object based on your backend's /api/user response

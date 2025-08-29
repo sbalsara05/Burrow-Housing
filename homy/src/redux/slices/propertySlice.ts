@@ -4,7 +4,7 @@ import { RootState } from './store.ts';
 // import {clearProfile} from './profileSlice';
 
 // --- Configuration ---
-const API_URL = 'http://burrowhousing.com/api';
+const API_URL = '/api';
 
 // --- Interfaces ---
 export interface Property {

@@ -54,7 +54,7 @@ const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
                     await chatClient.disconnectUser();
                 }
 
-                const response = await axios.get('http://burrowhousing.com/api/chat/token');
+                const response = await axios.get('/api/chat/token');
                 const userToken = response.data.token;
 
                 if (!userToken) {

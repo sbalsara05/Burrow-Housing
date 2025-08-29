@@ -21,17 +21,28 @@ const app = express();
 
 // Middleware
 app.use(express.json());
-const corsOptions = {
-	origin: [
-		"http://localhost:4173",
-		"http://127.0.0.1:4173",
-		"http://localhost:5173",
-		"http://127.0.0.1:5173",
-        "http://burrowhousing.com",    // Add this line
-        "http://127.0.0.1:3000",
-        "http://45.55.166.69:3000"
 
-	], // Allow this specific origin
+// Dynamic CORS Options
+const allowedOrigins = process.env.CORS_ORIGIN
+	? process.env.CORS_ORIGIN.split(",")
+	: [
+			"http://localhost:5173",
+			"http://127.0.0.1:5173",
+			"http://localhost:4173",
+			"http://127.0.0.1:4173",
+	  ];
+
+const corsOptions = {
+	origin: function (origin, callback) {
+		// Allow requests with no origin (like mobile apps or curl requests)
+		if (!origin) return callback(null, true);
+		if (allowedOrigins.indexOf(origin) === -1) {
+			const msg =
+				"The CORS policy for this site does not allow access from the specified Origin.";
+			return callback(new Error(msg), false);
+		}
+		return callback(null, true);
+	},
 	methods: ["GET", "POST", "PUT", "DELETE"],
 	optionsSuccessStatus: 200,
 };
@@ -53,14 +64,6 @@ mongoose.connect(uri, { useNewUrlParser: true, useUnifiedTopology: true })
 	}
 })();
 
-// API Routes
-app.get("/api/data", (req, res) => {
-	res.json({
-		message: "Hello from the backend!",
-		data: [1, 2, 3, 4],
-	});
-});
-
 // Add this ROOT route handler
 app.get("/", (req, res) => {
 	res.json({
@@ -70,21 +73,19 @@ app.get("/", (req, res) => {
 		timestamp: new Date().toISOString(),
 		endpoints: {
 			api: "/api/*",
-			health: "/health"
-		}
+			health: "/health",
+		},
 	});
 });
 
-// Optional: Add a health check endpoint
+// Optional: health check endpoint
 app.get("/health", (req, res) => {
 	res.json({
 		status: "healthy",
 		uptime: process.uptime(),
-		timestamp: new Date().toISOString()
+		timestamp: new Date().toISOString(),
 	});
 });
-
-
 
 // Routes
 app.use("/api", authRoutes); // Authentication routes (register, login)
@@ -98,15 +99,7 @@ app.use("/api", chatRoutes); // Chat management routes
 app.use("/api", notificationRoutes); // Notification management routes
 
 // Start the Server
-const PORT = process.env.PORT || 3000; // Use a different port from React's default
+const PORT = process.env.PORT || 5001; // Use a different port from React's default
 app.listen(PORT, () => {
 	console.log(`Server running on port ${PORT}`);
-	console.log(
-		"GOOGLE_PLACES_API_KEY loaded:",
-		process.env.GOOGLE_PLACES_API_KEY ? "YES" : "NO"
-	);
-	console.log(
-		"FOURSQUARE_API_KEY loaded:",
-		process.env.FOURSQUARE_API_KEY ? "YES" : "NO"
-	);
 });

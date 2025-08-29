@@ -2,7 +2,7 @@ import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import axios from 'axios';
 import { RootState } from './store';
 
-const API_URL = 'http://burrowhousing.com/api';
+const API_URL = '/api';
 
 // --- Interfaces ---
 export interface Notification {
