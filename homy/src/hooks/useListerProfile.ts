@@ -30,7 +30,7 @@ const useListerProfile = (userId: string | null | undefined) => {
             setIsLoading(true);
             setError(null);
             try {
-                const response = await axios.get(`http://localhost:5001/api/profile/public/${userId}`);
+                const response = await axios.get(`/api/profile/public/${userId}`);
                 const fetchedProfile = response.data;
 
                 // 3. Update state and cache

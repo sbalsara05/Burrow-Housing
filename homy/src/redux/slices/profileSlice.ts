@@ -4,7 +4,7 @@ import axios from 'axios';
 import { RootState } from './store.ts'; // Import RootState type
 
 // --- Configuration ---
-const API_URL = 'http://localhost:5001/api'; // Ensure this matches our backend URL
+const API_URL = '/api'; // Ensure this matches our backend URL
 
 // --- Interfaces ---
 // Define the shape of the Profile object based on your backend's profileModel.js
