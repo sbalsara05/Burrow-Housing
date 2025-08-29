@@ -1,7 +1,7 @@
 import React, {useState, useEffect} from 'react';
 
 // Add this at the top of your file
-const API_BASE_URL = 'http://burrowhousing.com';
+const API_BASE_URL = 'https://burrowhousing.com';
 
 // Define props interface (accepting location object)
 interface LocationData {
