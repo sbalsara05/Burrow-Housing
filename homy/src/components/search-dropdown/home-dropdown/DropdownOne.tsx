@@ -1,4 +1,4 @@
-import React, { useState } from "react"; // Import useState for local capture
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from 'react-redux';
 import NiceSelect from "../../../ui/NiceSelect";
@@ -8,9 +8,7 @@ import {
     setCategory,
     setNeighborhood,
     setRentRange,
-} from '../../../redux/slices/filterSlice'; // Correct path
-// Import property fetch action and type
-import { fetchAllPublicProperties, FetchPropertiesPayload } from '../../../redux/slices/propertySlice'; // Correct path
+} from '../../../redux/slices/filterSlice';
 
 interface DropdownOneProps {
     style?: boolean;
@@ -21,52 +19,70 @@ const DropdownOne: React.FC<DropdownOneProps> = ({ style }) => {
     const navigate = useNavigate();
 
     // --- Local state to capture selections before dispatching ---
-    const [selectedCategory, setSelectedCategory] = useState<string | null>(null); // Start with null or default
-    const [selectedNeighborhood, setSelectedNeighborhood] = useState<string | null>('Any'); // Default to 'Any'
-    const [selectedRentRange, setSelectedRentRange] = useState<string | null>(null); // Start with null
+    const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+    const [selectedNeighborhood, setSelectedNeighborhood] = useState<string | null>('Any');
+    const [selectedRentRange, setSelectedRentRange] = useState<string | null>(null);
 
     // --- Event Handlers ---
-    // Update local state AND dispatch to Redux state simultaneously
     const handleCategoryChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
         const value = event.target.value;
-        setSelectedCategory(value === 'all' ? null : value); // Update local state
-        dispatch(setCategory(value === 'all' ? null : value)); // Update Redux state
+        setSelectedCategory(value === 'all' ? null : value);
+        dispatch(setCategory(value === 'all' ? null : value));
     };
 
     const handleNeighborhoodChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
         const value = event.target.value;
-        setSelectedNeighborhood(value); // Update local state
-        dispatch(setNeighborhood(value)); // Update Redux state
+        setSelectedNeighborhood(value);
+        dispatch(setNeighborhood(value));
     };
 
     const handleRentRangeChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
         const value = event.target.value;
-        setSelectedRentRange(value === 'any' ? null : value); // Update local state
-        dispatch(setRentRange(value === 'any' ? null : value)); // Update Redux state
+        setSelectedRentRange(value === 'any' ? null : value);
+        dispatch(setRentRange(value === 'any' ? null : value));
     };
 
-    // --- Search/Submit Handler ---
-    const searchHandler = () => {
+    // --- NEW: URL Parameter Navigation Handler ---
+    const handleSearch = () => {
+        console.log("DropdownOne: Creating URL with search parameters...");
+
+        const searchParams = new URLSearchParams();
+
+        // Add filter parameters to URL (only add non-empty values)
+        if (selectedCategory) {
+            searchParams.set('category', selectedCategory);
+        }
+        if (selectedNeighborhood && selectedNeighborhood !== 'Any') {
+            searchParams.set('neighborhood', selectedNeighborhood);
+        }
+        if (selectedRentRange) {
+            searchParams.set('rentRange', selectedRentRange);
+        }
+
+        // Navigate to listing page with parameters
+        const queryString = searchParams.toString();
+        const targetUrl = queryString ? `/listing_14?${queryString}` : '/listing_14';
+
+        console.log("DropdownOne: Navigating to:", targetUrl);
+        navigate(targetUrl);
+    };
+
+    // --- Keep the old handler as fallback/alternative ---
+    const searchHandlerOld = () => {
         console.log("DropdownOne: Search clicked. Dispatching filter updates...");
 
-        // 1. Dispatch actions to update Redux filter state with local selections
         dispatch(setCategory(selectedCategory));
         dispatch(setNeighborhood(selectedNeighborhood));
         dispatch(setRentRange(selectedRentRange));
-        // **No fetch dispatch here anymore**
 
-        // 2. Navigate to the listing page
-        // Use setTimeout to give Redux state and persist a chance to update before navigation
-        // Although ideally persist completes before navigation finishes loading the next component
         setTimeout(() => {
             console.log("DropdownOne: Navigating to /listing_14");
             navigate('/listing_14');
-        }, 50); // Small delay, adjust if needed, or rely on PersistGate
-
+        }, 50);
     };
 
     return (
-        <form onSubmit={(e) => { e.preventDefault(); searchHandler(); }}>
+        <form onSubmit={(e) => { e.preventDefault(); handleSearch(); }}>
             <div className="row gx-0 align-items-center">
                 {/* Category Select */}
                 <div className="col-xl-3 col-lg-4">
@@ -80,8 +96,9 @@ const DropdownOne: React.FC<DropdownOneProps> = ({ style }) => {
                                 { value: "Apartment", text: "Apartment" },
                             ]}
                             defaultCurrent={0}
-                            onChange={handleCategoryChange} // Updates local & Redux state
+                            onChange={handleCategoryChange}
                             name="category"
+                            placeholder="Any Category"
                         />
                     </div>
                 </div>
@@ -91,7 +108,7 @@ const DropdownOne: React.FC<DropdownOneProps> = ({ style }) => {
                         <div className="label">Neighborhood</div>
                         <NiceSelect
                             className={`nice-select location ${style ? "fw-normal" : ""}`}
-                            options={[ /* ... neighborhood options ... */
+                            options={[
                                 { value: "any", text: "Any" },
                                 { value: "allston", text: "Allston" },
                                 { value: "back bay", text: "Back Bay" },
@@ -115,8 +132,9 @@ const DropdownOne: React.FC<DropdownOneProps> = ({ style }) => {
                                 { value: "wharf district", text: "Wharf District" },
                             ]}
                             defaultCurrent={0}
-                            onChange={handleNeighborhoodChange} // Updates local & Redux state
+                            onChange={handleNeighborhoodChange}
                             name="neighborhood"
+                            placeholder="Any"
                         />
                     </div>
                 </div>
@@ -126,7 +144,8 @@ const DropdownOne: React.FC<DropdownOneProps> = ({ style }) => {
                         <div className="label">Rent per Month</div>
                         <NiceSelect
                             className={`nice-select ${style ? "fw-normal" : ""}`}
-                            options={[ /* ... rent options ... */
+                            options={[
+                                { value: "any", text: "Any Price" },
                                 { value: "$500 - $1000", text: "$500 - $1000" },
                                 { value: "$1000 - $1500", text: "$1000 - $1500" },
                                 { value: "$1500 - $2000", text: "$1500 - $2000" },
@@ -134,15 +153,19 @@ const DropdownOne: React.FC<DropdownOneProps> = ({ style }) => {
                                 { value: "$3000+", text: "$3000+" },
                             ]}
                             defaultCurrent={0}
-                            onChange={handleRentRangeChange} // Updates local & Redux state
+                            onChange={handleRentRangeChange}
                             name="rentRange"
+                            placeholder="Any Price"
                         />
                     </div>
                 </div>
                 {/* Search Button */}
                 <div className={`${style ? "col-xl-3" : "col-xl-2"}`}>
                     <div className="input-box-one lg-mt-10">
-                        <button type="submit" className={`fw-500 tran3s ${style ? "w-100 search-btn-three" : "text-uppercase search-btn"}`}>
+                        <button
+                            type="submit"
+                            className={`fw-500 tran3s ${style ? "w-100 search-btn-three" : "text-uppercase search-btn"}`}
+                        >
                             {style ? "Search Now" : "Search"}
                         </button>
                     </div>
