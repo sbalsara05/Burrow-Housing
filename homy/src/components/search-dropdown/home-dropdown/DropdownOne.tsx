@@ -152,7 +152,7 @@ const DropdownOne: React.FC<DropdownOneProps> = ({ style }) => {
                                 { value: "$2000 - $2500", text: "$2000 - $2500" },
                                 { value: "$3000+", text: "$3000+" },
                             ]}
-                            defaultCurrent={4}
+                            defaultCurrent={0}
                             onChange={handleRentRangeChange}
                             name="rentRange"
                             placeholder="Any Price"
