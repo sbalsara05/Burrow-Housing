@@ -1,12 +1,10 @@
-
-
-import React, { useEffect, useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import ReactPaginate from "react-paginate";
-import { useDispatch, useSelector } from 'react-redux';
-import { Link, useLocation, useSearchParams } from 'react-router-dom'; // Added useLocation, useSearchParams
-import { createSelector, PayloadAction } from '@reduxjs/toolkit';
-import store, { AppDispatch } from "../../../redux/slices/store"
-import { toast } from 'react-toastify';
+import {useDispatch, useSelector} from 'react-redux';
+import {Link, useLocation, useSearchParams} from 'react-router-dom'; // Added useLocation, useSearchParams
+import {createSelector, PayloadAction} from '@reduxjs/toolkit';
+import store, {AppDispatch} from "../../../redux/slices/store"
+import {toast} from 'react-toastify';
 
 // Redux imports (adjust paths as needed)
 import {
@@ -43,7 +41,7 @@ import {
 } from '../../../redux/slices/favoritesSlice';
 
 // Auth selector
-import { selectIsAuthenticated } from '../../../redux/slices/authSlice';
+import {selectIsAuthenticated} from '../../../redux/slices/authSlice';
 
 // Component imports (adjust paths as needed)
 import DropdownSeven from "../../search-dropdown/inner-dropdown/DropdownSeven";
@@ -57,7 +55,7 @@ const ITEMS_PER_PAGE = 4;
 const selectSortedPublicProperties = createSelector(
     [selectAllPublicProperties, selectSortBy],
     (properties: Property[], sortBy) => {
-         if (!properties || !Array.isArray(properties)) {
+        if (!properties || !Array.isArray(properties)) {
             return [];
         }
 
@@ -253,7 +251,7 @@ const ListingFourteenArea = () => {
             setTimeout(() => {
                 const updatedApiFilters = selectApiFormattedFilters(store.getState());
                 console.log('📤 Fetching with filters:', updatedApiFilters);
-                dispatch(fetchAllPublicProperties({ page: 1, limit: ITEMS_PER_PAGE, ...updatedApiFilters }));
+                dispatch(fetchAllPublicProperties({page: 1, limit: ITEMS_PER_PAGE, ...updatedApiFilters}));
             }, 100);
         } else {
             setFiltersInitialized(true);
@@ -350,7 +348,7 @@ const ListingFourteenArea = () => {
             properties.length === 0 &&
             !isLoading) {
             console.log('🔄 Initial fetch with current filters:', apiFormattedFilters);
-            dispatch(fetchAllPublicProperties({ page: 1, limit: ITEMS_PER_PAGE, ...apiFormattedFilters }));
+            dispatch(fetchAllPublicProperties({page: 1, limit: ITEMS_PER_PAGE, ...apiFormattedFilters}));
         }
     }, [dispatch, propertyStatus, properties.length, isLoading, apiFormattedFilters, filtersInitialized]);
 
@@ -358,8 +356,8 @@ const ListingFourteenArea = () => {
     const handlePageClick = (event: { selected: number }) => {
         const newPage = event.selected + 1;
         console.log(`Loading page ${newPage}`);
-        dispatch(fetchAllPublicProperties({ page: newPage, limit: ITEMS_PER_PAGE, ...apiFormattedFilters }));
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        dispatch(fetchAllPublicProperties({page: newPage, limit: ITEMS_PER_PAGE, ...apiFormattedFilters}));
+        window.scrollTo({top: 0, behavior: 'smooth'});
     };
 
     // Filter update and refetch logic
@@ -369,7 +367,7 @@ const ListingFourteenArea = () => {
             const latestState = store.getState();
             const updatedApiFilters = selectApiFormattedFilters(latestState);
             console.log('🔄 Refetching with updated filters:', updatedApiFilters);
-            dispatch(fetchAllPublicProperties({ page: 1, limit: ITEMS_PER_PAGE, ...updatedApiFilters }));
+            dispatch(fetchAllPublicProperties({page: 1, limit: ITEMS_PER_PAGE, ...updatedApiFilters}));
         }, 0);
     };
 
@@ -398,7 +396,7 @@ const ListingFourteenArea = () => {
         dispatch(resetFilters()); // Use the correct action name
         setTimeout(() => {
             const defaultFilters = selectApiFormattedFilters(store.getState());
-            dispatch(fetchAllPublicProperties({ page: 1, limit: ITEMS_PER_PAGE, ...defaultFilters }));
+            dispatch(fetchAllPublicProperties({page: 1, limit: ITEMS_PER_PAGE, ...defaultFilters}));
         }, 0);
     };
 
@@ -406,13 +404,13 @@ const ListingFourteenArea = () => {
     const triggerFetchWithCurrentFilters = () => {
         const currentApiFilters = selectApiFormattedFilters(store.getState());
         console.log('🔄 Triggering fetch with current filters:', currentApiFilters);
-        dispatch(fetchAllPublicProperties({ page: 1, limit: ITEMS_PER_PAGE, ...currentApiFilters }));
+        dispatch(fetchAllPublicProperties({page: 1, limit: ITEMS_PER_PAGE, ...currentApiFilters}));
     };
 
     // Sort handler
-    const handleSortChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-        console.log('Sort changed to:', event.target.value);
-        dispatch(setSortBy(event.target.value));
+    const handleSortChange = (value: string) => {
+        console.log('Sort changed to:', value);
+        dispatch(setSortBy(value));
     };
 
     // Calculate pagination
@@ -468,14 +466,16 @@ const ListingFourteenArea = () => {
                         {/* Map Controls Overlay */}
                         {sortedProperties.length > 0 && (
                             <div className="absolute top-4 left-4 z-10">
-                                <div className="bg-white rounded-xl p-3 shadow-md border border-gray-200 backdrop-blur-sm bg-opacity-95">
+                                <div
+                                    className="bg-white rounded-xl p-3 shadow-md border border-gray-200 backdrop-blur-sm bg-opacity-95">
                                     <div className="text-sm text-gray-700 font-medium mb-2">
                                         {sortedProperties.length} {sortedProperties.length === 1 ? 'Property' : 'Properties'}
                                     </div>
                                     <div className="flex flex-wrap items-center gap-3 text-xs">
                                         <div className="flex items-center gap-1">
                                             <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                                            <span className="text-gray-600">Under $2K ({propertyStats.affordable})</span>
+                                            <span
+                                                className="text-gray-600">Under $2K ({propertyStats.affordable})</span>
                                         </div>
                                         <div className="flex items-center gap-1">
                                             <div className="w-3 h-3 bg-teal-500 rounded-full"></div>
@@ -501,11 +501,13 @@ const ListingFourteenArea = () => {
                 <div className="col-xxl-6 col-lg-7">
                     <div className="bg-light pl-40 pr-40 pt-35 pb-60">
                         {/* Header and Sorting */}
-                        <div className="listing-header-filter d-sm-flex justify-content-between align-items-center mb-40 lg-mb-30">
+                        <div
+                            className="listing-header-filter d-sm-flex justify-content-between align-items-center mb-40 lg-mb-30">
                             <div className="results-count">
                                 Showing <span className="color-dark fw-500">
                                     {pagination?.totalItems === 0 ? 0 : currentOffset + 1}–{Math.min(currentOffset + currentItemsPerPage, pagination?.totalItems || 0)}
-                                </span> of <span className="color-dark fw-500">{pagination?.totalItems || 0}</span> results
+                                </span> of <span
+                                className="color-dark fw-500">{pagination?.totalItems || 0}</span> results
                             </div>
                             <div className="d-flex align-items-center xs-mt-20">
                                 <div className="short-filter d-flex align-items-center">
@@ -513,16 +515,16 @@ const ListingFourteenArea = () => {
                                     <NiceSelect
                                         className="nice-select"
                                         options={[
-                                            { value: "newest", text: "Newest" },
-                                            { value: "price_low", text: "Price Low" },
-                                            { value: "price_high", text: "Price High" },
+                                            {value: "newest", text: "Newest"},
+                                            {value: "price_low", text: "Price Low"},
+                                            {value: "price_high", text: "Price High"},
                                         ]}
-                                        key={`sort-${sortBy}`}
-                                        defaultCurrent={["newest", "price_low", "price_high"].indexOf(sortBy)}
+                                        value={sortBy}  // Use current sortBy value instead of key/defaultCurrent
                                         onChange={handleSortChange}
                                         name="sortBy"
                                         placeholder="Default"
                                     />
+
                                 </div>
                             </div>
                         </div>
@@ -556,7 +558,8 @@ const ListingFourteenArea = () => {
                         {!isLoading && !error && sortedProperties.length === 0 && (
                             <div className="text-center my-5">
                                 <h3 className="h5 text-gray-600 mb-2">No properties found</h3>
-                                <p className="text-gray-500 mb-3">Try adjusting your search criteria to see more results.</p>
+                                <p className="text-gray-500 mb-3">Try adjusting your search criteria to see more
+                                    results.</p>
                                 <button
                                     onClick={handleResetFilter}
                                     className="btn btn-outline-primary"
@@ -583,20 +586,21 @@ const ListingFourteenArea = () => {
                                             >
                                                 <div
                                                     className={`listing-card-one style-three border-30 w-100 h-100 transition-all duration-300 cursor-pointer ${
-                                                        selectedPropertyId === item._id 
-                                                            ? 'border-primary shadow-lg transform -translate-y-1 ring-2 ring-blue-200' 
-                                                            : hoveredPropertyId === item._id 
-                                                                ? 'shadow-md transform -translate-y-0.5' 
+                                                        selectedPropertyId === item._id
+                                                            ? 'border-primary shadow-lg transform -translate-y-1 ring-2 ring-blue-200'
+                                                            : hoveredPropertyId === item._id
+                                                                ? 'shadow-md transform -translate-y-0.5'
                                                                 : 'hover:shadow-sm'
                                                     }`}
                                                     onClick={() => handlePropertySelect(item)}
                                                 >
                                                     <div className="img-gallery p-15">
                                                         <div className="position-relative border-20 overflow-hidden">
-                                                            <div className="tag bg-white text-dark fw-500 border-20 position-absolute top-3 left-3 z-10">
+                                                            <div
+                                                                className="tag bg-white text-dark fw-500 border-20 position-absolute top-3 left-3 z-10">
                                                                 {item.overview.category}
                                                             </div>
-                                                            <PropertyCarousel item={item} />
+                                                            <PropertyCarousel item={item}/>
                                                             <Link
                                                                 to={`/listing_details_01/${item._id}`}
                                                                 className="btn-four inverse rounded-circle position-absolute top-3 right-3"
@@ -607,15 +611,20 @@ const ListingFourteenArea = () => {
 
                                                             {/* Property Details Badge */}
                                                             <div className="position-absolute bottom-3 left-3">
-                                                                <div className="bg-dark bg-opacity-75 text-white px-2 py-1 rounded text-sm">
-                                                                    {item.listingDetails.bedrooms} bed • {item.listingDetails.bathrooms} bath • {item.listingDetails.size} sqft
+                                                                <div
+                                                                    className="bg-dark bg-opacity-75 text-white px-2 py-1 rounded text-sm">
+                                                                    {item.listingDetails.bedrooms} bed
+                                                                    • {item.listingDetails.bathrooms} bath
+                                                                    • {item.listingDetails.size} sqft
                                                                 </div>
                                                             </div>
 
                                                             {/* Selected indicator */}
                                                             {selectedPropertyId === item._id && (
-                                                                <div className="position-absolute top-3 left-1/2 transform -translate-x-1/2">
-                                                                    <div className="bg-primary text-white px-2 py-1 rounded-full text-xs font-medium">
+                                                                <div
+                                                                    className="position-absolute top-3 left-1/2 transform -translate-x-1/2">
+                                                                    <div
+                                                                        className="bg-primary text-white px-2 py-1 rounded-full text-xs font-medium">
                                                                         <i className="fa-light fa-location-dot me-1"></i>
                                                                         Selected
                                                                     </div>
@@ -644,16 +653,19 @@ const ListingFourteenArea = () => {
                                                                     <i className="fa-light fa-check-circle me-1"></i>
                                                                     {item.amenities.slice(0, 3).join(', ')}
                                                                     {item.amenities.length > 3 && (
-                                                                        <span className="text-primary"> +{item.amenities.length - 3} more</span>
+                                                                        <span
+                                                                            className="text-primary"> +{item.amenities.length - 3} more</span>
                                                                     )}
                                                                 </div>
                                                             </div>
                                                         )}
 
-                                                        <div className="pl-footer m0 d-flex align-items-center justify-content-between">
+                                                        <div
+                                                            className="pl-footer m0 d-flex align-items-center justify-content-between">
                                                             <strong className="price fw-500 color-dark fs-5">
                                                                 ${item.overview.rent.toLocaleString()}
-                                                                <span className="fs-6 fw-normal text-muted">/month</span>
+                                                                <span
+                                                                    className="fs-6 fw-normal text-muted">/month</span>
                                                             </strong>
                                                             <ul className="style-none d-flex action-icons">
                                                                 <li>
@@ -671,8 +683,8 @@ const ListingFourteenArea = () => {
                                                                 <li>
                                                                     <button
                                                                         className={`action-btn bg-transparent border-0 p-2 rounded transition-all duration-200 ${
-                                                                            isFavorited 
-                                                                                ? 'text-danger' 
+                                                                            isFavorited
+                                                                                ? 'text-danger'
                                                                                 : 'text-muted hover:text-danger'
                                                                         }`}
                                                                         onClick={(e) => handleFavoriteToggle(item._id, e)}
