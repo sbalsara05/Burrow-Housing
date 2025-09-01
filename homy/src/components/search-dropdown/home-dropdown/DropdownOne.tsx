@@ -145,7 +145,7 @@ const DropdownOne: React.FC<DropdownOneProps> = ({ style }) => {
                         <NiceSelect
                             className={`nice-select ${style ? "fw-normal" : ""}`}
                             options={[
-                                { value: "any", text: "Any Price" },
+                                { value: "any", text: "cheese cheese cheese" },
                                 { value: "$500 - $1000", text: "$500 - $1000" },
                                 { value: "$1000 - $1500", text: "$1000 - $1500" },
                                 { value: "$1500 - $2000", text: "$1500 - $2000" },
