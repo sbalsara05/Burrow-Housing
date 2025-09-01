@@ -1,8 +1,9 @@
 
+
 import React, { useEffect, useState } from 'react';
 import ReactPaginate from "react-paginate";
 import { useDispatch, useSelector } from 'react-redux';
-import { Link } from 'react-router-dom';
+import { Link, useLocation, useSearchParams } from 'react-router-dom'; // Added useLocation, useSearchParams
 import { createSelector, PayloadAction } from '@reduxjs/toolkit';
 import store, { AppDispatch } from "../../../redux/slices/store"
 import { toast } from 'react-toastify';
@@ -79,6 +80,8 @@ const selectSortedPublicProperties = createSelector(
 
 const ListingFourteenArea = () => {
     const dispatch = useDispatch<AppDispatch>();
+    const location = useLocation(); // Added for URL/navigation state
+    const [searchParams] = useSearchParams(); // Added for URL parameters
 
     // Redux state
     const properties = useSelector(selectAllPublicProperties) || [];
@@ -104,6 +107,158 @@ const ListingFourteenArea = () => {
     // Local state for property selection (simpler approach)
     const [selectedPropertyId, setSelectedPropertyId] = useState<string | undefined>();
     const [hoveredPropertyId, setHoveredPropertyId] = useState<string | undefined>();
+    const [filtersInitialized, setFiltersInitialized] = useState(false); // Track if filters have been initialized
+
+    // NEW: Initialize filters from URL parameters or navigation state
+    useEffect(() => {
+        console.log('🔍 Initializing filters from URL/navigation...');
+        let shouldUpdateFilters = false;
+
+        // Check if we have URL parameters
+        const categoryFromUrl = searchParams.get('category');
+        const roomTypeFromUrl = searchParams.get('roomType');
+        const neighborhoodFromUrl = searchParams.get('neighborhood');
+        const rentRangeFromUrl = searchParams.get('rentRange');
+        const bedroomsFromUrl = searchParams.get('bedrooms');
+        const bathroomsFromUrl = searchParams.get('bathrooms');
+        const searchTermFromUrl = searchParams.get('search');
+        const amenitiesFromUrl = searchParams.get('amenities');
+
+        console.log('📋 URL Parameters:', {
+            category: categoryFromUrl,
+            roomType: roomTypeFromUrl,
+            neighborhood: neighborhoodFromUrl,
+            rentRange: rentRangeFromUrl,
+            bedrooms: bedroomsFromUrl,
+            bathrooms: bathroomsFromUrl,
+            search: searchTermFromUrl,
+            amenities: amenitiesFromUrl
+        });
+
+        // Check if we have state passed from navigation (from home page)
+        const navigationState = location.state as any;
+        console.log('🧭 Navigation State:', navigationState);
+
+        // Initialize filters from URL params (URL params take priority)
+        if (categoryFromUrl && categoryFromUrl !== filters.category) {
+            console.log('🏷️ Setting category from URL:', categoryFromUrl);
+            dispatch(setCategory(categoryFromUrl === 'all' ? null : categoryFromUrl));
+            shouldUpdateFilters = true;
+        }
+
+        if (roomTypeFromUrl && roomTypeFromUrl !== filters.roomType) {
+            console.log('🏠 Setting room type from URL:', roomTypeFromUrl);
+            dispatch(setRoomType(roomTypeFromUrl === 'all' ? null : roomTypeFromUrl));
+            shouldUpdateFilters = true;
+        }
+
+        if (neighborhoodFromUrl && neighborhoodFromUrl !== filters.neighborhood) {
+            console.log('📍 Setting neighborhood from URL:', neighborhoodFromUrl);
+            dispatch(setNeighborhood(neighborhoodFromUrl === 'any' ? 'Any' : neighborhoodFromUrl));
+            shouldUpdateFilters = true;
+        }
+
+        if (rentRangeFromUrl && rentRangeFromUrl !== filters.rentRange) {
+            console.log('💰 Setting rent range from URL:', rentRangeFromUrl);
+            dispatch(setRentRange(rentRangeFromUrl === 'any' ? null : rentRangeFromUrl));
+            shouldUpdateFilters = true;
+        }
+
+        if (bedroomsFromUrl && bedroomsFromUrl !== filters.bedrooms) {
+            console.log('🛏️ Setting bedrooms from URL:', bedroomsFromUrl);
+            dispatch(setBedrooms(bedroomsFromUrl));
+            shouldUpdateFilters = true;
+        }
+
+        if (bathroomsFromUrl && bathroomsFromUrl !== filters.bathrooms) {
+            console.log('🚿 Setting bathrooms from URL:', bathroomsFromUrl);
+            dispatch(setBathrooms(bathroomsFromUrl));
+            shouldUpdateFilters = true;
+        }
+
+        if (searchTermFromUrl && searchTermFromUrl !== filters.searchTerm) {
+            console.log('🔍 Setting search term from URL:', searchTermFromUrl);
+            dispatch(setSearchTerm(searchTermFromUrl));
+            shouldUpdateFilters = true;
+        }
+
+        // Handle amenities (comma-separated string)
+        if (amenitiesFromUrl) {
+            const amenitiesArray = amenitiesFromUrl.split(',').filter(Boolean);
+            console.log('✨ Setting amenities from URL:', amenitiesArray);
+
+            // Reset current amenities and set new ones
+            const currentAmenitiesState = filters.amenities || [];
+            for (const amenity of currentAmenitiesState) {
+                dispatch(toggleAmenity(amenity)); // Remove existing
+            }
+            for (const amenity of amenitiesArray) {
+                dispatch(toggleAmenity(amenity)); // Add new
+            }
+            shouldUpdateFilters = true;
+        }
+
+        // Initialize from navigation state if no URL params (fallback)
+        if (!shouldUpdateFilters && navigationState?.filters) {
+            console.log('📦 Using navigation state filters:', navigationState.filters);
+            const navFilters = navigationState.filters;
+
+            if (navFilters.category && navFilters.category !== filters.category) {
+                dispatch(setCategory(navFilters.category));
+                shouldUpdateFilters = true;
+            }
+            if (navFilters.roomType && navFilters.roomType !== filters.roomType) {
+                dispatch(setRoomType(navFilters.roomType));
+                shouldUpdateFilters = true;
+            }
+            if (navFilters.neighborhood && navFilters.neighborhood !== filters.neighborhood) {
+                dispatch(setNeighborhood(navFilters.neighborhood));
+                shouldUpdateFilters = true;
+            }
+            if (navFilters.rentRange && navFilters.rentRange !== filters.rentRange) {
+                dispatch(setRentRange(navFilters.rentRange));
+                shouldUpdateFilters = true;
+            }
+            if (navFilters.bedrooms && navFilters.bedrooms !== filters.bedrooms) {
+                dispatch(setBedrooms(navFilters.bedrooms));
+                shouldUpdateFilters = true;
+            }
+            if (navFilters.bathrooms && navFilters.bathrooms !== filters.bathrooms) {
+                dispatch(setBathrooms(navFilters.bathrooms));
+                shouldUpdateFilters = true;
+            }
+            if (navFilters.searchTerm && navFilters.searchTerm !== filters.searchTerm) {
+                dispatch(setSearchTerm(navFilters.searchTerm));
+                shouldUpdateFilters = true;
+            }
+            if (navFilters.amenities && navFilters.amenities.length > 0) {
+                // Reset and set amenities
+                const currentAmenitiesState = filters.amenities || [];
+                for (const amenity of currentAmenitiesState) {
+                    dispatch(toggleAmenity(amenity));
+                }
+                for (const amenity of navFilters.amenities) {
+                    dispatch(toggleAmenity(amenity));
+                }
+                shouldUpdateFilters = true;
+            }
+        }
+
+        // Mark filters as initialized and trigger fetch if needed
+        if (shouldUpdateFilters || !filtersInitialized) {
+            console.log('🚀 Triggering fetch with updated filters...');
+            setFiltersInitialized(true);
+
+            // Use setTimeout to ensure Redux state is updated
+            setTimeout(() => {
+                const updatedApiFilters = selectApiFormattedFilters(store.getState());
+                console.log('📤 Fetching with filters:', updatedApiFilters);
+                dispatch(fetchAllPublicProperties({ page: 1, limit: ITEMS_PER_PAGE, ...updatedApiFilters }));
+            }, 100);
+        } else {
+            setFiltersInitialized(true);
+        }
+    }, [location.search, location.state, dispatch]); // Re-run when URL or navigation state changes
 
     // Fetch favorites when component mounts (if authenticated)
     useEffect(() => {
@@ -185,15 +340,19 @@ const ListingFourteenArea = () => {
         return stats;
     };
 
-    // Initial load effect
+    // Modified initial load effect - only run if filters are initialized and no properties loaded
     useEffect(() => {
         dispatch(clearPropertyError());
 
-        if ((propertyStatus === 'idle' || propertyStatus === 'failed') && properties.length === 0 && !isLoading) {
-            console.log('Fetching properties with filters:', apiFormattedFilters);
+        // Only fetch if filters are initialized and we haven't loaded properties yet
+        if (filtersInitialized &&
+            (propertyStatus === 'idle' || propertyStatus === 'failed') &&
+            properties.length === 0 &&
+            !isLoading) {
+            console.log('🔄 Initial fetch with current filters:', apiFormattedFilters);
             dispatch(fetchAllPublicProperties({ page: 1, limit: ITEMS_PER_PAGE, ...apiFormattedFilters }));
         }
-    }, [dispatch, propertyStatus, properties.length, isLoading, apiFormattedFilters]);
+    }, [dispatch, propertyStatus, properties.length, isLoading, apiFormattedFilters, filtersInitialized]);
 
     // Pagination handler
     const handlePageClick = (event: { selected: number }) => {
@@ -209,7 +368,7 @@ const ListingFourteenArea = () => {
         setTimeout(() => {
             const latestState = store.getState();
             const updatedApiFilters = selectApiFormattedFilters(latestState);
-            console.log('Refetching with updated filters:', updatedApiFilters);
+            console.log('🔄 Refetching with updated filters:', updatedApiFilters);
             dispatch(fetchAllPublicProperties({ page: 1, limit: ITEMS_PER_PAGE, ...updatedApiFilters }));
         }, 0);
     };
@@ -235,7 +394,7 @@ const ListingFourteenArea = () => {
 
     // Reset handler - Fixed to use the correct action name
     const handleResetFilter = () => {
-        console.log('Resetting filters');
+        console.log('🧹 Resetting filters');
         dispatch(resetFilters()); // Use the correct action name
         setTimeout(() => {
             const defaultFilters = selectApiFormattedFilters(store.getState());
@@ -246,7 +405,7 @@ const ListingFourteenArea = () => {
     // Trigger fetch
     const triggerFetchWithCurrentFilters = () => {
         const currentApiFilters = selectApiFormattedFilters(store.getState());
-        console.log('Triggering fetch with current filters:', currentApiFilters);
+        console.log('🔄 Triggering fetch with current filters:', currentApiFilters);
         dispatch(fetchAllPublicProperties({ page: 1, limit: ITEMS_PER_PAGE, ...currentApiFilters }));
     };
 
@@ -292,6 +451,7 @@ const ListingFourteenArea = () => {
                 </div>
             </div>
 
+            {/* Rest of your component remains the same... */}
             {/* Listing Area */}
             <div className="row gx-0">
                 {/* Interactive Map Area */}
