@@ -73,7 +73,7 @@ These packages allow our application to read environment variables from the .env
 
 4. **Commit the updated vault file**:
    ```bash
-   git add .env.vault
+   git add .env.development.vault
    git commit -m "Update environment variables vault"
    git push
    ```

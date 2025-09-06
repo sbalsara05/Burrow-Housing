@@ -9,7 +9,7 @@ let streamClient;
 try {
 	if (!apiKey || !apiSecret) {
 		throw new Error(
-			"Stream API Key and Secret are required. Please check your .env file."
+			"Stream API Key and Secret are required. Please check your .env.development file."
 		);
 	}
 
