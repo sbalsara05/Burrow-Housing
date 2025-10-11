@@ -1,6 +1,6 @@
 // controllers/otpController.js
 const jwt = require("jsonwebtoken");
-const otpService = require("../services/otpService");
+const otpService = require("../services/emailService");
 const { generateToken, blacklistToken } = require('../services/tokenService');
 
 // POST /api/send-otp - Send OTP for verification

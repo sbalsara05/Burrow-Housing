@@ -26,6 +26,7 @@ import DashboardEditProperty from '../pages/DashboardEditProperty';
 import DashboardReceivedRequests from '../pages/DashboardReceivedRequests';
 import DashboardMyRequests from '../pages/DashboardMyRequests';
 import PublicProfilePage from '../pages/PublicProfilePage';
+import ResetPasswordPage from '../pages/ResetPasswordPage';
 
 const AppNavigation = () => {
     return (
@@ -59,6 +60,7 @@ const AppNavigation = () => {
                 <Route path="/listing_14" element={<ListingFourteen />} />
                 <Route path="/listing_details_01/:id" element={<ListingDetailsOne />} />
                 <Route path="/profile/:userId" element={<PublicProfilePage />} />
+                <Route path="/reset-password" element={<ResetPasswordPage />} />
 
 
                 {/* --- PROTECTED ROUTES --- */}
