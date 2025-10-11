@@ -184,7 +184,6 @@ const LoginForm: React.FC<LoginFormProps> = ({onOtpRequired}) => {
                             <input type="checkbox" id="remember"/>
                             <label htmlFor="remember">Keep me logged in</label>
                         </div>
-                        <Link to="#">Forget Password?</Link> {/* Implement forgot password flow separately */}
                     </div>
                 </div>
                 <div className="col-12">

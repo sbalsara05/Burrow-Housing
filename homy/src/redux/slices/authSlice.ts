@@ -293,6 +293,47 @@ export const changePassword = createAsyncThunk(
     }
 );
 
+// Action: Request Password Reset
+export const requestPasswordReset = createAsyncThunk(
+    'auth/requestPasswordReset',
+    async (emailData: { email: string }, { rejectWithValue }) => {
+        console.log("Dispatching requestPasswordReset for:", emailData.email);
+        try {
+            const response = await axios.post(`${API_URL}/request-password-reset`, emailData);
+            return response.data;
+        } catch (error: any) {
+            console.error("requestPasswordReset Error:", error.response?.data || error.message);
+            return rejectWithValue(error.response?.data?.message || 'Failed to request password reset.');
+        }
+    }
+);
+
+// Action: Verify Reset Token
+export const verifyResetToken = createAsyncThunk(
+    'auth/verifyResetToken',
+    async (token: string, { rejectWithValue }) => {
+        try {
+            const response = await axios.get(`${API_URL}/verify-reset-token?token=${token}`);
+            return response.data;
+        } catch (error: any) {
+            return rejectWithValue(error.response?.data?.message || 'Invalid or expired link.');
+        }
+    }
+);
+
+// Action: Submit Password Reset
+export const submitPasswordReset = createAsyncThunk(
+    'auth/submitPasswordReset',
+    async (data: { token: string; newPassword: string }, { rejectWithValue }) => {
+        try {
+            const response = await axios.post(`${API_URL}/submit-password-reset`, data);
+            return response.data;
+        } catch (error: any) {
+            return rejectWithValue(error.response?.data?.message || 'Failed to reset password.');
+        }
+    }
+);
+
 // --- Slice Definition ---
 const authSlice = createSlice({
     name: 'auth',
@@ -388,6 +429,48 @@ const authSlice = createSlice({
             .addCase(resendOtp.pending, (state) => { console.log("Reducer: resendOtp.pending"); state.error = null; })
             .addCase(resendOtp.fulfilled, (state) => { console.log("Reducer: resendOtp.fulfilled"); })
             .addCase(resendOtp.rejected, (state, action) => { console.log("Reducer: resendOtp.rejected", action.payload); state.error = action.payload as string; })
+
+            // --- Request Password Reset ---
+            .addCase(requestPasswordReset.pending, (state) => {
+                console.log("Reducer: requestPasswordReset.pending");
+                state.isLoading = true;
+                state.error = null;
+            })
+            .addCase(requestPasswordReset.fulfilled, (state) => {
+                console.log("Reducer: requestPasswordReset.fulfilled");
+                state.isLoading = false;
+            })
+            .addCase(requestPasswordReset.rejected, (state, action) => {
+                console.log("Reducer: requestPasswordReset.rejected", action.payload);
+                state.isLoading = false;
+                state.error = action.payload as string;
+            })
+
+            // --- Verify Reset Token ---
+            .addCase(verifyResetToken.pending, (state) => {
+                state.isLoading = true;
+                state.error = null;
+            })
+            .addCase(verifyResetToken.fulfilled, (state) => {
+                state.isLoading = false;
+            })
+            .addCase(verifyResetToken.rejected, (state, action) => {
+                state.isLoading = false;
+                state.error = action.payload as string;
+            })
+
+            // --- Submit Password Reset ---
+            .addCase(submitPasswordReset.pending, (state) => {
+                state.isLoading = true;
+                state.error = null;
+            })
+            .addCase(submitPasswordReset.fulfilled, (state) => {
+                state.isLoading = false;
+            })
+            .addCase(submitPasswordReset.rejected, (state, action) => {
+                state.isLoading = false;
+                state.error = action.payload as string;
+            })
 
             // --- Fetch User Profile ---
             .addCase(fetchUserProfile.pending, (state) => {

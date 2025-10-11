@@ -4,7 +4,7 @@ const User = require("../models/userModel");
 const jwt = require("jsonwebtoken");
 const axios = require("axios");
 const { OAuth2Client } = require("google-auth-library");
-const otpService = require("../services/otpService");
+const otpService = require("../services/emailService");
 const { generateToken, blacklistToken } = require("../services/tokenService");
 
 // POST /api/register - User Registration
