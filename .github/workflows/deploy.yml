@@ -1,0 +1,27 @@
+name: Burrow CI/CD Pipeline to Prod.
+
+on:
+  push:
+      branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Deploy to Digital Ocean Droplet
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.DROPLET_IP }}
+        username: ${{ secrets.DROPLET_USER }}
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        script: |
+          cd ~/app
+          git pull origin main
+          docker-compose down
+          docker-compose up -d --build
+          docker ps
+
