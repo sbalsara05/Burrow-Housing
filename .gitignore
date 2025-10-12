@@ -1,0 +1,13 @@
+# Tar files from Docker 
+*.tar.gz 
+# Mac system files 
+.DS_Store 
+# Node modules 
+node_modules/ 
+# Package files in root (should only be in backend/) 
+/package.json 
+/package-lock.json 
+# IDE files 
+.idea/ 
+# Template files
+themeforest-*/
