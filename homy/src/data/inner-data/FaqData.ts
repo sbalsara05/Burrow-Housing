@@ -158,19 +158,6 @@ const inner_faq_data: DataType[] = [
         ]
     },
     {
-        id: 9,
-        id_name: "Termination",
-        title: "TERMINATION",
-        faq: [
-            {
-                id: 20,
-                question: "Termination",
-                answer: "We reserve the right to suspend or terminate your access to Burrow at any time for violating\n" +
-                    "these Terms or engaging in harmful conduct.",
-            },
-        ]
-    },
-    {
         id: 10,
         id_name: "Limitation of Liability",
         title: "LIMITATION OF LIABILITY",
