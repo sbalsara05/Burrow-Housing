@@ -459,7 +459,7 @@ const ListingFourteenArea = () => {
                             properties={sortedProperties}
                             selectedPropertyId={selectedPropertyId || hoveredPropertyId}
                             onPropertySelect={handlePropertySelect}
-                            mapHeight="70%"
+                            mapHeight="100%"
                             className="h-full"
                         />
 
