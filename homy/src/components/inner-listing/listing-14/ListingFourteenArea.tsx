@@ -587,17 +587,23 @@ const ListingFourteenArea = () => {
                                                 <div
                                                     className={`listing-card-one style-three border-30 w-100 h-100 transition-all duration-300 cursor-pointer ${
                                                         selectedPropertyId === item._id
-                                                            ? 'border-primary shadow-lg transform -translate-y-1 ring-2 ring-blue-200'
+                                                            ? 'border-primary shadow-lg transform -translate-y-1 ring-4 ring-blue-200 border-15'
                                                             : hoveredPropertyId === item._id
                                                                 ? 'shadow-md transform -translate-y-0.5'
                                                                 : 'hover:shadow-sm'
                                                     }`}
+                                                    style={selectedPropertyId === item._id ? {
+                                                        boxShadow: '0 20px 60px rgba(0, 0, 0, 0.25)',
+                                                        outline: '3px solid rgba(0, 0, 0, 0.8)',
+                                                        outlineOffset: '2px'
+                                                    } : undefined}
                                                     onClick={() => handlePropertySelect(item)}
                                                 >
                                                     <div className="img-gallery p-15">
                                                         <div className="position-relative border-20 overflow-hidden">
                                                             <div
-                                                                className="tag bg-white text-dark fw-500 border-20 position-absolute top-3 left-3 z-10">
+                                                                className="tag bg-white text-dark fw-500 border-20 position-absolute top-3 left-3 z-10 fs-7"
+                                                                style={{ fontSize: '8pt', paddingTop: "1pt"}}>
                                                                 {item.overview.category}
                                                             </div>
                                                             <PropertyCarousel item={item}/>
