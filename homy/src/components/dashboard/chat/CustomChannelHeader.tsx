@@ -69,7 +69,7 @@ const CustomChannelHeader: React.FC<CustomChannelHeaderProps> = ({ toggleSidebar
                         <p className="burrow-property-banner__title">{property.overview.title}</p>
                         <p className="burrow-property-banner__price">${property.overview.rent.toLocaleString()}/month</p>
                     </div>
-                    <Link to={`/listing_details_01/${property._id}`} className="burrow-property-banner__btn">
+                    <Link to={`/listing_details/${property._id}`} className="burrow-property-banner__btn">
                         View Listing
                     </Link>
                 </div>

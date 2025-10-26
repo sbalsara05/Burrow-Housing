@@ -54,7 +54,7 @@ const MyRequestsBody = () => {
                     <div className="bg-white card-box border-20 text-center p-5">
                         <h4>You haven't sent any requests yet.</h4>
                         <p>Browse listings and click "I'm Interested" to get started.</p>
-                        <Link to="/listing_14" className="btn-two">Find a Property</Link>
+                        <Link to="/all_listings" className="btn-two">Find a Property</Link>
                     </div>
                 )}
 
@@ -71,7 +71,7 @@ const MyRequestsBody = () => {
                             <div className="col-md-6">
                                 <h5>
                                     Request for:
-                                    <Link to={`/listing_details_01/${req.propertyId?._id}`} className="text-decoration-underline">
+                                    <Link to={`/listing_details/${req.propertyId?._id}`} className="text-decoration-underline">
                                         {req.propertyId?.overview?.title || 'Property'}
                                     </Link>
                                 </h5>

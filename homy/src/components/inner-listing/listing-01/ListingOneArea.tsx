@@ -80,7 +80,7 @@ const ListingOneArea = () => {
                                  </div>
 
                                  <div className="property-info p-25">
-                                    <Link to="/listing_details_01" className="title tran3s">{item.title}</Link>
+                                    <Link to="/listing_details" className="title tran3s">{item.title}</Link>
                                     <div className="address">{item.address}</div>
                                     <ul className="style-none feature d-flex flex-wrap align-items-center justify-content-between">
                                        <li className="d-flex align-items-center">
@@ -106,7 +106,7 @@ const ListingOneArea = () => {
                                              maximumFractionDigits: 2
                                           })}{item.price_text && <>/<sub>m</sub></>}
                                        </strong>
-                                       <Link to="/listing_details_01" className="btn-four rounded-circle"><i className="bi bi-arrow-up-right"></i></Link>
+                                       <Link to="/listing_details" className="btn-four rounded-circle"><i className="bi bi-arrow-up-right"></i></Link>
                                     </div>
                                  </div>
                               </div>

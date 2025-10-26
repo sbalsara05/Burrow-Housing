@@ -608,7 +608,7 @@ const ListingFourteenArea = () => {
                                                             </div>
                                                             <PropertyCarousel item={item}/>
                                                             <Link
-                                                                to={`/listing_details_01/${item._id}`}
+                                                                to={`/listing_details/${item._id}`}
                                                                 className="btn-four inverse rounded-circle position-absolute top-3 right-3"
                                                                 onClick={(e) => e.stopPropagation()}
                                                             >

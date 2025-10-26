@@ -57,8 +57,8 @@ const AppNavigation = () => {
                 <Route path="/contact" element={<Contact />} />
                 <Route path="/faq" element={<Faq />} />
                 <Route path="/listing_01" element={<ListingOne />} />
-                <Route path="/listing_14" element={<ListingFourteen />} />
-                <Route path="/listing_details_01/:id" element={<ListingDetailsOne />} />
+                <Route path="/all_listings" element={<ListingFourteen />} />
+                <Route path="/listing_details/:id" element={<ListingDetailsOne />} />
                 <Route path="/profile/:userId" element={<PublicProfilePage />} />
                 <Route path="/reset-password" element={<ResetPasswordPage />} />
 

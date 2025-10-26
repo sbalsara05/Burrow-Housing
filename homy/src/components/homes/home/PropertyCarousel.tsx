@@ -24,7 +24,7 @@ const PropertyCarousel: React.FC<PropertyCarouselProps> = ({ item }) => {
             <Slider {...settings}>
                 {images.map((imgUrl, i) => (
                     <div key={i} className="carousel-item">
-                        <Link to={`/listing_details_01/${item._id}`} className="d-block">
+                        <Link to={`/listing_details/${item._id}`} className="d-block">
                             <img src={imgUrl} className="w-100" alt={item.overview.title || `Property Image ${i + 1}`} />
                         </Link>
                     </div>
@@ -36,7 +36,7 @@ const PropertyCarousel: React.FC<PropertyCarouselProps> = ({ item }) => {
     // Use a specific class for the placeholder
     return (
         <div className="carousel-item active">
-            <Link to={`/listing_details_01/${item._id}`} className="d-block">
+            <Link to={`/listing_details/${item._id}`} className="d-block">
                 <img 
                     src="/assets/images/listing/img_placeholder.jpg"
                     className="w-100 img-placeholder" 

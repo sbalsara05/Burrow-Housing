@@ -80,7 +80,7 @@ const CommonSimilarProperty: React.FC<CommonSimilarPropertyProps> = ({ currentPr
                                         <div className="tag bg-white text-dark fw-500 border-20">{item.tag || 'N/A'}</div>
                                         {/* Placeholder Image */}
                                         <img src={item.thumb || "/assets/images/listing/img_13.jpg"} className="w-100 border-20" alt={item.title || 'Similar Property'} />
-                                        <Link to={`/listing_details_01/${item._id || item.id}`} className="btn-four inverse rounded-circle position-absolute">
+                                        <Link to={`/listing_details/${item._id || item.id}`} className="btn-four inverse rounded-circle position-absolute">
                                             <i className="bi bi-arrow-up-right"></i>
                                         </Link>
                                         {/* Fancybox logic if applicable */}
@@ -88,7 +88,7 @@ const CommonSimilarProperty: React.FC<CommonSimilarPropertyProps> = ({ currentPr
                                     </div>
                                 </div>
                                 <div className="property-info pe-4 ps-4">
-                                    <Link to={`/listing_details_01/${item._id || item.id}`} className="title tran3s">{item.title || 'Similar Property'}</Link>
+                                    <Link to={`/listing_details/${item._id || item.id}`} className="title tran3s">{item.title || 'Similar Property'}</Link>
                                     <div className="address m0 pb-5">{item.address || 'Address unavailable'}</div>
                                     <div className="pl-footer m0 d-flex align-items-center justify-content-between">
                                         <strong className="price fw-500 color-dark">${item.price?.toLocaleString() || 'N/A'}</strong>
