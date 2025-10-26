@@ -641,7 +641,7 @@ const ListingFourteenArea = () => {
 
                                                     <div className="property-info pe-4 ps-4">
                                                         <Link
-                                                            to={`/listing_details_01/${item._id}`}
+                                                            to={`/listing_details/${item._id}`}
                                                             className="title tran3s text-decoration-none"
                                                             onClick={(e) => e.stopPropagation()}
                                                         >
