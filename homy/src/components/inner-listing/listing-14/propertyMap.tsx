@@ -124,7 +124,7 @@ const PropertyMap: React.FC<PropertyMapProps> = ({
 
             const map = new google.maps.Map(mapRef.current, {
                 zoom: 12,
-                center: {lat: 42.3601, lng: -71.0589}, // Boston
+                center: {lat: 42.2801, lng: -71.0589}, // Boston // Original value was 42.6201
                 mapTypeControl: false,
                 fullscreenControl: false,
                 streetViewControl: false,

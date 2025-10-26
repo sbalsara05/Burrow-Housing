@@ -70,7 +70,7 @@ const FavouriteArea = () => {
                 <p className="text-gray-500 mb-3">
                     Start browsing properties and click the heart icon to add them to your favorites.
                 </p>
-                <Link to="/listing_14" className="btn btn-primary">
+                <Link to="/all_listings" className="btn btn-primary">
                     Browse Properties
                 </Link>
             </div>
@@ -113,7 +113,7 @@ const FavouriteArea = () => {
 
                             <div className="property-info p-25">
                                 <Link
-                                    to={`/listing_details_01/${item._id}`}
+                                    to={`/listing_details/${item._id}`}
                                     className="title tran3s text-decoration-none"
                                 >
                                     {`${item.listingDetails.bedrooms} Bed ${item.overview.category}`}
@@ -147,7 +147,7 @@ const FavouriteArea = () => {
                                         <span className="fs-6 fw-normal text-muted">/month</span>
                                     </strong>
                                     <Link
-                                        to={`/listing_details_01/${item._id}`}
+                                        to={`/listing_details/${item._id}`}
                                         className="btn-four rounded-circle"
                                     >
                                         <i className="bi bi-arrow-up-right"></i>

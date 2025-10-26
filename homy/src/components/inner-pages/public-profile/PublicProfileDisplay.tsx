@@ -62,13 +62,13 @@ const PublicProfileDisplay: React.FC<PublicProfileDisplayProps> = ({
                                 <div className="img-gallery p-15">
                                     <div className="position-relative border-20 overflow-hidden">
                                         <img src={imageUrl} className="w-100" alt={listing.overview.title} style={{ height: '220px', objectFit: 'cover' }} />
-                                        <Link to={`/listing_details_01/${listing._id}`} className="btn-four inverse rounded-circle position-absolute">
+                                        <Link to={`/listing_details/${listing._id}`} className="btn-four inverse rounded-circle position-absolute">
                                             <i className="bi bi-arrow-up-right"></i>
                                         </Link>
                                     </div>
                                 </div>
                                 <div className="property-info p-3">
-                                    <Link to={`/listing_details_01/${listing._id}`} className="title tran3s">{listing.overview.title}</Link>
+                                    <Link to={`/listing_details/${listing._id}`} className="title tran3s">{listing.overview.title}</Link>
                                     <div className="address m0 pb-5">{listing.addressAndLocation.address}</div>
                                     <div className="pl-footer m0 d-flex align-items-center justify-content-between">
                                         <strong className="price fw-500 color-dark">${listing.overview.rent.toLocaleString()}/mo</strong>

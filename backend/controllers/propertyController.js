@@ -530,7 +530,7 @@ exports.deleteProperty = async (req, res) => {
 				userId: renterId,
 				type: "property_deleted",
 				message: `The property "${property.overview.title}" you were interested in is no longer available.`,
-				link: "/listing_14",
+				link: "/all_listings",
 				metadata: { propertyId },
 			}));
 			await Notification.insertMany(notifications, {

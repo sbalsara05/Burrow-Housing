@@ -30,13 +30,19 @@ const InterestedModal: React.FC<InterestedModalProps> = ({
                                                          }) => {
     const [isSubmitting, setIsSubmitting] = useState(false);
 
+    const defaultMessage = `Hello, I am interested in ${propertyName}. I would like to know more about the rental terms and availability. Thank you!`;
+
     const {
         register,
         handleSubmit,
         formState: {errors},
         reset
     } = useForm<InterestedFormData>({
-        resolver: yupResolver(schema)
+        resolver: yupResolver(schema),
+        defaultValues: {
+            moveInDate: "",
+            message: defaultMessage
+        }
     });
 
     const handleFormSubmit = async (data: InterestedFormData) => {
@@ -63,7 +69,7 @@ const InterestedModal: React.FC<InterestedModalProps> = ({
         <div className="modal-overlay">
             <div className="modal-content">
                 <div className="modal-header">
-                    <h3 className="modal-title">First Step to Easy Subleasing! 🐰</h3>
+                    <h3 className="modal-title">Show Interest in this Property</h3>
                     <button
                         type="button"
                         className="close-button"
@@ -108,7 +114,7 @@ const InterestedModal: React.FC<InterestedModalProps> = ({
                                 {...register('message')}
                                 className={`form-control ${errors.message ? 'is-invalid' : ''}`}
                                 rows={4}
-                                placeholder={`Hello, I am interested in ${propertyName}. I would like to know more about the rental terms and availability. Thank you!`}
+                                // placeholder={`Hello, I am interested in ${propertyName}. I would like to know more about the rental terms and availability. Thank you!`}
                             />
                             {errors.message && (
                                 <div className="invalid-feedback">

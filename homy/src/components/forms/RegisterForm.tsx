@@ -49,7 +49,7 @@ const schema = yup
             .oneOf([yup.ref("password")], "Passwords must match."),
         whatsappNumber: yup
             .string()
-            .required("WhatsApp number is required.")
+            .required("Phone number is required.")
             .matches(/^[+]?[(]?[0-9]{1,4}[)]?[-\s.]?[0-9]{1,10}[-\s.]?[0-9]{1,10}$/, {
                 message: "Please enter a valid number."
             }),
@@ -172,7 +172,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onOtpRequired }) => {
                 </div>
                 <div className="col-12">
                     <div className="input-group-meta position-relative mb-25">
-                        <label>WhatsApp Number</label>
+                        <label>Phone Number</label>
                         <input type="tel" {...register("whatsappNumber")} placeholder="+1 (123) 456-7890" />
                         <p className="form_error">{errors.whatsappNumber?.message}</p>
                     </div>

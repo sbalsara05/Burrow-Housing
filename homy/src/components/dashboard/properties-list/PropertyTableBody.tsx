@@ -16,7 +16,7 @@ const PropertyTableBody: React.FC<PropertyTableBodyProps> = ({ properties, onDel
     };
 
     const handleShare = async (property: Property) => {
-        const propertyUrl = `${window.location.origin}/listing_details_01/${property._id}`;
+        const propertyUrl = `${window.location.origin}/listing_details/${property._id}`;
         const shareData = {
             title: property.overview.title || 'Check out this property!',
             text: `I found this property on Burrow Housing: ${property.overview.title || 'View Details'}`,
@@ -51,7 +51,7 @@ const PropertyTableBody: React.FC<PropertyTableBodyProps> = ({ properties, onDel
                                 className="p-img"
                             />
                             <div className="ps-lg-4 md-pt-10">
-                                <Link to={`/listing_details_01/${item._id}`} className="property-name tran3s color-dark fw-500 fs-20 stretched-link">
+                                <Link to={`/listing_details/${item._id}`} className="property-name tran3s color-dark fw-500 fs-20 stretched-link">
                                     {item.overview.title || `${item.listingDetails.bedrooms} Bed ${item.overview.category}`}
                                 </Link>
                                 <div className="address">{item.addressAndLocation.address}</div>
@@ -71,7 +71,7 @@ const PropertyTableBody: React.FC<PropertyTableBodyProps> = ({ properties, onDel
                             </button>
                             <ul className="dropdown-menu dropdown-menu-end">
                                 <li>
-                                    <Link className="dropdown-item" to={`/listing_details_01/${item._id}`}>
+                                    <Link className="dropdown-item" to={`/listing_details/${item._id}`}>
                                         <img src="/assets/images/dashboard/icon/icon_18.svg" alt="" className="lazy-img" /> View
                                     </Link>
                                 </li>

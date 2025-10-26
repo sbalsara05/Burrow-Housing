@@ -61,7 +61,7 @@ const DropdownOne: React.FC<DropdownOneProps> = ({ style }) => {
 
         // Navigate to listing page with parameters
         const queryString = searchParams.toString();
-        const targetUrl = queryString ? `/listing_14?${queryString}` : '/listing_14';
+        const targetUrl = queryString ? `/all_listings?${queryString}` : '/all_listings';
 
         console.log("DropdownOne: Navigating to:", targetUrl);
         navigate(targetUrl);
@@ -76,8 +76,8 @@ const DropdownOne: React.FC<DropdownOneProps> = ({ style }) => {
         dispatch(setRentRange(selectedRentRange));
 
         setTimeout(() => {
-            console.log("DropdownOne: Navigating to /listing_14");
-            navigate('/listing_14');
+            console.log("DropdownOne: Navigating to /all_listings");
+            navigate('/all_listings');
         }, 50);
     };
 

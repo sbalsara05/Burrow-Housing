@@ -66,7 +66,7 @@ const menu_data: MenuItem[] = [
     //                 { link: "/listing_10", title: "List Banner Filter-1" },
     //                 { link: "/listing_12", title: "List Banner Filter-2" },
     //                 { link: "/listing_13", title: "Grid Fullwidth" },
-    //                 { link: "/listing_14", title: "Grid Fullwidth Map-1" },
+    //                 { link: "/all_listings", title: "Grid Fullwidth Map-1" },
     //                 { link: "/listing_16", title: "Grid Fullwidth Map-2" },
     //                 { link: "/listing_15", title: "List Fullwidth Map-1" },
     //                 { link: "/listing_17", title: "List Fullwidth Map-2" },
@@ -76,7 +76,7 @@ const menu_data: MenuItem[] = [
     //             id: 3,
     //             mega_title: "Single Listing",
     //             mega_menus: [
-    //                 { link: "/listing_details_01", title: "Listing Details-1" },
+    //                 { link: "/listing_details", title: "Listing Details-1" },
     //                 { link: "/listing_details_02", title: "Listing Details-2" },
     //                 { link: "/listing_details_03", title: "Listing Details-3" },
     //                 { link: "/listing_details_04", title: "Listing Details-4" },
