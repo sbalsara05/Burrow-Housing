@@ -50,6 +50,7 @@ const Sidebar: React.FC<SidebarProps> = ({ property, onInterestedClick, interest
                     interestStatus={interestStatus}
                     isStatusLoading={isStatusLoading}
                     isOwner={isOwner}
+                    propertyId={property?._id}
                 />
                 {fetchError && <div className="alert alert-warning small">{fetchError}</div>}
             </div>

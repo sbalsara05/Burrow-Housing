@@ -2,6 +2,9 @@ import React, { useState } from 'react';
 import {Link, useNavigate} from "react-router-dom";
 import {BadgeCheck, X, Plus} from 'lucide-react';
 import {Profile} from '../../../redux/slices/profileSlice';
+import axios from 'axios';
+import { useSelector } from 'react-redux';
+import { selectAuthToken } from '../../../redux/slices/authSlice';
 
 // --- Ambassador Modal Component ---
 interface InspectionPoint {
@@ -35,6 +38,8 @@ const AmbassadorRequestModal: React.FC<AmbassadorRequestModalProps> = ({
   const [contactInfo, setContactInfo] = useState('');
   const [additionalDetails, setAdditionalDetails] = useState<Record<string, string>>({});
   const [selectedPoint, setSelectedPoint] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const token = useSelector(selectAuthToken);
 
   const handleAddPoint = () => {
     if (newPoint.trim()) {
@@ -68,24 +73,43 @@ const AmbassadorRequestModal: React.FC<AmbassadorRequestModalProps> = ({
   };
 
   const handleSubmit = async () => {
-    const requestData = {
-      propertyId,
-      propertyTitle,
-      inspectionPoints: inspectionPoints.map(point => ({
-        text: point.text,
-        details: additionalDetails[point.id] || ''
-      })),
-      preferredDates,
-      contactInfo
-    };
+    if (!propertyId) {
+      alert('Property ID is missing. Please try again.');
+      return;
+    }
 
-    console.log('Ambassador request submitted:', requestData);
+    if (!token) {
+      alert('You must be logged in to request an ambassador.');
+      return;
+    }
 
-    // TODO: Send to your backend API
-    // await axios.post('/api/ambassador-requests', requestData);
+    setIsSubmitting(true);
 
-    alert('Ambassador request submitted successfully!');
-    handleClose();
+    try {
+      const requestData = {
+        propertyId,
+        propertyTitle,
+        inspectionPoints: inspectionPoints.map(point => ({
+          text: point.text,
+          details: additionalDetails[point.id] || ''
+        })),
+        preferredDates: preferredDates.trim(),
+        contactInfo: contactInfo.trim()
+      };
+
+      const response = await axios.post('/api/ambassador-requests', requestData, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      alert('Ambassador request submitted successfully!');
+      handleClose();
+    } catch (error: any) {
+      console.error('Error submitting ambassador request:', error);
+      const errorMessage = error.response?.data?.message || 'Failed to submit ambassador request. Please try again.';
+      alert(errorMessage);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleClose = () => {
@@ -284,12 +308,12 @@ const AmbassadorRequestModal: React.FC<AmbassadorRequestModalProps> = ({
                 onClick={handleSubmit}
                 className="tw-px-8 tw-py-3 tw-text-white tw-border-none tw-rounded tw-font-medium disabled:tw-opacity-50 disabled:tw-cursor-not-allowed"
                 style={{
-                  backgroundColor: (!preferredDates || !contactInfo) ? '#d1d5db' : '#f16040',
-                  cursor: (!preferredDates || !contactInfo) ? 'not-allowed' : 'pointer'
+                  backgroundColor: (!preferredDates || !contactInfo || isSubmitting) ? '#d1d5db' : '#f16040',
+                  cursor: (!preferredDates || !contactInfo || isSubmitting) ? 'not-allowed' : 'pointer'
                 }}
-                disabled={!preferredDates || !contactInfo}
+                disabled={!preferredDates || !contactInfo || isSubmitting}
               >
-                Submit Request
+                {isSubmitting ? 'Submitting...' : 'Submit Request'}
               </button>
             </div>
           </div>
@@ -307,6 +331,7 @@ interface SidebarInfoProps {
     interestStatus: string | null;
     isStatusLoading: boolean;
     isOwner: boolean;
+    propertyId?: string;
 }
 
 // --- Skeleton Loader Component ---
@@ -341,7 +366,8 @@ const SidebarInfo: React.FC<SidebarInfoProps> = ({
                                                      onInterestedClick,
                                                      interestStatus,
                                                      isStatusLoading,
-                                                     isOwner
+                                                     isOwner,
+                                                     propertyId
                                                  }) => {
     const navigate = useNavigate();
     const [showAmbassadorModal, setShowAmbassadorModal] = useState(false);
@@ -456,7 +482,7 @@ const SidebarInfo: React.FC<SidebarInfoProps> = ({
                 isOpen={showAmbassadorModal}
                 onClose={() => setShowAmbassadorModal(false)}
                 propertyTitle={profile.username}
-                propertyId={profile.id}
+                propertyId={propertyId}
             />
         </>
     );
