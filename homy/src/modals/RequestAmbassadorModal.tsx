@@ -71,8 +71,8 @@ const AmbassadorRequestModal: React.FC<AmbassadorRequestModalProps> = ({
                 text: point.text,
                 details: additionalDetails[point.id] || ''
             })),
-            preferredDates,
-            contactInfo
+            preferredDates: preferredDates.trim(),
+            contactInfo: contactInfo.trim()
         };
 
         console.log('Ambassador request submitted:', requestData);

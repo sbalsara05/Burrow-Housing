@@ -332,6 +332,7 @@ interface SidebarInfoProps {
     isStatusLoading: boolean;
     isOwner: boolean;
     propertyId?: string;
+    propertyTitle?: string;
 }
 
 // --- Skeleton Loader Component ---
@@ -367,7 +368,8 @@ const SidebarInfo: React.FC<SidebarInfoProps> = ({
                                                      interestStatus,
                                                      isStatusLoading,
                                                      isOwner,
-                                                     propertyId
+                                                     propertyId,
+                                                     propertyTitle
                                                  }) => {
     const navigate = useNavigate();
     const [showAmbassadorModal, setShowAmbassadorModal] = useState(false);
@@ -481,7 +483,7 @@ const SidebarInfo: React.FC<SidebarInfoProps> = ({
             <AmbassadorRequestModal
                 isOpen={showAmbassadorModal}
                 onClose={() => setShowAmbassadorModal(false)}
-                propertyTitle={profile.username}
+                propertyTitle={propertyTitle}
                 propertyId={propertyId}
             />
         </>
