@@ -9,5 +9,7 @@ node_modules/
 /package-lock.json 
 # IDE files 
 .idea/ 
+# Debug logs
+.cursor/debug.log
 # Template files
 themeforest-*/

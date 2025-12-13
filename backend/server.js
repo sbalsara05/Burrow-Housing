@@ -3,7 +3,7 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const path = require("path");
 const { getRedisClient } = require("./redis");
-require("dotenv").config();
+require("dotenv").config({ path: path.join(__dirname, ".env") });
 
 // Import routes
 const authRoutes = require("./routes/authRoutes");
@@ -15,6 +15,7 @@ const favoritesRoutes = require("./routes/favoritesRoutes");
 const interestRoutes = require("./routes/interestRoutes");
 const chatRoutes = require("./routes/chatRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
+const ambassadorRequestRoutes = require("./routes/ambassadorRequestRoutes");
 
 // Initialize Express app
 const app = express();
@@ -97,6 +98,7 @@ app.use("/api", favoritesRoutes); // Favorites management routes
 app.use("/api", interestRoutes); // Interest management routes
 app.use("/api", chatRoutes); // Chat management routes
 app.use("/api", notificationRoutes); // Notification management routes
+app.use("/api", ambassadorRequestRoutes); // Ambassador request management routes
 
 // Start the Server
 const PORT = process.env.PORT || 5001; // Use a different port from React's default
