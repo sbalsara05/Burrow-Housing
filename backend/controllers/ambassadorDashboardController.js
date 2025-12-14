@@ -1,6 +1,7 @@
 const AmbassadorRequest = require("../models/ambassadorRequestModel");
 const Property = require("../models/propertyModel");
 const User = require("../models/userModel");
+const Notification = require("../models/notificationModel");
 const mongoose = require("mongoose");
 
 // GET /api/ambassador/dashboard/stats
@@ -350,6 +351,30 @@ exports.claimRequest = async (req, res) => {
 			request.scheduledDate = new Date(scheduledDate);
 		}
 		await request.save();
+
+		// Create notification for the ambassador
+		try {
+			const Notification = require("../models/notificationModel");
+			const property = await Property.findById(request.propertyId).select("overview.title addressAndLocation");
+			const address = property?.addressAndLocation?.address || request.propertyTitle || "a property";
+			
+			const notificationMessage = `You've claimed an ambassador request for "${property?.overview?.title || request.propertyTitle || "property"}" at ${address}. View inspection points to prepare.`;
+
+			const newNotification = new Notification({
+				userId: ambassadorId,
+				type: "ambassador_request",
+				message: notificationMessage,
+				link: `/dashboard/ambassador/request/${request._id}`,
+				metadata: {
+					propertyId: request.propertyId,
+					requestId: request._id,
+				},
+			});
+			await newNotification.save();
+		} catch (notificationError) {
+			// Log error but don't fail the claim
+			console.error("Error creating notification:", notificationError);
+		}
 
 		res.status(200).json({
 			message: "Request claimed successfully.",

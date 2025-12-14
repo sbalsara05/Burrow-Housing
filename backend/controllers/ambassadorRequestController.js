@@ -235,6 +235,39 @@ exports.updateAmbassadorRequestStatus = async (req, res) => {
 			console.error("Error creating notification:", notificationError);
 		}
 
+		// If request is approved, notify all active ambassadors
+		if (status === "approved") {
+			try {
+				const property = await Property.findById(request.propertyId).select("overview.title addressAndLocation");
+				const activeAmbassadors = await User.find({
+					isAmbassador: true,
+					ambassadorStatus: "active",
+				}).select("_id");
+
+				// Create notifications for all active ambassadors
+				const ambassadorNotifications = activeAmbassadors.map((ambassador) => {
+					const address = property?.addressAndLocation?.address || request.propertyTitle || "a property";
+					return {
+						userId: ambassador._id,
+						type: "ambassador_request",
+						message: `New ambassador request available for "${property?.overview?.title || request.propertyTitle || "property"}" at ${address}`,
+						link: "/dashboard/ambassador",
+						metadata: {
+							propertyId: request.propertyId,
+							requestId: request._id,
+						},
+					};
+				});
+
+				if (ambassadorNotifications.length > 0) {
+					await Notification.insertMany(ambassadorNotifications);
+				}
+			} catch (ambassadorNotificationError) {
+				// Log error but don't fail the request update
+				console.error("Error creating ambassador notifications:", ambassadorNotificationError);
+			}
+		}
+
 		res.status(200).json({
 			message: `Ambassador request ${status} successfully.`,
 			request,
