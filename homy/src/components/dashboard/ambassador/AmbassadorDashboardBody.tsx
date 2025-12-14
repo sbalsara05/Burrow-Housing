@@ -239,11 +239,11 @@ const AmbassadorDashboardBody: React.FC = () => {
 					<div className="col-xl-7 col-lg-6 d-flex flex-column">
 						<div className="bg-white border-20 mt-30 h-100">
 							<div className="d-flex align-items-center justify-content-between plr pt-30 pb-20">
-								<h5 className="dash-title-two">Today's Schedule</h5>
+								<h5 className="dash-title-two">My Assigned Requests</h5>
 							</div>
 							<div className="plr pb-30">
 								{schedule.length === 0 ? (
-									<p className="text-muted text-center py-4">No scheduled viewings for today</p>
+									<p className="text-muted text-center py-4">No assigned requests yet</p>
 								) : (
 									<div className="schedule-list">
 										{schedule.map((item) => (
@@ -259,7 +259,8 @@ const AmbassadorDashboardBody: React.FC = () => {
 													<div className="text-muted small mt-1">{item.time}</div>
 													<button
 														onClick={() => navigate(`/dashboard/ambassador/request/${item.requestId}`)}
-														className="btn btn-sm btn-outline-primary mt-2"
+														className="btn btn-sm mt-2"
+														style={{ backgroundColor: '#ff6b35', color: 'white', border: 'none' }}
 													>
 														View Inspection Points
 													</button>
@@ -295,7 +296,9 @@ const AmbassadorDashboardBody: React.FC = () => {
 										{activities.map((item) => (
 											<div
 												key={item.id}
-												className="d-flex align-items-start justify-content-between py-3 border-bottom"
+												className="d-flex align-items-start justify-content-between py-3 border-bottom cursor-pointer"
+												onClick={() => navigate(`/dashboard/ambassador/request/${item.requestId}`)}
+												style={{ cursor: 'pointer' }}
 											>
 												<div className="flex-grow-1">
 													<div className="text-muted small mb-1">{item.activity}</div>
@@ -303,7 +306,16 @@ const AmbassadorDashboardBody: React.FC = () => {
 														{item.timeAgo}
 													</div>
 												</div>
-												<i className="bi bi-arrow-up-right text-muted"></i>
+												<button
+													onClick={(e) => {
+														e.stopPropagation();
+														navigate(`/dashboard/ambassador/request/${item.requestId}`);
+													}}
+													className="btn btn-sm"
+													style={{ backgroundColor: '#ff6b35', color: 'white', border: 'none' }}
+												>
+													View
+												</button>
 											</div>
 										))}
 									</div>
@@ -343,9 +355,10 @@ const AmbassadorDashboardBody: React.FC = () => {
 												</div>
 												<button
 													onClick={() => navigate(`/dashboard/ambassador/request/${request._id}`)}
-													className="btn btn-sm btn-outline-secondary mt-2"
+													className="btn btn-sm mt-2"
+													style={{ backgroundColor: '#ff6b35', color: 'white', border: 'none' }}
 												>
-													View Details
+													View Inspection Points
 												</button>
 											</div>
 											<div className="d-flex flex-column gap-2">

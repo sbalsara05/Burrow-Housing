@@ -54,10 +54,18 @@ const AmbassadorRequestDetails: React.FC = () => {
 	const fetchRequestDetails = async () => {
 		try {
 			setLoading(true);
+			setError(null);
+			console.log('Fetching request details for:', requestId);
 			const response = await axios.get(`/api/ambassador/dashboard/request/${requestId}`);
-			setRequest(response.data.request);
+			console.log('Request details response:', response.data);
+			if (response.data.request) {
+				setRequest(response.data.request);
+			} else {
+				setError('Request data not found in response');
+			}
 		} catch (err: any) {
 			console.error('Error fetching request details:', err);
+			console.error('Error response:', err.response?.data);
 			setError(err.response?.data?.message || 'Failed to load request details');
 		} finally {
 			setLoading(false);
@@ -154,20 +162,26 @@ const AmbassadorRequestDetails: React.FC = () => {
 							{request.inspectionPoints && request.inspectionPoints.length > 0 ? (
 								<div className="inspection-points-list">
 									{request.inspectionPoints.map((point, index) => (
-										<div key={index} className="bg-light border-20 p-4 mb-3">
+										<div key={index} className="border-20 p-4 mb-3" style={{ backgroundColor: '#fff5f0', borderColor: '#ff6b35' }}>
 											<div className="d-flex align-items-start">
 												<div className="me-3">
 													<div
-														className="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center"
-														style={{ width: '30px', height: '30px', minWidth: '30px' }}
+														className="rounded-circle text-white d-flex align-items-center justify-content-center fw-medium"
+														style={{ 
+															width: '30px', 
+															height: '30px', 
+															minWidth: '30px',
+															backgroundColor: '#ff6b35',
+															paddingTop: '2px'
+														}}
 													>
 														{index + 1}
 													</div>
 												</div>
 												<div className="flex-grow-1">
-													<h5 className="mb-2">{point.text}</h5>
+													<h5 className="mb-2" style={{ color: '#333' }}>{point.text}</h5>
 													{point.details && (
-														<p className="text-muted mb-0">{point.details}</p>
+														<p className="mb-0" style={{ color: '#666' }}>{point.details}</p>
 													)}
 												</div>
 											</div>
@@ -183,9 +197,10 @@ const AmbassadorRequestDetails: React.FC = () => {
 						<div className="mt-4">
 							<button
 								onClick={() => navigate('/dashboard/ambassador')}
-								className="btn btn-outline-secondary"
+								className="btn-two"
+								style={{ backgroundColor: '#ff6b35', border: 'none', color: 'white' }}
 							>
-								Back to Dashboard
+								<span>Back to Dashboard</span>
 							</button>
 						</div>
 					</div>

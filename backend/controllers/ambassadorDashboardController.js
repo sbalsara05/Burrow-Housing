@@ -81,24 +81,27 @@ exports.getAmbassadorSchedule = async (req, res) => {
 			});
 		}
 
+		// Get all assigned requests (not just today's) - show all assigned/approved requests
+		const allAssignedRequests = await AmbassadorRequest.find({
+			ambassadorId,
+			status: { $in: ["assigned", "approved"] },
+		})
+			.sort({ scheduledDate: 1, createdAt: -1 }) // Sort by scheduled date, then by creation date
+			.populate("propertyId", "addressAndLocation overview images")
+			.populate("requesterId", "name email")
+			.lean();
+
 		const today = new Date();
 		today.setHours(0, 0, 0, 0);
 		const tomorrow = new Date(today);
 		tomorrow.setDate(tomorrow.getDate() + 1);
 
-		// Get today's schedule
-		const todaySchedule = await AmbassadorRequest.find({
-			ambassadorId,
-			status: { $in: ["assigned", "approved"] },
-			scheduledDate: {
-				$gte: today,
-				$lt: tomorrow,
-			},
-		})
-			.sort({ scheduledDate: 1 })
-			.populate("propertyId", "addressAndLocation overview images")
-			.populate("requesterId", "name email")
-			.lean();
+		// Filter for today's schedule
+		const todaySchedule = allAssignedRequests.filter((request) => {
+			if (!request.scheduledDate) return true; // Include requests without scheduled date
+			const scheduledDate = new Date(request.scheduledDate);
+			return scheduledDate >= today && scheduledDate < tomorrow;
+		});
 
 		// Format schedule items
 		const formattedSchedule = todaySchedule.map((request) => {
@@ -148,6 +151,8 @@ exports.getAmbassadorRequestDetails = async (req, res) => {
 	const ambassadorId = req.user.userId;
 	const { requestId } = req.params;
 
+	console.log('getAmbassadorRequestDetails called with requestId:', requestId, 'ambassadorId:', ambassadorId);
+
 	try {
 		// Verify user is an active ambassador
 		const ambassador = await User.findById(ambassadorId);
@@ -157,14 +162,15 @@ exports.getAmbassadorRequestDetails = async (req, res) => {
 			});
 		}
 
-		// Get the request - either assigned to this ambassador or pending (approved but not assigned)
-		const request = await AmbassadorRequest.findOne({
-			_id: requestId,
-			$or: [
-				{ ambassadorId },
-				{ status: "approved", ambassadorId: { $exists: false } },
-			],
-		})
+		// Get the request - ambassadors can view approved requests (to see before claiming) or requests assigned to them
+		// First try to find by ID only, then check permissions
+		if (!mongoose.Types.ObjectId.isValid(requestId)) {
+			return res.status(400).json({
+				message: "Invalid request ID.",
+			});
+		}
+
+		const request = await AmbassadorRequest.findById(requestId)
 			.populate("propertyId", "addressAndLocation overview images")
 			.populate("requesterId", "name email")
 			.populate("listerId", "name")
@@ -172,7 +178,18 @@ exports.getAmbassadorRequestDetails = async (req, res) => {
 
 		if (!request) {
 			return res.status(404).json({
-				message: "Request not found or you don't have access to it.",
+				message: "Request not found.",
+			});
+		}
+
+		// Check if ambassador has access: assigned to them OR approved (so they can view before claiming)
+		const hasAccess = 
+			(request.ambassadorId && request.ambassadorId.toString() === ambassadorId.toString()) ||
+			request.status === "approved";
+
+		if (!hasAccess) {
+			return res.status(403).json({
+				message: "You don't have access to this request.",
 			});
 		}
 
