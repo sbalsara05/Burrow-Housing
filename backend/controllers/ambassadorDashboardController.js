@@ -48,8 +48,9 @@ exports.getAmbassadorDashboardStats = async (req, res) => {
 		});
 		const completionRate = totalAssigned > 0 ? Math.round((completedCount / totalAssigned) * 100) : 0;
 
-		// Get places viewed (completed inspections)
-		const placesViewed = ambassador.ambassadorProfile?.completedInspections || completedCount;
+		// Get places viewed (use actual count from database for accuracy)
+		// This is the accurate count of completed inspections
+		const placesViewed = completedCount;
 
 		res.status(200).json({
 			placesViewed,
@@ -95,8 +96,8 @@ exports.getAmbassadorSchedule = async (req, res) => {
 			},
 		})
 			.sort({ scheduledDate: 1 })
-			.populate("propertyId", "addressAndLocation overview")
-			.populate("requesterId", "name")
+			.populate("propertyId", "addressAndLocation overview images")
+			.populate("requesterId", "name email")
 			.lean();
 
 		// Format schedule items
@@ -138,6 +139,50 @@ exports.getAmbassadorSchedule = async (req, res) => {
 		console.error("Error fetching ambassador schedule:", error);
 		res.status(500).json({
 			message: "Server error while fetching ambassador schedule.",
+		});
+	}
+};
+
+// GET /api/ambassador/dashboard/request/:requestId
+exports.getAmbassadorRequestDetails = async (req, res) => {
+	const ambassadorId = req.user.userId;
+	const { requestId } = req.params;
+
+	try {
+		// Verify user is an active ambassador
+		const ambassador = await User.findById(ambassadorId);
+		if (!ambassador || !ambassador.isAmbassador || ambassador.ambassadorStatus !== "active") {
+			return res.status(403).json({
+				message: "Access denied. Ambassador access required.",
+			});
+		}
+
+		// Get the request - either assigned to this ambassador or pending (approved but not assigned)
+		const request = await AmbassadorRequest.findOne({
+			_id: requestId,
+			$or: [
+				{ ambassadorId },
+				{ status: "approved", ambassadorId: { $exists: false } },
+			],
+		})
+			.populate("propertyId", "addressAndLocation overview images")
+			.populate("requesterId", "name email")
+			.populate("listerId", "name")
+			.lean();
+
+		if (!request) {
+			return res.status(404).json({
+				message: "Request not found or you don't have access to it.",
+			});
+		}
+
+		res.status(200).json({
+			request,
+		});
+	} catch (error) {
+		console.error("Error fetching ambassador request details:", error);
+		res.status(500).json({
+			message: "Server error while fetching request details.",
 		});
 	}
 };
@@ -232,8 +277,8 @@ exports.getPendingRequests = async (req, res) => {
 			ambassadorId: { $exists: false }, // Not yet assigned
 		})
 			.sort({ createdAt: -1 })
-			.populate("propertyId", "addressAndLocation overview")
-			.populate("requesterId", "name")
+			.populate("propertyId", "addressAndLocation overview images")
+			.populate("requesterId", "name email")
 			.lean();
 
 		res.status(200).json({

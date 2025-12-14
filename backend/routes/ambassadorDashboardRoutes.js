@@ -8,6 +8,7 @@ const {
 	getAmbassadorActivity,
 	getPendingRequests,
 	claimRequest,
+	getAmbassadorRequestDetails,
 } = require("../controllers/ambassadorDashboardController");
 
 // All routes require authentication and ambassador role
@@ -28,5 +29,8 @@ router.get("/dashboard/pending-requests", getPendingRequests);
 
 // Claim a request
 router.post("/dashboard/claim-request/:requestId", claimRequest);
+
+// Get request details
+router.get("/dashboard/request/:requestId", getAmbassadorRequestDetails);
 
 module.exports = router;

@@ -26,12 +26,7 @@ const AmbassadorRequestModal: React.FC<AmbassadorRequestModalProps> = ({
   propertyId
 }) => {
   const [step, setStep] = useState(1);
-  const [inspectionPoints, setInspectionPoints] = useState<InspectionPoint[]>([
-    { id: '1', text: 'Damage to the room' },
-    { id: '2', text: 'Room size' },
-    { id: '3', text: 'Kitchen Size' },
-    { id: '4', text: 'Driveway Condition' }
-  ]);
+  const [inspectionPoints, setInspectionPoints] = useState<InspectionPoint[]>([]);
   const [newPoint, setNewPoint] = useState('');
   const [showNewPointInput, setShowNewPointInput] = useState(false);
   const [preferredDates, setPreferredDates] = useState('');
@@ -62,6 +57,10 @@ const AmbassadorRequestModal: React.FC<AmbassadorRequestModalProps> = ({
 
   const handleNext = () => {
     if (step === 1) {
+      if (inspectionPoints.length === 0) {
+        alert('Please add at least one inspection point before continuing.');
+        return;
+      }
       setStep(2);
     }
   };
@@ -155,6 +154,17 @@ const AmbassadorRequestModal: React.FC<AmbassadorRequestModalProps> = ({
             </p>
 
             <div className="tw-mb-6">
+              {inspectionPoints.length === 0 && !showNewPointInput && (
+                <div className="tw-bg-orange-50 tw-border tw-border-orange-200 tw-rounded-lg tw-p-4 tw-mb-4" style={{ backgroundColor: '#fff5f0', borderColor: '#ff6b35' }}>
+                  <p className="tw-mb-2 tw-font-medium" style={{ color: '#ff6b35' }}>
+                    Add inspection points to help the ambassador know what to check
+                  </p>
+                  <p className="tw-text-sm" style={{ color: '#d14030' }}>
+                    Click "Add Point" below to specify what you'd like inspected (e.g., room condition, amenities, damage, etc.)
+                  </p>
+                </div>
+              )}
+              
               <div className="tw-flex tw-flex-col tw-gap-3">
                 {!showNewPointInput && (
                   <button

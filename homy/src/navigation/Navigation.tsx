@@ -26,6 +26,7 @@ import DashboardEditProperty from '../pages/DashboardEditProperty';
 import DashboardReceivedRequests from '../pages/DashboardReceivedRequests';
 import DashboardMyRequests from '../pages/DashboardMyRequests';
 import DashboardAmbassador from '../pages/DashboardAmbassador';
+import DashboardAmbassadorRequestDetails from '../pages/DashboardAmbassadorRequestDetails';
 import PublicProfilePage from '../pages/PublicProfilePage';
 import ResetPasswordPage from '../pages/ResetPasswordPage';
 
@@ -85,6 +86,7 @@ const AppNavigation = () => {
 					<Route path="/dashboard/received-requests" element={<DashboardReceivedRequests />} />
 					<Route path="/dashboard/my-requests" element={<DashboardMyRequests />} />
 					<Route path="/dashboard/ambassador" element={<DashboardAmbassador />} />
+					<Route path="/dashboard/ambassador/request/:requestId" element={<DashboardAmbassadorRequestDetails />} />
 					{/* Add any other future protected routes inside this wrapper */}
                 </Route>
 

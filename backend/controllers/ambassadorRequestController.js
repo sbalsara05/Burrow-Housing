@@ -69,6 +69,10 @@ exports.submitAmbassadorRequest = async (req, res) => {
 
 		// Create Notification for the Lister
 		const requester = await User.findById(requesterId).select("name");
+		if (!requester) {
+			return res.status(404).json({ message: "Requester user not found." });
+		}
+		
 		const notificationMessage = `${requester.name} requested an ambassador viewing for "${property.overview?.title || "your property"}".`;
 
 		const newNotification = new Notification({
@@ -196,7 +200,7 @@ exports.updateAmbassadorRequestStatus = async (req, res) => {
 		}
 
 		// Only lister can update the status
-		if (request.listerId.toString() !== userId) {
+		if (request.listerId.toString() !== userId.toString()) {
 			return res.status(403).json({
 				message: "You are not authorized to update this request.",
 			});
@@ -206,22 +210,30 @@ exports.updateAmbassadorRequestStatus = async (req, res) => {
 		await request.save();
 
 		// Create Notification for the Requester
-		const lister = await User.findById(userId).select("name");
-		const property = await Property.findById(request.propertyId).select("overview.title");
-		const notificationMessage = `${lister.name} ${status} your ambassador request for "${property.overview?.title || "property"}".`;
+		try {
+			const lister = await User.findById(userId).select("name");
+			const property = await Property.findById(request.propertyId).select("overview.title");
+			
+			if (lister && property) {
+				const notificationMessage = `${lister.name} ${status} your ambassador request for "${property.overview?.title || request.propertyTitle || "property"}".`;
 
-		const newNotification = new Notification({
-			userId: request.requesterId,
-			type: "ambassador_request_update",
-			message: notificationMessage,
-			link: "/dashboard/my-ambassador-requests",
-			metadata: {
-				propertyId: request.propertyId,
-				requestId: request._id,
-				status: status,
-			},
-		});
-		await newNotification.save();
+				const newNotification = new Notification({
+					userId: request.requesterId,
+					type: "ambassador_request_update",
+					message: notificationMessage,
+					link: "/dashboard/my-requests",
+					metadata: {
+						propertyId: request.propertyId,
+						requestId: request._id,
+						status: status,
+					},
+				});
+				await newNotification.save();
+			}
+		} catch (notificationError) {
+			// Log notification error but don't fail the request update
+			console.error("Error creating notification:", notificationError);
+		}
 
 		res.status(200).json({
 			message: `Ambassador request ${status} successfully.`,
