@@ -26,10 +26,6 @@ exports.submitAmbassadorRequest = async (req, res) => {
 			return res.status(400).json({ message: "Preferred dates are required." });
 		}
 
-		if (!contactInfo || !contactInfo.trim()) {
-			return res.status(400).json({ message: "Contact information is required." });
-		}
-
 		const property = await Property.findById(propertyId);
 		if (!property) {
 			return res.status(404).json({ message: "Property not found." });
@@ -61,7 +57,7 @@ exports.submitAmbassadorRequest = async (req, res) => {
 			requesterId,
 			inspectionPoints,
 			preferredDates: preferredDates.trim(),
-			contactInfo: contactInfo.trim(),
+			contactInfo: contactInfo ? contactInfo.trim() : undefined, // Optional
 			propertyTitle: propertyTitle || property.overview?.title || "Property",
 		});
 
@@ -69,13 +65,17 @@ exports.submitAmbassadorRequest = async (req, res) => {
 
 		// Create Notification for the Lister
 		const requester = await User.findById(requesterId).select("name");
+		if (!requester) {
+			return res.status(404).json({ message: "Requester user not found." });
+		}
+		
 		const notificationMessage = `${requester.name} requested an ambassador viewing for "${property.overview?.title || "your property"}".`;
 
 		const newNotification = new Notification({
 			userId: listerId,
 			type: "ambassador_request",
 			message: notificationMessage,
-			link: "/dashboard/ambassador-requests",
+			link: "/dashboard/requests",
 			metadata: {
 				propertyId: property._id,
 				requesterId: requesterId,
@@ -83,6 +83,7 @@ exports.submitAmbassadorRequest = async (req, res) => {
 			},
 		});
 		await newNotification.save();
+		console.log(`[Ambassador Notification] Created request notification for lister ${listerId} for request ${newRequest._id}`);
 
 		res.status(201).json({
 			message: "Ambassador request submitted successfully.",
@@ -196,7 +197,7 @@ exports.updateAmbassadorRequestStatus = async (req, res) => {
 		}
 
 		// Only lister can update the status
-		if (request.listerId.toString() !== userId) {
+		if (request.listerId.toString() !== userId.toString()) {
 			return res.status(403).json({
 				message: "You are not authorized to update this request.",
 			});
@@ -206,22 +207,72 @@ exports.updateAmbassadorRequestStatus = async (req, res) => {
 		await request.save();
 
 		// Create Notification for the Requester
-		const lister = await User.findById(userId).select("name");
-		const property = await Property.findById(request.propertyId).select("overview.title");
-		const notificationMessage = `${lister.name} ${status} your ambassador request for "${property.overview?.title || "property"}".`;
+		try {
+			const lister = await User.findById(userId).select("name");
+			const property = await Property.findById(request.propertyId).select("overview.title");
+			
+			if (lister && property) {
+				const notificationMessage = `${lister.name} ${status} your ambassador request for "${property.overview?.title || request.propertyTitle || "property"}".`;
 
-		const newNotification = new Notification({
-			userId: request.requesterId,
-			type: "ambassador_request_update",
-			message: notificationMessage,
-			link: "/dashboard/my-ambassador-requests",
-			metadata: {
-				propertyId: request.propertyId,
-				requestId: request._id,
-				status: status,
-			},
-		});
-		await newNotification.save();
+				const newNotification = new Notification({
+					userId: request.requesterId,
+					type: "ambassador_request_update",
+					message: notificationMessage,
+					link: "/dashboard/my-requests",
+					metadata: {
+						propertyId: request.propertyId,
+						requestId: request._id,
+						status: status,
+					},
+				});
+				await newNotification.save();
+				console.log(`[Ambassador Notification] Created ${status} notification for requester ${request.requesterId} for request ${request._id}`);
+			} else {
+				console.log(`[Ambassador Notification] Skipped requester notification - lister: ${!!lister}, property: ${!!property}`);
+			}
+		} catch (notificationError) {
+			// Log error but don't fail the request update
+			console.error("Error creating requester notification:", notificationError);
+		}
+
+		// If request is approved, notify all active ambassadors
+		if (status === "approved") {
+			try {
+				const property = await Property.findById(request.propertyId).select("overview.title addressAndLocation");
+				const activeAmbassadors = await User.find({
+					isAmbassador: true,
+					ambassadorStatus: "active",
+				}).select("_id name email");
+
+				console.log(`[Ambassador Notifications] Found ${activeAmbassadors.length} active ambassadors for approved request ${request._id}`);
+
+				// Create notifications for all active ambassadors
+				const ambassadorNotifications = activeAmbassadors.map((ambassador) => {
+					const address = property?.addressAndLocation?.address || request.propertyTitle || "a property";
+					const title = property?.overview?.title || request.propertyTitle || "property";
+					return {
+						userId: ambassador._id,
+						type: "ambassador_request",
+						message: `New ambassador request available for "${title}" at ${address}`,
+						link: "/dashboard/ambassador",
+						metadata: {
+							propertyId: request.propertyId,
+							requestId: request._id,
+						},
+					};
+				});
+
+				if (ambassadorNotifications.length > 0) {
+					const savedNotifications = await Notification.insertMany(ambassadorNotifications);
+					console.log(`[Ambassador Notifications] Created ${savedNotifications.length} notifications for ambassadors`);
+				} else {
+					console.log("[Ambassador Notifications] No active ambassadors found to notify");
+				}
+			} catch (ambassadorNotificationError) {
+				// Log error but don't fail the request update
+				console.error("Error creating ambassador notifications:", ambassadorNotificationError);
+			}
+		}
 
 		res.status(200).json({
 			message: `Ambassador request ${status} successfully.`,
@@ -231,6 +282,98 @@ exports.updateAmbassadorRequestStatus = async (req, res) => {
 		console.error("Error updating ambassador request status:", error);
 		res.status(500).json({
 			message: "Server error while updating ambassador request status.",
+		});
+	}
+};
+
+// PUT /api/ambassador-requests/:requestId/review
+exports.submitAmbassadorReview = async (req, res) => {
+	console.log('[Review Submission] Route hit:', req.method, req.path);
+	console.log('[Review Submission] Request ID:', req.params.requestId);
+	console.log('[Review Submission] User ID:', req.user?.userId);
+	
+	const ambassadorId = req.user.userId;
+	const { requestId } = req.params;
+	const { text, images } = req.body;
+
+	try {
+		if (!text || !text.trim()) {
+			return res.status(400).json({ message: "Review text is required." });
+		}
+
+		const request = await AmbassadorRequest.findById(requestId);
+		if (!request) {
+			return res.status(404).json({ message: "Ambassador request not found." });
+		}
+
+		// Security Check: Only the assigned ambassador can submit a review
+		if (!request.ambassadorId || request.ambassadorId.toString() !== ambassadorId) {
+			return res.status(403).json({
+				message: "You are not authorized to submit a review for this request.",
+			});
+		}
+
+		// Check if request is in a valid state for review submission
+		if (request.status !== "assigned" && request.status !== "approved") {
+			return res.status(400).json({
+				message: `Cannot submit review for a request with status '${request.status}'.`,
+			});
+		}
+
+		// Update request with review
+		request.review = {
+			text: text.trim(),
+			images: images && Array.isArray(images) ? images : [],
+			submittedAt: new Date(),
+		};
+		request.status = "completed";
+		await request.save();
+
+		// Create Notification for the Requester
+		const ambassador = await User.findById(ambassadorId).select("name");
+		const property = await Property.findById(request.propertyId).select("overview.title addressAndLocation");
+		const address = property?.addressAndLocation?.address || request.propertyTitle || "a property";
+		const title = property?.overview?.title || request.propertyTitle || "property";
+		
+		const notificationMessage = `${ambassador?.name || "An ambassador"} has submitted a review for "${title}" at ${address}.`;
+
+		const newNotification = new Notification({
+			userId: request.requesterId,
+			type: "ambassador_request_update",
+			message: notificationMessage,
+			link: `/dashboard/my-requests`,
+			metadata: {
+				propertyId: request.propertyId,
+				requestId: request._id,
+				ambassadorId: ambassadorId,
+			},
+		});
+		await newNotification.save();
+
+		// Also notify the lister
+		const listerNotification = new Notification({
+			userId: request.listerId,
+			type: "ambassador_request_update",
+			message: `An ambassador has completed the inspection and submitted a review for "${title}" at ${address}.`,
+			link: `/dashboard/requests`,
+			metadata: {
+				propertyId: request.propertyId,
+				requestId: request._id,
+				ambassadorId: ambassadorId,
+			},
+		});
+		await listerNotification.save();
+
+		console.log(`[Ambassador Review] Review submitted for request ${requestId} by ambassador ${ambassadorId}`);
+
+		res.status(200).json({
+			message: "Review submitted successfully.",
+			request,
+		});
+	} catch (error) {
+		console.error("Error submitting ambassador review:", error);
+		res.status(500).json({
+			message: "Server error while submitting review.",
 		});
 	}
 };

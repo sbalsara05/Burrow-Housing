@@ -16,6 +16,19 @@ const userSchema = new mongoose.Schema(
 			unique: true,
 		},
 		isVerified: { type: Boolean, default: false }, // Email verification status
+		isAmbassador: { type: Boolean, default: false }, // Ambassador role flag
+		ambassadorStatus: {
+			type: String,
+			enum: ["pending", "active", "inactive"],
+			default: "pending",
+		}, // Ambassador status
+		ambassadorProfile: {
+			bio: { type: String, default: "" },
+			availableHours: [{ type: String }], // Array of available time slots
+			completedInspections: { type: Number, default: 0 },
+			rating: { type: Number, default: 0 },
+			certificationDate: { type: Date },
+		},
 		properties: [
 			{
 				type: mongoose.Schema.Types.ObjectId,

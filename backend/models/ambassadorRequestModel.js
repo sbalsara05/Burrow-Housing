@@ -41,15 +41,34 @@ const AmbassadorRequestSchema = new mongoose.Schema(
 		},
 		contactInfo: {
 			type: String,
-			required: true,
 			trim: true,
+		}, // Optional - kept for backward compatibility
+		review: {
+			text: {
+				type: String,
+				trim: true,
+			},
+			images: [{
+				type: String, // URLs to uploaded images
+			}],
+			submittedAt: {
+				type: Date,
+			},
 		},
 		status: {
 			type: String,
-			enum: ["pending", "approved", "declined", "completed", "cancelled"],
+			enum: ["pending", "approved", "declined", "completed", "cancelled", "assigned"],
 			default: "pending",
 			required: true,
 		},
+		ambassadorId: {
+			type: mongoose.Schema.Types.ObjectId,
+			ref: "User",
+			index: true,
+		}, // Assigned ambassador
+		scheduledDate: {
+			type: Date,
+		}, // Scheduled inspection date/time
 		propertyTitle: {
 			type: String,
 			trim: true,

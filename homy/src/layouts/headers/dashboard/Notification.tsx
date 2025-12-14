@@ -31,8 +31,8 @@ const Notification: React.FC = () => {
     const navigate = useNavigate();
     const notifications = useSelector(selectAllNotifications);
 
-    // State to track which notifications are expanded
-    const [expandedNotifications, setExpandedNotifications] = useState<Set<string>>(new Set());
+    // State to track which notifications are expanded (using array for React reactivity)
+    const [expandedNotifications, setExpandedNotifications] = useState<string[]>([]);
 
     const handleDelete = async (e: React.MouseEvent, notification: NotificationType) => {
         e.preventDefault(); // Prevent link navigation
@@ -72,52 +72,61 @@ const Notification: React.FC = () => {
         e.preventDefault();
         e.stopPropagation();
 
-        const newExpanded = new Set(expandedNotifications);
-        if (newExpanded.has(notificationId)) {
-            newExpanded.delete(notificationId);
-        } else {
-            newExpanded.add(notificationId);
-        }
-        setExpandedNotifications(newExpanded);
+        setExpandedNotifications(prev => {
+            const newState = prev.includes(notificationId)
+                ? prev.filter(id => id !== notificationId)
+                : [...prev, notificationId];
+            console.log('Expanded notifications:', newState, 'for ID:', notificationId);
+            return newState;
+        });
     };
 
     // Function to truncate message and check if it needs truncation
     const getTruncatedMessage = (message: string, isExpanded: boolean) => {
-        const maxLength = 50; // Adjust this value as needed
+        // Truncate at a shorter length to account for the dropdown width
+        const maxLength = 60; 
         if (message.length <= maxLength) {
             return { text: message, needsTruncation: false };
         }
 
-        if (isExpanded) {
-            return { text: message, needsTruncation: true };
-        } else {
-            return { text: message.substring(0, maxLength), needsTruncation: true };
-        }
+        // If expanded, show full message; otherwise show truncated
+        return { 
+            text: isExpanded ? message : message.substring(0, maxLength) + '...', 
+            needsTruncation: true 
+        };
     };
 
     const hasReadNotifications = notifications.some(n => n.isRead);
 
     return (
-        <ul className="dropdown-menu" aria-labelledby="notification-dropdown" style={{ position: 'absolute', inset: '0px auto auto 0px', margin: '0px', transform: 'translate3d(-151.273px, 52px, 0px)' }}>
-            <li>
-                <div className="d-flex justify-content-between align-items-center">
-                    <h4>Notifications</h4>
-                    {hasReadNotifications && (
-                        <button onClick={handleClearRead} className="btn btn-sm btn-link text-decoration-underline tw-pb-6">
-                            Clear Read
-                        </button>
-                    )}
-                </div>
+        <ul className="dropdown-menu" aria-labelledby="notification-dropdown" style={{ 
+                position: 'absolute', 
+                inset: '0px auto auto 0px', 
+                margin: '0px', 
+                transform: 'translate3d(-200px, 52px, 0px)',
+                width: '500px',
+                maxHeight: '600px',
+                overflowY: 'auto'
+            }}>
+                <li>
+                    <div className="d-flex justify-content-between align-items-center p-3 border-bottom">
+                        <h4 className="mb-0">Notifications</h4>
+                        {hasReadNotifications && (
+                            <button onClick={handleClearRead} className="btn btn-sm btn-link text-decoration-underline p-0">
+                                Clear Read
+                            </button>
+                        )}
+                    </div>
 
                 {notifications.length > 0 ? (
                     <ul className="style-none notify-list">
                         {notifications.map((item) => {
-                            const isExpanded = expandedNotifications.has(item._id);
+                            const isExpanded = expandedNotifications.includes(item._id);
                             const messageData = getTruncatedMessage(item.message, isExpanded);
 
                             return (
                                 <li
-                                    key={item._id}
+                                    key={`${item._id}-${isExpanded}`}
                                     className={`d-flex align-items-start ${!item.isRead ? 'unread' : ''}`}
                                     style={{ cursor: 'pointer', padding: '8px 12px', position: 'relative' }}
                                 >
@@ -126,53 +135,64 @@ const Notification: React.FC = () => {
                                         onClick={() => handleNotificationClick(item.link)}
                                         style={{ minWidth: 0 }} // This allows the flex item to shrink
                                     >
-                                        <h6 className="mb-1" style={{ wordBreak: 'break-word' }}>
+                                        <h6 className="mb-1" style={{ wordBreak: 'break-word', lineHeight: '1.4', whiteSpace: 'pre-wrap' }}>
                                             {messageData.text}
-                                            {messageData.needsTruncation && !isExpanded && (
-                                                <button
-                                                    onClick={(e) => toggleExpanded(e, item._id)}
-                                                    className="btn btn-link p-0 text-primary"
-                                                    style={{
-                                                        fontSize: '0.875rem',
-                                                        textDecoration: 'none',
-                                                        marginLeft: '8px' // Added more spacing
-                                                    }}
-                                                >
-                                                    ...
-                                                </button>
-                                            )}
-                                            {messageData.needsTruncation && isExpanded && (
-                                                <button
-                                                    onClick={(e) => toggleExpanded(e, item._id)}
-                                                    className="btn btn-link p-0 text-primary"
-                                                    style={{
-                                                        fontSize: '0.875rem',
-                                                        textDecoration: 'none',
-                                                        marginLeft: '8px' // Added more spacing
-                                                    }}
-                                                >
-                                                    Show less
-                                                </button>
-                                            )}
                                         </h6>
-                                        <span className="time text-muted" style={{ fontSize: '0.75rem' }}>
+                                        {messageData.needsTruncation && (
+                                            <button
+                                                onClick={(e) => {
+                                                    e.preventDefault();
+                                                    e.stopPropagation();
+                                                    toggleExpanded(e, item._id);
+                                                }}
+                                                className="btn btn-sm btn-link p-0 mt-1 d-block"
+                                                style={{
+                                                    fontSize: '0.75rem',
+                                                    color: '#ff6b35',
+                                                    textDecoration: 'none',
+                                                    padding: '0',
+                                                    fontWeight: '500',
+                                                    display: 'block'
+                                                }}
+                                            >
+                                                {isExpanded ? 'View less' : 'View more'}
+                                            </button>
+                                        )}
+                                        <span className="time text-muted d-block mt-1" style={{ fontSize: '0.75rem' }}>
                                             {timeSince(item.createdAt)}
                                         </span>
                                     </div>
-                                    <button
-                                        onClick={(e) => handleDelete(e, item)}
-                                        className="btn btn-sm btn-link text-danger p-1 flex-shrink-0"
-                                        title="Delete notification"
-                                        style={{
-                                            minWidth: 'auto',
-                                            lineHeight: 1,
-                                            position: 'absolute',
-                                            right: '8px',
-                                            top: '8px'
-                                        }}
-                                    >
-                                        <i className="fa-regular fa-times-circle"></i>
-                                    </button>
+                                    <div className="d-flex flex-column gap-1 align-items-end">
+                                        {(item.type === 'ambassador_request' || item.link?.includes('/ambassador')) && (
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleNotificationClick(item.link);
+                                                }}
+                                                className="btn btn-sm"
+                                                style={{ 
+                                                    backgroundColor: '#ff6b35', 
+                                                    color: 'white', 
+                                                    border: 'none',
+                                                    fontSize: '0.75rem',
+                                                    padding: '2px 8px'
+                                                }}
+                                            >
+                                                View
+                                            </button>
+                                        )}
+                                        <button
+                                            onClick={(e) => handleDelete(e, item)}
+                                            className="btn btn-sm btn-link text-danger p-1 flex-shrink-0"
+                                            title="Delete notification"
+                                            style={{
+                                                minWidth: 'auto',
+                                                lineHeight: 1
+                                            }}
+                                        >
+                                            <i className="fa-regular fa-times-circle"></i>
+                                        </button>
+                                    </div>
                                 </li>
                             );
                         })}

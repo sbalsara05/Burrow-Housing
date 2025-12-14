@@ -15,6 +15,15 @@ export interface User {
     email: string;
     phone?: string;
     isVerified: boolean;
+    isAmbassador?: boolean;
+    ambassadorStatus?: "pending" | "active" | "inactive";
+    ambassadorProfile?: {
+        bio?: string;
+        availableHours?: string[];
+        completedInspections?: number;
+        rating?: number;
+        certificationDate?: string;
+    };
     properties?: string[]; // Array of property IDs if included
 }
 

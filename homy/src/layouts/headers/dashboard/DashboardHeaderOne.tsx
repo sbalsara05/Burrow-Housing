@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch } from '../../../redux/slices/store.ts';
-import { logoutUser } from '../../../redux/slices/authSlice';
+import { logoutUser, selectCurrentUser } from '../../../redux/slices/authSlice';
 
 interface DashboardHeaderOneProps {
     isActive: boolean;
@@ -25,7 +25,19 @@ interface NavSection {
 const DashboardHeaderOne: React.FC<DashboardHeaderOneProps> = ({ isActive, setIsActive }) => {
     const dispatch = useDispatch<AppDispatch>();
     const navigate = useNavigate();
+    const location = useLocation();
+    const user = useSelector(selectCurrentUser);
     const [pathname, setPathname] = useState(window.location.pathname);
+    
+    // Update pathname when location changes
+    useEffect(() => {
+        setPathname(location.pathname);
+    }, [location.pathname]);
+    
+    const isChatPage = pathname === '/dashboard/chat';
+
+    // Check if user is an active ambassador
+    const isActiveAmbassador = user?.isAmbassador && user?.ambassadorStatus === 'active';
 
     // Navigation configuration
     const navSections: NavSection[] = [
@@ -99,7 +111,19 @@ const DashboardHeaderOne: React.FC<DashboardHeaderOneProps> = ({ isActive, setIs
                     activeIconPath: '/assets/images/icon/message-circle-more-active.svg'
                 }
             ]
-        }
+        },
+        ...(isActiveAmbassador ? [{
+            title: 'Ambassador', // Ambassador section
+            showDivider: true,
+            items: [
+                {
+                    path: '/dashboard/ambassador',
+                    label: 'Ambassador Dashboard',
+                    iconPath: '/assets/images/dashboard/icon/icon_6.svg',
+                    activeIconPath: '/assets/images/dashboard/icon/icon_6_active.svg'
+                }
+            ]
+        }] : [])
     ];
 
     const handleNavigation = (path: string) => {

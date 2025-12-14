@@ -16,6 +16,7 @@ const interestRoutes = require("./routes/interestRoutes");
 const chatRoutes = require("./routes/chatRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
 const ambassadorRequestRoutes = require("./routes/ambassadorRequestRoutes");
+const ambassadorDashboardRoutes = require("./routes/ambassadorDashboardRoutes");
 
 // Initialize Express app
 const app = express();
@@ -99,6 +100,7 @@ app.use("/api", interestRoutes); // Interest management routes
 app.use("/api", chatRoutes); // Chat management routes
 app.use("/api", notificationRoutes); // Notification management routes
 app.use("/api", ambassadorRequestRoutes); // Ambassador request management routes
+app.use("/api/ambassador", ambassadorDashboardRoutes); // Ambassador dashboard routes
 
 // Start the Server
 const PORT = process.env.PORT || 5001; // Use a different port from React's default
