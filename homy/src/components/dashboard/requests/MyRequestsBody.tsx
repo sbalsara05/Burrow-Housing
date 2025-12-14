@@ -34,6 +34,11 @@ interface AmbassadorRequest {
     preferredDates: string;
     propertyTitle?: string;
     createdAt: string;
+    review?: {
+        text: string;
+        images: string[];
+        submittedAt: string;
+    };
 }
 
 const MyRequestsBody = () => {
@@ -132,7 +137,8 @@ const MyRequestsBody = () => {
                                             <span className={`fw-500 text-capitalize text-${
                                                 req.status === 'approved' ? 'success' :
                                                 req.status === 'declined' ? 'danger' :
-                                                req.status === 'cancelled' ? 'secondary' : 'warning'
+                                                req.status === 'cancelled' ? 'secondary' :
+                                                req.status === 'completed' ? 'success' : 'warning'
                                             }`}>
                                                 {req.status}
                                             </span>
@@ -143,6 +149,68 @@ const MyRequestsBody = () => {
                                         <p className="mb-0">
                                             <strong>Sent on:</strong> {new Date(req.createdAt).toLocaleDateString()}
                                         </p>
+                                        
+                                        {/* Review Section */}
+                                        {req.review && req.status === 'completed' && (
+                                            <div className="mt-4 pt-4 border-top">
+                                                <div className="d-flex align-items-center mb-3">
+                                                    <i className="bi bi-check-circle-fill me-2" style={{ fontSize: '18px', color: '#28a745' }}></i>
+                                                    <h6 className="mb-0 fw-semibold" style={{ color: '#333', fontSize: '1rem' }}>
+                                                        Ambassador Review
+                                                    </h6>
+                                                </div>
+                                                <div className="rounded-3 p-4" style={{ 
+                                                    backgroundColor: '#fff5f0', 
+                                                    border: '1px solid #ffe5d9',
+                                                    boxShadow: '0 2px 8px rgba(255, 107, 53, 0.08)'
+                                                }}>
+                                                    <p className="mb-3" style={{ 
+                                                        whiteSpace: 'pre-wrap', 
+                                                        color: '#333',
+                                                        lineHeight: '1.6',
+                                                        fontSize: '0.95rem'
+                                                    }}>
+                                                        {req.review.text}
+                                                    </p>
+                                                    {req.review.images && req.review.images.length > 0 && (
+                                                        <div className="row g-3 mt-3">
+                                                            {req.review.images.map((imageUrl, idx) => (
+                                                                <div key={idx} className="col-md-4">
+                                                                    <div className="rounded overflow-hidden" style={{
+                                                                        aspectRatio: '1',
+                                                                        overflow: 'hidden',
+                                                                        boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                                                                    }}>
+                                                                        <img
+                                                                            src={imageUrl}
+                                                                            alt={`Review image ${idx + 1}`}
+                                                                            className="img-fluid"
+                                                                            style={{ 
+                                                                                objectFit: 'cover', 
+                                                                                width: '100%',
+                                                                                height: '100%'
+                                                                            }}
+                                                                        />
+                                                                    </div>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    )}
+                                                    <div className="d-flex align-items-center mt-3 pt-3 border-top" style={{ borderColor: '#ffe5d9' }}>
+                                                        <i className="bi bi-clock me-2" style={{ color: '#666', fontSize: '0.85rem' }}></i>
+                                                        <span className="text-muted" style={{ fontSize: '0.85rem' }}>
+                                                            Submitted {new Date(req.review.submittedAt).toLocaleDateString('en-US', { 
+                                                                month: 'short', 
+                                                                day: 'numeric', 
+                                                                year: 'numeric',
+                                                                hour: 'numeric',
+                                                                minute: '2-digit'
+                                                            })}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
                                     <div className="col-md-4 d-flex align-items-center justify-content-md-end">
                                         {req.status === 'pending' && (

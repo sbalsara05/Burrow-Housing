@@ -1,7 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { useSelector } from 'react-redux';
+import { selectAuthToken, selectCurrentUser } from '../../../redux/slices/authSlice';
 import DashboardHeaderTwo from '../../../layouts/headers/dashboard/DashboardHeaderTwo';
+import { toast } from 'react-toastify';
 
 interface InspectionPoint {
 	text: string;
@@ -36,14 +39,86 @@ interface RequestDetails {
 	status: string;
 	scheduledDate?: string;
 	createdAt: string;
+	ambassadorId?: {
+		_id: string;
+		name: string;
+	};
+	review?: {
+		text: string;
+		images: string[];
+		submittedAt: string;
+	};
 }
 
 const AmbassadorRequestDetails: React.FC = () => {
 	const { requestId } = useParams<{ requestId: string }>();
 	const navigate = useNavigate();
+	const token = useSelector(selectAuthToken);
+	const currentUser = useSelector(selectCurrentUser);
 	const [request, setRequest] = useState<RequestDetails | null>(null);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
+	
+	// Review submission state
+	const [showReviewForm, setShowReviewForm] = useState(false);
+	const [reviewText, setReviewText] = useState('');
+	const [reviewImages, setReviewImages] = useState<File[]>([]);
+	const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+	const [isSubmittingReview, setIsSubmittingReview] = useState(false);
+
+	const handleSubmitReview = async () => {
+		if (!reviewText.trim() || !token || !requestId) {
+			toast.error('Please provide review text');
+			return;
+		}
+
+		setIsSubmittingReview(true);
+
+		try {
+			// First, upload images if any
+			let imageUrls: string[] = [];
+			if (reviewImages.length > 0) {
+				// For now, we'll need to upload images to S3
+				// This is a simplified version - you may want to use presigned URLs
+				const formData = new FormData();
+				reviewImages.forEach((file) => {
+					formData.append('images', file);
+				});
+
+				// Upload images (you'll need to create this endpoint or use existing S3 upload)
+				// For now, we'll skip image uploads and just send text
+				// TODO: Implement image upload to S3
+			}
+
+			// Submit review
+			await axios.put(
+				`/api/ambassador-requests/${requestId}/review`,
+				{
+					text: reviewText.trim(),
+					images: imageUrls,
+				},
+				{
+					headers: { Authorization: `Bearer ${token}` },
+				}
+			);
+
+			toast.success('Review submitted successfully!');
+			
+			// Refresh request details
+			await fetchRequestDetails();
+			
+			// Reset form
+			setShowReviewForm(false);
+			setReviewText('');
+			setReviewImages([]);
+			setImagePreviews([]);
+		} catch (err: any) {
+			console.error('Error submitting review:', err);
+			toast.error(err.response?.data?.message || 'Failed to submit review');
+		} finally {
+			setIsSubmittingReview(false);
+		}
+	};
 
 	useEffect(() => {
 		if (requestId) {
@@ -107,6 +182,28 @@ const AmbassadorRequestDetails: React.FC = () => {
 		request.propertyTitle || 
 		'Address not available';
 
+	// Determine if review form should be shown
+	const ambassadorId = typeof request.ambassadorId === 'object' 
+		? request.ambassadorId?._id 
+		: request.ambassadorId;
+	const currentUserId = currentUser?._id;
+	
+	const isAssignedAmbassador = ambassadorId && currentUserId && 
+		ambassadorId.toString() === currentUserId.toString();
+	const canSubmitReview = !request.review && isAssignedAmbassador && 
+		(request.status === 'assigned' || request.status === 'approved');
+
+	// Debug logging
+	if (request) {
+		console.log('Review form check:', {
+			ambassadorId,
+			currentUserId,
+			status: request.status,
+			hasReview: !!request.review,
+			canSubmitReview
+		});
+	}
+
 	return (
 		<div className="dashboard-body">
 			<div className="position-relative">
@@ -139,9 +236,6 @@ const AmbassadorRequestDetails: React.FC = () => {
 									</p>
 									<p className="mb-2">
 										<strong>Requester:</strong> {request.requesterId?.name || 'Unknown'}
-									</p>
-									<p className="mb-2">
-										<strong>Contact:</strong> {request.contactInfo}
 									</p>
 									<p className="mb-2">
 										<strong>Preferred Dates:</strong> {request.preferredDates}
@@ -192,6 +286,123 @@ const AmbassadorRequestDetails: React.FC = () => {
 								<p className="text-muted">No inspection points specified.</p>
 							)}
 						</div>
+
+						{/* Review Section */}
+						{request.review ? (
+							<div className="mt-5">
+								<h4 className="dash-title-two mb-3">Review Submitted</h4>
+								<div className="border-20 p-4" style={{ backgroundColor: '#fff5f0', borderColor: '#ff6b35' }}>
+									<p className="mb-3" style={{ whiteSpace: 'pre-wrap' }}>{request.review.text}</p>
+									{request.review.images && request.review.images.length > 0 && (
+										<div className="row g-3 mb-3">
+											{request.review.images.map((imageUrl, idx) => (
+												<div key={idx} className="col-md-4">
+													<img
+														src={imageUrl}
+														alt={`Review image ${idx + 1}`}
+														className="img-fluid rounded"
+														style={{ maxHeight: '200px', objectFit: 'cover', width: '100%' }}
+													/>
+												</div>
+											))}
+										</div>
+									)}
+									<p className="text-muted mb-0" style={{ fontSize: '0.9rem' }}>
+										Submitted: {new Date(request.review.submittedAt).toLocaleString()}
+									</p>
+								</div>
+							</div>
+						) : canSubmitReview ? (
+							<div className="mt-5">
+								<h4 className="dash-title-two mb-3">Submit Review</h4>
+								{!showReviewForm ? (
+									<button
+										onClick={() => setShowReviewForm(true)}
+										className="btn-two"
+										style={{ backgroundColor: '#ff6b35', border: 'none', color: 'white' }}
+									>
+										<span>Upload Review</span>
+									</button>
+								) : (
+									<div className="border-20 p-4" style={{ backgroundColor: '#fff5f0', borderColor: '#ff6b35' }}>
+										<div className="mb-3">
+											<label className="form-label fw-medium">Review Text *</label>
+											<textarea
+												className="form-control"
+												rows={6}
+												value={reviewText}
+												onChange={(e) => setReviewText(e.target.value)}
+												placeholder="Describe your findings from the property inspection..."
+												style={{ resize: 'vertical' }}
+											/>
+										</div>
+										
+										<div className="mb-3">
+											<label className="form-label fw-medium">Upload Images (Optional)</label>
+											<input
+												type="file"
+												className="form-control"
+												accept="image/*"
+												multiple
+												onChange={(e) => {
+													const files = Array.from(e.target.files || []);
+													setReviewImages(files);
+													// Create previews
+													files.forEach((file) => {
+														const reader = new FileReader();
+														reader.onload = (e) => {
+															setImagePreviews((prev) => [...prev, e.target?.result as string]);
+														};
+														reader.readAsDataURL(file);
+													});
+												}}
+											/>
+											{imagePreviews.length > 0 && (
+												<div className="row g-2 mt-2">
+													{imagePreviews.map((preview, idx) => (
+														<div key={idx} className="col-md-3">
+															<img
+																src={preview}
+																alt={`Preview ${idx + 1}`}
+																className="img-fluid rounded"
+																style={{ maxHeight: '100px', objectFit: 'cover', width: '100%' }}
+															/>
+														</div>
+													))}
+												</div>
+											)}
+										</div>
+										
+										<div className="d-flex gap-2">
+											<button
+												onClick={handleSubmitReview}
+												className="btn-two"
+												disabled={!reviewText.trim() || isSubmittingReview}
+												style={{
+													backgroundColor: (!reviewText.trim() || isSubmittingReview) ? '#d1d5db' : '#ff6b35',
+													border: 'none',
+													color: 'white',
+													cursor: (!reviewText.trim() || isSubmittingReview) ? 'not-allowed' : 'pointer'
+												}}
+											>
+												<span>{isSubmittingReview ? 'Submitting...' : 'Submit Review'}</span>
+											</button>
+											<button
+												onClick={() => {
+													setShowReviewForm(false);
+													setReviewText('');
+													setReviewImages([]);
+													setImagePreviews([]);
+												}}
+												className="btn btn-outline-secondary"
+											>
+												Cancel
+											</button>
+										</div>
+									</div>
+								)}
+							</div>
+						) : null}
 
 						{/* Back Button */}
 						<div className="mt-4">

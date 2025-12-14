@@ -41,8 +41,19 @@ const AmbassadorRequestSchema = new mongoose.Schema(
 		},
 		contactInfo: {
 			type: String,
-			required: true,
 			trim: true,
+		}, // Optional - kept for backward compatibility
+		review: {
+			text: {
+				type: String,
+				trim: true,
+			},
+			images: [{
+				type: String, // URLs to uploaded images
+			}],
+			submittedAt: {
+				type: Date,
+			},
 		},
 		status: {
 			type: String,

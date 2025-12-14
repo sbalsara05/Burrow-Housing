@@ -175,6 +175,11 @@ exports.getAmbassadorRequestDetails = async (req, res) => {
 			.populate("propertyId", "addressAndLocation overview images")
 			.populate("requesterId", "name email")
 			.populate("listerId", "name")
+			.populate({
+				path: "ambassadorId",
+				select: "name",
+				options: { lean: true }
+			})
 			.lean();
 
 		if (!request) {
@@ -184,8 +189,12 @@ exports.getAmbassadorRequestDetails = async (req, res) => {
 		}
 
 		// Check if ambassador has access: assigned to them OR approved (so they can view before claiming)
+		// Handle both populated object and string ID formats
+		const requestAmbassadorId = request.ambassadorId 
+			? (typeof request.ambassadorId === 'object' ? request.ambassadorId._id : request.ambassadorId)
+			: null;
 		const hasAccess = 
-			(request.ambassadorId && request.ambassadorId.toString() === ambassadorId.toString()) ||
+			(requestAmbassadorId && requestAmbassadorId.toString() === ambassadorId.toString()) ||
 			request.status === "approved";
 
 		if (!hasAccess) {
@@ -199,8 +208,10 @@ exports.getAmbassadorRequestDetails = async (req, res) => {
 		});
 	} catch (error) {
 		console.error("Error fetching ambassador request details:", error);
+		console.error("Error stack:", error.stack);
 		res.status(500).json({
 			message: "Server error while fetching request details.",
+			error: process.env.NODE_ENV === 'development' ? error.message : undefined
 		});
 	}
 };

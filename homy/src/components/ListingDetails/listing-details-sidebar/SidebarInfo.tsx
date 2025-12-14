@@ -30,7 +30,6 @@ const AmbassadorRequestModal: React.FC<AmbassadorRequestModalProps> = ({
   const [newPoint, setNewPoint] = useState('');
   const [showNewPointInput, setShowNewPointInput] = useState(false);
   const [preferredDates, setPreferredDates] = useState('');
-  const [contactInfo, setContactInfo] = useState('');
   const [additionalDetails, setAdditionalDetails] = useState<Record<string, string>>({});
   const [selectedPoint, setSelectedPoint] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -92,8 +91,7 @@ const AmbassadorRequestModal: React.FC<AmbassadorRequestModalProps> = ({
           text: point.text,
           details: additionalDetails[point.id] || ''
         })),
-        preferredDates: preferredDates.trim(),
-        contactInfo: contactInfo.trim()
+        preferredDates: preferredDates.trim()
       };
 
       const response = await axios.post('/api/ambassador-requests', requestData, {
@@ -293,18 +291,6 @@ const AmbassadorRequestModal: React.FC<AmbassadorRequestModalProps> = ({
                 />
               </div>
 
-              <div>
-                <label className="tw-block tw-text-gray-700 tw-mb-2 tw-font-medium">
-                  Contact Information
-                </label>
-                <input
-                  type="text"
-                  value={contactInfo}
-                  onChange={(e) => setContactInfo(e.target.value)}
-                  placeholder="Your email or phone number"
-                  className="tw-w-full tw-px-4 tw-py-3 tw-border tw-border-gray-300 tw-rounded focus:tw-outline-none focus:tw-border-[#f16040]"
-                />
-              </div>
             </div>
 
             <div className="tw-flex tw-justify-between tw-pt-8">
@@ -318,10 +304,10 @@ const AmbassadorRequestModal: React.FC<AmbassadorRequestModalProps> = ({
                 onClick={handleSubmit}
                 className="tw-px-8 tw-py-3 tw-text-white tw-border-none tw-rounded tw-font-medium disabled:tw-opacity-50 disabled:tw-cursor-not-allowed"
                 style={{
-                  backgroundColor: (!preferredDates || !contactInfo || isSubmitting) ? '#d1d5db' : '#f16040',
-                  cursor: (!preferredDates || !contactInfo || isSubmitting) ? 'not-allowed' : 'pointer'
+                  backgroundColor: (!preferredDates || isSubmitting) ? '#d1d5db' : '#f16040',
+                  cursor: (!preferredDates || isSubmitting) ? 'not-allowed' : 'pointer'
                 }}
-                disabled={!preferredDates || !contactInfo || isSubmitting}
+                disabled={!preferredDates || isSubmitting}
               >
                 {isSubmitting ? 'Submitting...' : 'Submit Request'}
               </button>

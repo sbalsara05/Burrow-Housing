@@ -30,6 +30,11 @@ interface AmbassadorRequest {
   inspectionPoints?: Array<{ text: string; details?: string }>
   contactInfo?: string
   createdAt: string
+  review?: {
+    text: string
+    images: string[]
+    submittedAt: string
+  }
 }
 
 const RequestsBody = () => {
@@ -93,7 +98,9 @@ const RequestsBody = () => {
     }
   }
   const getStatusBadgeClass = (status?: string) =>
-    status === 'approved' ? 'success' : status === 'pending' ? 'warning' : 'secondary'
+    status === 'approved' ? 'success' : 
+    status === 'completed' ? 'success' : 
+    status === 'pending' ? 'warning' : 'secondary'
 
   if (!isAuthenticated) {
     return <div className="dashboard-body text-center">Please log in to view received requests.</div>
@@ -169,6 +176,66 @@ const RequestsBody = () => {
                                 <li className="text-muted">+{req.inspectionPoints.length - 3} more</li>
                               )}
                             </ul>
+                          </div>
+                        )}
+
+                        {/* Review Section */}
+                        {req.review && req.status === 'completed' && (
+                          <div className="mb-3 pb-3 border-bottom">
+                            <div className="d-flex align-items-center mb-2">
+                              <i className="bi bi-check-circle-fill me-2" style={{ fontSize: '16px', color: '#28a745' }}></i>
+                              <h6 className="mb-0 fw-semibold" style={{ color: '#333', fontSize: '0.95rem' }}>
+                                Ambassador Review
+                              </h6>
+                            </div>
+                            <div className="rounded-3 p-3" style={{ 
+                              backgroundColor: '#fff5f0', 
+                              border: '1px solid #ffe5d9',
+                              boxShadow: '0 2px 6px rgba(255, 107, 53, 0.08)'
+                            }}>
+                              <p className="mb-2 small" style={{ 
+                                whiteSpace: 'pre-wrap', 
+                                color: '#333',
+                                lineHeight: '1.5',
+                                fontSize: '0.875rem'
+                              }}>
+                                {req.review.text}
+                              </p>
+                              {req.review.images && req.review.images.length > 0 && (
+                                <div className="row g-2 mt-2">
+                                  {req.review.images.map((imageUrl, idx) => (
+                                    <div key={idx} className="col-6">
+                                      <div className="rounded overflow-hidden" style={{
+                                        aspectRatio: '1',
+                                        overflow: 'hidden',
+                                        boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+                                      }}>
+                                        <img
+                                          src={imageUrl}
+                                          alt={`Review image ${idx + 1}`}
+                                          className="img-fluid"
+                                          style={{ 
+                                            objectFit: 'cover', 
+                                            width: '100%',
+                                            height: '100%'
+                                          }}
+                                        />
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                              <div className="d-flex align-items-center mt-2 pt-2 border-top" style={{ borderColor: '#ffe5d9' }}>
+                                <i className="bi bi-clock me-1" style={{ color: '#666', fontSize: '0.75rem' }}></i>
+                                <span className="text-muted" style={{ fontSize: '0.75rem' }}>
+                                  {new Date(req.review.submittedAt).toLocaleDateString('en-US', { 
+                                    month: 'short', 
+                                    day: 'numeric', 
+                                    year: 'numeric'
+                                  })}
+                                </span>
+                              </div>
+                            </div>
                           </div>
                         )}
 
