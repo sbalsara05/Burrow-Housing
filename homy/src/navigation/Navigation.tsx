@@ -25,6 +25,7 @@ import DashboardChatMain from '../components/dashboard/chat/index';
 import DashboardEditProperty from '../pages/DashboardEditProperty';
 import DashboardReceivedRequests from '../pages/DashboardReceivedRequests';
 import DashboardMyRequests from '../pages/DashboardMyRequests';
+import DashboardAmbassador from '../pages/DashboardAmbassador';
 import PublicProfilePage from '../pages/PublicProfilePage';
 import ResetPasswordPage from '../pages/ResetPasswordPage';
 
@@ -81,9 +82,10 @@ const AppNavigation = () => {
                     <Route path="/dashboard/favourites" element={<DashboardFavourites />} />
                     <Route path="/dashboard/review" element={<DashboardReview />} />
                     <Route path="/dashboard/edit-property/:id" element={<DashboardEditProperty />} />
-                    <Route path="/dashboard/received-requests" element={<DashboardReceivedRequests />} />
-                    <Route path="/dashboard/my-requests" element={<DashboardMyRequests />} />
-                    {/* Add any other future protected routes inside this wrapper */}
+					<Route path="/dashboard/received-requests" element={<DashboardReceivedRequests />} />
+					<Route path="/dashboard/my-requests" element={<DashboardMyRequests />} />
+					<Route path="/dashboard/ambassador" element={<DashboardAmbassador />} />
+					{/* Add any other future protected routes inside this wrapper */}
                 </Route>
 
                 {/* --- CATCH-ALL / NOT FOUND ROUTE --- */}

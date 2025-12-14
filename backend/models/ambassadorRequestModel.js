@@ -46,10 +46,18 @@ const AmbassadorRequestSchema = new mongoose.Schema(
 		},
 		status: {
 			type: String,
-			enum: ["pending", "approved", "declined", "completed", "cancelled"],
+			enum: ["pending", "approved", "declined", "completed", "cancelled", "assigned"],
 			default: "pending",
 			required: true,
 		},
+		ambassadorId: {
+			type: mongoose.Schema.Types.ObjectId,
+			ref: "User",
+			index: true,
+		}, // Assigned ambassador
+		scheduledDate: {
+			type: Date,
+		}, // Scheduled inspection date/time
 		propertyTitle: {
 			type: String,
 			trim: true,
