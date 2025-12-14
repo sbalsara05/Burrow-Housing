@@ -354,11 +354,11 @@ exports.claimRequest = async (req, res) => {
 
 		// Create notification for the ambassador
 		try {
-			const Notification = require("../models/notificationModel");
 			const property = await Property.findById(request.propertyId).select("overview.title addressAndLocation");
 			const address = property?.addressAndLocation?.address || request.propertyTitle || "a property";
+			const title = property?.overview?.title || request.propertyTitle || "property";
 			
-			const notificationMessage = `You've claimed an ambassador request for "${property?.overview?.title || request.propertyTitle || "property"}" at ${address}. View inspection points to prepare.`;
+			const notificationMessage = `You've claimed an ambassador request for "${title}" at ${address}. View inspection points to prepare.`;
 
 			const newNotification = new Notification({
 				userId: ambassadorId,
@@ -371,6 +371,7 @@ exports.claimRequest = async (req, res) => {
 				},
 			});
 			await newNotification.save();
+			console.log(`[Ambassador Notification] Created claim notification for ambassador ${ambassadorId} for request ${request._id}`);
 		} catch (notificationError) {
 			// Log error but don't fail the claim
 			console.error("Error creating notification:", notificationError);

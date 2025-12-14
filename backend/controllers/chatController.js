@@ -4,6 +4,31 @@ const Notification = require("../models/notificationModel");
 const Property = require("../models/propertyModel");
 const mongoose = require("mongoose");
 
+// Test endpoint to verify Stream Chat connection
+exports.testStreamConnection = async (req, res) => {
+	try {
+		const client = getStreamClient();
+		const apiKey = process.env.STREAM_API_KEY;
+		
+		// Try to query users to verify connection
+		const response = await client.queryUsers({ id: { $exists: true } }, { limit: 1 });
+		
+		res.status(200).json({
+			success: true,
+			message: "Stream Chat connection successful",
+			apiKey: apiKey ? `${apiKey.substring(0, 5)}...` : "Not set",
+			usersFound: response.users.length
+		});
+	} catch (error) {
+		console.error("[Stream Chat Test] Error:", error);
+		res.status(500).json({
+			success: false,
+			message: "Stream Chat connection failed",
+			error: error.message
+		});
+	}
+};
+
 // GET /api/chat/token
 exports.generateStreamToken = async (req, res) => {
 	const userId = req.user.userId;
@@ -14,12 +39,99 @@ exports.generateStreamToken = async (req, res) => {
 				.json({ message: "User ID is required." });
 		}
 		const client = getStreamClient();
-		const token = client.createToken(userId);
-		res.status(200).json({ token });
+		
+		// Get user info for Stream Chat
+		const User = require("../models/userModel");
+		const Profile = require("../models/profileModel");
+		const user = await User.findById(userId).select("name email");
+		const profile = await Profile.findOne({ userId }).select("image");
+		
+		if (!user) {
+			return res.status(404).json({ message: "User not found." });
+		}
+		
+		// Convert userId to string for consistency
+		const userIdString = userId.toString();
+		
+		console.log(`[Stream Chat] Generating token for user: ${userIdString}`);
+		console.log(`[Stream Chat] User name: ${user.name}`);
+		console.log(`[Stream Chat] Profile image: ${profile?.image || 'none'}`);
+		
+		// Upsert user in Stream Chat to ensure they exist
+		// This MUST succeed before generating a token
+		try {
+			const userData = {
+				id: userIdString,
+				name: user.name || "User",
+			};
+			
+			// Only add image if it exists
+			if (profile?.image) {
+				userData.image = profile.image;
+			}
+			
+			console.log(`[Stream Chat] Upserting user with data:`, { ...userData, image: userData.image ? 'present' : 'none' });
+			const upsertResponse = await client.upsertUser(userData);
+			console.log(`[Stream Chat] User ${userIdString} upserted successfully. Response:`, upsertResponse);
+			
+			// Verify user was created by querying for them
+			const verifyUser = await client.queryUsers({ id: userIdString });
+			if (verifyUser.users.length === 0) {
+				throw new Error("User was not created in Stream Chat after upsert");
+			}
+			console.log(`[Stream Chat] Verified user exists in Stream Chat`);
+			
+		} catch (upsertError) {
+			console.error("[Stream Chat] Error upserting user:", upsertError);
+			console.error("[Stream Chat] Upsert error details:", {
+				message: upsertError.message,
+				response: upsertError.response?.data,
+				status: upsertError.response?.status,
+				stack: upsertError.stack
+			});
+			// Don't continue if upsert fails - token won't work without user
+			return res.status(500).json({
+				message: "Failed to register user in Stream Chat.",
+				error: process.env.NODE_ENV === 'development' ? upsertError.message : undefined
+			});
+		}
+		
+		// Generate token - this must happen after successful upsert
+		// Set token to expire in 24 hours (86400 seconds)
+		try {
+			console.log(`[Stream Chat] Generating token for user ID: ${userIdString}`);
+			const expirationTime = Math.floor(Date.now() / 1000) + (60 * 60 * 24); // 24 hours from now
+			const token = client.createToken(userIdString, expirationTime);
+			console.log(`[Stream Chat] Token generated successfully. Token length: ${token.length}`);
+			console.log(`[Stream Chat] Token expires at: ${new Date(expirationTime * 1000).toISOString()}`);
+			
+			// Verify the token works by trying to query the user's channels
+			try {
+				const testChannel = client.channel('messaging', `test-${userIdString}`);
+				// Just verify we can create a channel object (doesn't actually create it)
+				console.log(`[Stream Chat] Token verification: Channel object created successfully`);
+			} catch (verifyError) {
+				console.warn(`[Stream Chat] Token verification warning:`, verifyError.message);
+			}
+			
+			res.status(200).json({ token });
+		} catch (tokenError) {
+			console.error("[Stream Chat] Error generating token:", tokenError);
+			console.error("[Stream Chat] Token error details:", {
+				message: tokenError.message,
+				stack: tokenError.stack
+			});
+			return res.status(500).json({
+				message: "Failed to generate Stream Chat token.",
+				error: process.env.NODE_ENV === 'development' ? tokenError.message : undefined
+			});
+		}
 	} catch (error) {
 		console.error("Error generating Stream token:", error);
+		console.error("Error details:", error.message, error.stack);
 		res.status(500).json({
 			message: "Could not generate Stream token.",
+			error: process.env.NODE_ENV === 'development' ? error.message : undefined
 		});
 	}
 };

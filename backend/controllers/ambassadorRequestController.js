@@ -79,7 +79,7 @@ exports.submitAmbassadorRequest = async (req, res) => {
 			userId: listerId,
 			type: "ambassador_request",
 			message: notificationMessage,
-			link: "/dashboard/ambassador-requests",
+			link: "/dashboard/requests",
 			metadata: {
 				propertyId: property._id,
 				requesterId: requesterId,
@@ -87,6 +87,7 @@ exports.submitAmbassadorRequest = async (req, res) => {
 			},
 		});
 		await newNotification.save();
+		console.log(`[Ambassador Notification] Created request notification for lister ${listerId} for request ${newRequest._id}`);
 
 		res.status(201).json({
 			message: "Ambassador request submitted successfully.",
@@ -229,10 +230,13 @@ exports.updateAmbassadorRequestStatus = async (req, res) => {
 					},
 				});
 				await newNotification.save();
+				console.log(`[Ambassador Notification] Created ${status} notification for requester ${request.requesterId} for request ${request._id}`);
+			} else {
+				console.log(`[Ambassador Notification] Skipped requester notification - lister: ${!!lister}, property: ${!!property}`);
 			}
 		} catch (notificationError) {
-			// Log notification error but don't fail the request update
-			console.error("Error creating notification:", notificationError);
+			// Log error but don't fail the request update
+			console.error("Error creating requester notification:", notificationError);
 		}
 
 		// If request is approved, notify all active ambassadors
@@ -242,15 +246,18 @@ exports.updateAmbassadorRequestStatus = async (req, res) => {
 				const activeAmbassadors = await User.find({
 					isAmbassador: true,
 					ambassadorStatus: "active",
-				}).select("_id");
+				}).select("_id name email");
+
+				console.log(`[Ambassador Notifications] Found ${activeAmbassadors.length} active ambassadors for approved request ${request._id}`);
 
 				// Create notifications for all active ambassadors
 				const ambassadorNotifications = activeAmbassadors.map((ambassador) => {
 					const address = property?.addressAndLocation?.address || request.propertyTitle || "a property";
+					const title = property?.overview?.title || request.propertyTitle || "property";
 					return {
 						userId: ambassador._id,
 						type: "ambassador_request",
-						message: `New ambassador request available for "${property?.overview?.title || request.propertyTitle || "property"}" at ${address}`,
+						message: `New ambassador request available for "${title}" at ${address}`,
 						link: "/dashboard/ambassador",
 						metadata: {
 							propertyId: request.propertyId,
@@ -260,7 +267,10 @@ exports.updateAmbassadorRequestStatus = async (req, res) => {
 				});
 
 				if (ambassadorNotifications.length > 0) {
-					await Notification.insertMany(ambassadorNotifications);
+					const savedNotifications = await Notification.insertMany(ambassadorNotifications);
+					console.log(`[Ambassador Notifications] Created ${savedNotifications.length} notifications for ambassadors`);
+				} else {
+					console.log("[Ambassador Notifications] No active ambassadors found to notify");
 				}
 			} catch (ambassadorNotificationError) {
 				// Log error but don't fail the request update

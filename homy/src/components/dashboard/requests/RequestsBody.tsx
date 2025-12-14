@@ -71,8 +71,27 @@ const RequestsBody = () => {
     }
   }
 
-  const handleDecline = (id: string) => {}
-  const handleApprove = (id: string) => {}
+  const handleDecline = async (id: string) => {
+    try {
+      await axios.put(`/api/interests/${id}/decline`)
+      toast.success('Request declined successfully.')
+      dispatch(fetchReceivedInterests()) // Refresh the list
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Failed to decline request')
+    }
+  }
+
+  const handleApprove = async (id: string) => {
+    try {
+      const response = await axios.put(`/api/interests/${id}/approve`)
+      toast.success('Request approved! Chat channel created.')
+      dispatch(fetchReceivedInterests()) // Refresh the list
+      // Navigate to chat page
+      navigate('/dashboard/chat')
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Failed to approve request')
+    }
+  }
   const getStatusBadgeClass = (status?: string) =>
     status === 'approved' ? 'success' : status === 'pending' ? 'warning' : 'secondary'
 
@@ -235,7 +254,13 @@ const RequestsBody = () => {
                               </button>
                             </div>
                           ) : req.status === 'approved' ? (
-                            <button onClick={() => navigate('/dashboard/chat')} className="btn btn-primary w-100">
+                            <button 
+                              onClick={() => {
+                                const channelId = `interest-${req._id}`;
+                                navigate(`/dashboard/chat?channel=${channelId}`);
+                              }} 
+                              className="btn btn-primary w-100"
+                            >
                               Go to Chat
                             </button>
                           ) : (

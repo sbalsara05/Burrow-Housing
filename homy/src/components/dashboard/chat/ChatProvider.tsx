@@ -32,14 +32,20 @@ const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
                 return; // Wait for all data to be ready
             }
 
+            // Ensure user ID is a string (MongoDB ObjectId might be an object)
+            const userIdString = String(currentUser._id);
+            
             const userToConnect = {
-                id: currentUser._id,
+                id: userIdString,
                 name: profile.username || currentUser.name,
                 image: profile.image || undefined,
             };
 
+            console.log("ChatProvider: User ID for connection:", userIdString);
+            console.log("ChatProvider: User data:", { ...userToConnect, image: userToConnect.image ? 'present' : 'none' });
+
             // If client is already connected with the correct user, just ensure data is fresh
-            if (chatClient.userID === currentUser._id) {
+            if (chatClient.userID === userIdString) {
                 console.log("ChatProvider: Client already connected. Forcing user data update...");
                 await chatClient.upsertUser(userToConnect); // Force update user data
                 if (!didUnmount) setIsClientReady(true);
@@ -54,6 +60,7 @@ const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
                     await chatClient.disconnectUser();
                 }
 
+                console.log("ChatProvider: Fetching token from backend...");
                 const response = await axios.get('/api/chat/token');
                 const userToken = response.data.token;
 
@@ -61,15 +68,23 @@ const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
                     throw new Error("No token received from backend");
                 }
 
-                console.log("ChatProvider: Connecting user with complete data:", userToConnect);
+                console.log("ChatProvider: Token received. Connecting user with data:", userToConnect);
+                console.log("ChatProvider: Using API Key:", STREAM_API_KEY?.substring(0, 10) + "...");
+                
                 await chatClient.connectUser(userToConnect, userToken);
 
-                console.log("ChatProvider: Stream user connected successfully.");
+                console.log("ChatProvider: Stream user connected successfully. User ID:", chatClient.userID);
                 if (!didUnmount) {
                     setIsClientReady(true);
                 }
-            } catch (error) {
+            } catch (error: any) {
                 console.error("ChatProvider: Failed to connect to Stream Chat.", error);
+                console.error("ChatProvider: Error details:", {
+                    message: error.message,
+                    response: error.response?.data,
+                    status: error.response?.status,
+                    stack: error.stack
+                });
                 if (!didUnmount) {
                     setIsClientReady(false);
                 }

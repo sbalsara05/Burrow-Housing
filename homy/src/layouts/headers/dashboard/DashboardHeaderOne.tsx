@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch } from '../../../redux/slices/store.ts';
 import { logoutUser, selectCurrentUser } from '../../../redux/slices/authSlice';
@@ -25,8 +25,16 @@ interface NavSection {
 const DashboardHeaderOne: React.FC<DashboardHeaderOneProps> = ({ isActive, setIsActive }) => {
     const dispatch = useDispatch<AppDispatch>();
     const navigate = useNavigate();
+    const location = useLocation();
     const user = useSelector(selectCurrentUser);
     const [pathname, setPathname] = useState(window.location.pathname);
+    
+    // Update pathname when location changes
+    useEffect(() => {
+        setPathname(location.pathname);
+    }, [location.pathname]);
+    
+    const isChatPage = pathname === '/dashboard/chat';
 
     // Check if user is an active ambassador
     const isActiveAmbassador = user?.isAmbassador && user?.ambassadorStatus === 'active';

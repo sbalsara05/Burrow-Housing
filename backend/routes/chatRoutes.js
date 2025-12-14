@@ -4,8 +4,12 @@ const { authenticateToken } = require('../middlewares/authMiddleware');
 const {
     generateStreamToken,
     approveInterestAndCreateChannel,
-    declineInterest
+    declineInterest,
+    testStreamConnection
 } = require('../controllers/chatController');
+
+// Test endpoint to verify Stream Chat connection (for debugging)
+router.get('/chat/test', authenticateToken, testStreamConnection);
 
 // Get a secure token for the authenticated user to connect to Stream
 router.get('/chat/token', authenticateToken, generateStreamToken);
