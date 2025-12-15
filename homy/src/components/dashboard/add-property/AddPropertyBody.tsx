@@ -31,7 +31,14 @@ type FormDataShape = {
     overview: { title: string; category: string; roomType: string; neighborhood: string; rent: number | ''; };
     listingDetails: { size?: number | ''; bedrooms: number; bathrooms: number; floorNo: number; };
     amenities: string[];
-    addressAndLocation: { address: string; };
+    addressAndLocation: {
+        address: string;
+        line1: string;
+        line2: string;
+        city: string;
+        state: string;
+        zip: string;
+    };
     buildingName: string;
     leaseLength: string;
     description: string;
@@ -42,7 +49,7 @@ const initialFormData: FormDataShape = {
     overview: { title: '', category: '', roomType: '', neighborhood: 'Any', rent: '' },
     listingDetails: { bedrooms: 1, bathrooms: 1, floorNo: 1, size: '' },
     amenities: [],
-    addressAndLocation: { address: '' },
+    addressAndLocation: { address: '', line1: '', line2: '', city: '', state: '', zip: '' },
     leaseLength: '',
     description: '',
     buildingName: '',
@@ -65,7 +72,14 @@ const AddPropertyBody: React.FC<AddPropertyBodyProps> = ({ isEditMode = false, p
                 overview: propertyToEdit.overview || { title: '', category: '', roomType: '', neighborhood: 'Any', rent: '' },
                 listingDetails: propertyToEdit.listingDetails || { bedrooms: 1, bathrooms: 1, floorNo: 1, size: '' },
                 amenities: propertyToEdit.amenities || [],
-                addressAndLocation: { address: propertyToEdit.addressAndLocation?.address || '' },
+                addressAndLocation: {
+                    address: propertyToEdit.addressAndLocation?.address || '',
+                    line1: propertyToEdit.addressAndLocation?.line1 || propertyToEdit.addressAndLocation?.address || '',
+                    line2: propertyToEdit.addressAndLocation?.line2 || '',
+                    city: propertyToEdit.addressAndLocation?.city || '',
+                    state: propertyToEdit.addressAndLocation?.state || '',
+                    zip: propertyToEdit.addressAndLocation?.zip || '',
+                },
                 leaseLength: propertyToEdit.leaseLength || '',
                 description: propertyToEdit.description || '',
                 buildingName: propertyToEdit.buildingName || '',
@@ -105,9 +119,20 @@ const AddPropertyBody: React.FC<AddPropertyBodyProps> = ({ isEditMode = false, p
         e.preventDefault();
         dispatch(clearPropertyError());
 
+        // Build full address from parts
+        const { line1, line2, city, state, zip } = formData.addressAndLocation;
+        const composedAddress = [
+            line1,
+            line2,
+            [city, state].filter(Boolean).join(', '),
+            zip,
+        ]
+            .filter((part) => part && part.trim().length > 0)
+            .join(', ');
+
         // Client-side Validation
-        if (!formData.addressAndLocation.address || !location.lat || !location.lng) {
-            toast.error("Please provide a valid address and select it on the map.");
+        if (!line1 || !city || !state || !zip || !location.lat || !location.lng) {
+            toast.error("Please complete the address fields and select it on the map.");
             return;
         }
 
@@ -132,7 +157,15 @@ const AddPropertyBody: React.FC<AddPropertyBodyProps> = ({ isEditMode = false, p
             }
 
             const finalImageUrls = [...existingImageUrls, ...newImageUrls];
-            const propertyData = { ...formData, images: finalImageUrls, addressAndLocation: { ...formData.addressAndLocation, location } };
+            const propertyData = {
+                ...formData,
+                images: finalImageUrls,
+                addressAndLocation: {
+                    ...formData.addressAndLocation,
+                    address: composedAddress,
+                    location,
+                },
+            };
 
             const resultAction = await dispatch(updateUserProperty({ propertyId: propertyToEdit._id, propertyData }));
 
@@ -148,7 +181,14 @@ const AddPropertyBody: React.FC<AddPropertyBodyProps> = ({ isEditMode = false, p
                 toast.error("Please upload at least one image for a new listing.");
                 return;
             }
-            const propertyData = { ...formData, addressAndLocation: { ...formData.addressAndLocation, location } };
+            const propertyData = {
+                ...formData,
+                addressAndLocation: {
+                    ...formData.addressAndLocation,
+                    address: composedAddress,
+                    location,
+                },
+            };
             const resultAction = await dispatch(addNewProperty({ propertyData, files: filesToUpload }));
 
             if (addNewProperty.fulfilled.match(resultAction)) {
@@ -199,7 +239,12 @@ const AddPropertyBody: React.FC<AddPropertyBodyProps> = ({ isEditMode = false, p
                         <SelectAmenities selected={formData.amenities} onChange={handleAmenityChange} />
                     </div>
 
-                    <AddressAndLocation location={location} setLocation={setLocation} addressData={formData.addressAndLocation} handleAddressChange={(value) => handleNestedChange('addressAndLocation', 'address', value)} />
+                    <AddressAndLocation
+                        location={location}
+                        setLocation={setLocation}
+                        addressData={formData.addressAndLocation}
+                        handleAddressChange={(field, value) => handleNestedChange('addressAndLocation', field, value)}
+                    />
 
                     <div className="bg-white card-box border-20 mt-40">
                         <h4 className="dash-title-three">Additional Details</h4>

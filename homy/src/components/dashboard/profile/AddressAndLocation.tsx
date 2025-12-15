@@ -8,6 +8,11 @@ interface LocationData {
 }
 interface AddressData {
     address: string;
+    line1: string;
+    line2: string;
+    city: string;
+    state: string;
+    zip: string;
 }
 
 // Define the props this component accepts from its parent
@@ -15,7 +20,7 @@ interface AddressAndLocationProps {
     location: LocationData;
     setLocation: (location: LocationData) => void;
     addressData: AddressData;
-    handleAddressChange: (value: string) => void;
+    handleAddressChange: (field: keyof AddressData, value: string) => void;
 }
 
 // Map styles and options
@@ -65,8 +70,26 @@ const AddressAndLocation: React.FC<AddressAndLocationProps> = ({
             const formattedAddress = place.formatted_address || '';
 
             if (lat && lng) {
-                // Update parent state with both address and coordinates
-                handleAddressChange(formattedAddress);
+                // Try to extract structured address components
+                const components = place.address_components || [];
+                const getComponent = (types: string[]) =>
+                    components.find((c) => types.every((t) => c.types.includes(t)))?.long_name || '';
+
+                const streetNumber = getComponent(['street_number']);
+                const route = getComponent(['route']);
+                const city = getComponent(['locality']) ||
+                    getComponent(['sublocality', 'sublocality_level_1']) ||
+                    getComponent(['postal_town']);
+                const state = getComponent(['administrative_area_level_1']);
+                const zip = getComponent(['postal_code']);
+                const line1 = [streetNumber, route].filter(Boolean).join(' ') || formattedAddress;
+
+                // Update parent state with structured fields & full address
+                handleAddressChange('line1', line1);
+                if (city) handleAddressChange('city', city);
+                if (state) handleAddressChange('state', state);
+                if (zip) handleAddressChange('zip', zip);
+                handleAddressChange('address', formattedAddress);
                 setLocation({ lat, lng });
 
                 // Move the map and marker to the selected location
@@ -89,31 +112,87 @@ const AddressAndLocation: React.FC<AddressAndLocationProps> = ({
         <div className="bg-white card-box border-20 mt-40">
             <h4 className="dash-title-three">Address & Location</h4>
             <div className="row">
+                {/* Address Line 1 with Autocomplete */}
                 <div className="col-12">
                     <div className="dash-input-wrapper mb-25">
-                        <label htmlFor="property-address">Full Address*</label>
-                        {/* The Autocomplete component wraps the input */}
+                        <label htmlFor="address-line1">Address Line 1*</label>
                         <Autocomplete
                             onLoad={onAutocompleteLoad}
                             onPlaceChanged={onPlaceChanged}
                             options={{
                                 types: ['address'],
-                                componentRestrictions: { country: 'us' }, // Restrict searches to the US for relevance
+                                componentRestrictions: { country: 'us' },
                             }}
                         >
                             <input
-                                id="property-address"
+                                id="address-line1"
                                 type="text"
                                 className="type-input"
-                                placeholder="Start typing your property address..."
-                                // Use the value from the parent state
-                                value={addressData.address || ''}
-                                // The onChange here updates the text field as the user types
-                                onChange={(e) => handleAddressChange(e.target.value)}
+                                placeholder="Street address"
+                                value={addressData.line1 || ''}
+                                onChange={(e) => handleAddressChange('line1', e.target.value)}
                                 required
                             />
                         </Autocomplete>
-                        <p className="fs-14 mt-1">Please select a valid address from the dropdown suggestions to set the location.</p>
+                    </div>
+                </div>
+
+                {/* Address Line 2 */}
+                <div className="col-12">
+                    <div className="dash-input-wrapper mb-25">
+                        <label htmlFor="address-line2">Address Line 2</label>
+                        <input
+                            id="address-line2"
+                            type="text"
+                            className="type-input"
+                            placeholder="Apartment, unit, etc. (optional)"
+                            value={addressData.line2 || ''}
+                            onChange={(e) => handleAddressChange('line2', e.target.value)}
+                        />
+                    </div>
+                </div>
+
+                {/* City, State, Zip */}
+                <div className="col-md-4">
+                    <div className="dash-input-wrapper mb-25">
+                        <label htmlFor="address-city">City*</label>
+                        <input
+                            id="address-city"
+                            type="text"
+                            className="type-input"
+                            placeholder="City"
+                            value={addressData.city || ''}
+                            onChange={(e) => handleAddressChange('city', e.target.value)}
+                            required
+                        />
+                    </div>
+                </div>
+                <div className="col-md-4">
+                    <div className="dash-input-wrapper mb-25">
+                        <label htmlFor="address-state">State*</label>
+                        <input
+                            id="address-state"
+                            type="text"
+                            className="type-input"
+                            placeholder="State"
+                            value={addressData.state || ''}
+                            onChange={(e) => handleAddressChange('state', e.target.value.toUpperCase())}
+                            required
+                        />
+                    </div>
+                </div>
+                <div className="col-md-4">
+                    <div className="dash-input-wrapper mb-25">
+                        <label htmlFor="address-zip">ZIP Code*</label>
+                        <input
+                            id="address-zip"
+                            type="text"
+                            className="type-input"
+                            placeholder="ZIP"
+                            value={addressData.zip || ''}
+                            onChange={(e) => handleAddressChange('zip', e.target.value)}
+                            required
+                        />
                     </div>
                 </div>
                 <div className="col-12">
