@@ -94,7 +94,7 @@ const DashboardHeaderOne: React.FC<DashboardHeaderOneProps> = ({ isActive, setIs
                 },
                 {
                     path: '/dashboard/favourites',
-                    label: 'Favourites',
+                    label: 'Favorites',
                     iconPath: '/assets/images/dashboard/icon/icon_8.svg',
                     activeIconPath: '/assets/images/dashboard/icon/icon_8_active.svg'
                 },

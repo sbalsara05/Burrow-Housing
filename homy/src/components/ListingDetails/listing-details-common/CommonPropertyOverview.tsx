@@ -12,10 +12,26 @@ const CommonPropertyOverview: React.FC<CommonPropertyOverviewProps> = ({ propert
 
     // Prepare data points, handling optional fields
     const overviewData = [
-        { id: 1, icon: "/assets/images/icon/squares-intersect.svg", title: `Sqft . ${property.listingDetails.size ? property.listingDetails.size.toLocaleString() : 'N/A'}` },
-        { id: 2, icon: "/assets/images/icon/bed-double.svg", title: `Bed . ${property.listingDetails.bedrooms || 'N/A'}` },
-        { id: 3, icon: "/assets/images/icon/bath.svg", title: `Bath . ${property.listingDetails.bathrooms || 'N/A'}` },
-        { id: 4, icon: "/assets/images/icon/building.svg", title: `Type . ${property.overview.category || 'N/A'}` },
+        {
+            id: 1,
+            icon: "/assets/images/icon/squares-intersect.svg",
+            title: `${property.listingDetails.size ? property.listingDetails.size.toLocaleString() : 'N/A'} Sqft`,
+        },
+        {
+            id: 2,
+            icon: "/assets/images/icon/bed-double.svg",
+            title: `${property.listingDetails.bedrooms ?? 'N/A'} Bed`,
+        },
+        {
+            id: 3,
+            icon: "/assets/images/icon/bath.svg",
+            title: `${property.listingDetails.bathrooms ?? 'N/A'} Bath`,
+        },
+        {
+            id: 4,
+            icon: "/assets/images/icon/building.svg",
+            title: `${property.overview.category || 'N/A'}`,
+        },
     ];
 
     return (

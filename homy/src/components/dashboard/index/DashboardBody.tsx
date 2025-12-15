@@ -32,7 +32,7 @@ const dashboard_card_data: DataType[] = [
    {
       id: 4,
       icon: "/assets/images/dashboard/icon/icon_15.svg",
-      title: "Total Favourites",
+      title: "Total Favorites",
       value: "07",
    },
 ]

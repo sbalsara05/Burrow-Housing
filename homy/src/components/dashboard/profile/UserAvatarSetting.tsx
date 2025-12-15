@@ -29,7 +29,7 @@ const UserAvatarSetting = ({ formData, handleChange }) => {
       </div>
       <div className="col-sm-6">
         <div className="dash-input-wrapper mb-30">
-          <label>Majors and/or Minors</label>
+          <label>Majors and/or Minors*</label>
           <input
             type="text"
             name="majors_minors"
@@ -40,21 +40,22 @@ const UserAvatarSetting = ({ formData, handleChange }) => {
           />
         </div>
       </div>
-      <div className="col-sm-6">
-        <div className="dash-input-wrapper mb-30">
-          <label>I am Attending:</label>
+      <div className="col-sm-6 d-flex align-items-center">
+        <div className="dash-input-wrapper mb-30 w-100 d-flex align-items-center">
+          <label className="me-2 mb-0">I am Attending:</label>
           <input
             type="text"
             name="school_attending"
             placeholder="Northeastern University"
             value={formData.school_attending}
             onChange={handleChange}
+            className="flex-grow-1"
           />
         </div>
       </div>
       <div className="col-12">
         <div className="dash-input-wrapper">
-          <label>About</label>
+          <label>About*</label>
           <textarea
             name="about"
             className="size-lg"
