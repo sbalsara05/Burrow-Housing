@@ -11,6 +11,7 @@ const ProfileSchema = new mongoose.Schema(
 		school_email: { type: String }, // Unique email
 		majors_minors: { type: String },
 		school_attending: { type: String },
+		expected_graduation_year: { type: String },
 		about: { type: String },
 		image: { type: String }, // Image field to store the image URL or path
 	},

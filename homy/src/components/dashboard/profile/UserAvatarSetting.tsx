@@ -1,64 +1,41 @@
 const UserAvatarSetting = ({ formData, handleChange }) => {
   return (
-    <div className="row">
-      <div className="col-12">
-        <div className="dash-input-wrapper mb-30">
-          <label>Username*</label>
-          <input
-            type="text"
-            name="username"
-            placeholder="Username"
-            value={formData.username}
-            onChange={handleChange}
-            required
-          />
-        </div>
-      </div>
-      <div className="col-sm-6">
-        <div className="dash-input-wrapper mb-30">
-          <label>School Email*</label>
+    <div className="profile-fields-grid">
+      {/* University Email (full width) */}
+      <div className="profile-field profile-field--full">
+        <div className="dash-input-wrapper">
+          <label>University Email*</label>
           <input
             type="email"
             name="school_email"
-            placeholder="name@school.com"
+            placeholder="your.email@university.edu"
             value={formData.school_email}
             onChange={handleChange}
             required
           />
         </div>
       </div>
-      <div className="col-sm-6">
-        <div className="dash-input-wrapper mb-30">
-          <label>Majors and/or Minors</label>
-          <input
-            type="text"
-            name="majors_minors"
-            placeholder="Major and Minors"
-            value={formData.majors_minors}
-            onChange={handleChange}
-            required
-          />
-        </div>
-      </div>
-      <div className="col-sm-6">
-        <div className="dash-input-wrapper mb-30">
-          <label>I am Attending:</label>
+      {/* University (full width) */}
+      <div className="profile-field profile-field--full">
+        <div className="dash-input-wrapper">
+          <label>University</label>
           <input
             type="text"
             name="school_attending"
-            placeholder="Northeastern University"
+            placeholder="Enter your university name"
             value={formData.school_attending}
             onChange={handleChange}
           />
         </div>
       </div>
-      <div className="col-12">
+      {/* About (full width) */}
+      <div className="profile-field profile-field--full">
         <div className="dash-input-wrapper">
-          <label>About</label>
+          <label>Tell us a bit about yourself*</label>
           <textarea
             name="about"
             className="size-lg"
-            placeholder="Talk about yourself..."
+            placeholder="Tell us a bit about yourself"
             value={formData.about}
             onChange={handleChange}
             required

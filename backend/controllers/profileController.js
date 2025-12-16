@@ -49,7 +49,15 @@ exports.getProfile = async (req, res) => {
 
 		// If profile exists, return it
 		console.log("Returning existing profile:", profile); // Debug log when returning existing profile
-		res.status(200).json(profile);
+		console.log("Profile expected_graduation_year:", profile.expected_graduation_year, "type:", typeof profile.expected_graduation_year);
+		// Convert to plain object and explicitly ensure expected_graduation_year is included
+		const profileResponse = profile.toObject ? profile.toObject() : { ...profile };
+		// Explicitly include expected_graduation_year even if it's undefined
+		profileResponse.expected_graduation_year = profile.expected_graduation_year !== undefined 
+			? profile.expected_graduation_year 
+			: (profileResponse.expected_graduation_year !== undefined ? profileResponse.expected_graduation_year : '');
+		console.log("Profile response expected_graduation_year:", profileResponse.expected_graduation_year);
+		res.status(200).json(profileResponse);
 	} catch (error) {
 		console.error("Error fetching profile:", error); // Debug log in case of an error
 
@@ -160,6 +168,7 @@ exports.updateProfile = async (req, res) => {
 			school_email,
 			majors_minors,
 			school_attending,
+			expected_graduation_year,
 			about,
 			imageUrl, // New field for image URL from S3
 		} = req.body; // Extract fields from the request body
@@ -185,12 +194,21 @@ exports.updateProfile = async (req, res) => {
 		}
 
 		// Update profile fields
-		profile.username = username || profile.username;
-		profile.school_email = school_email || profile.school_email;
-		profile.majors_minors = majors_minors || profile.majors_minors;
-		profile.school_attending =
-			school_attending || profile.school_attending;
-		profile.about = about || profile.about;
+		// Use explicit undefined checks to allow empty strings to be saved
+		profile.username = username !== undefined ? username : profile.username;
+		profile.school_email = school_email !== undefined ? school_email : profile.school_email;
+		profile.majors_minors = majors_minors !== undefined ? majors_minors : profile.majors_minors;
+		profile.school_attending = school_attending !== undefined ? school_attending : profile.school_attending;
+		// Explicitly set expected_graduation_year - allow empty strings
+		if (expected_graduation_year !== undefined) {
+			profile.expected_graduation_year = expected_graduation_year;
+		} else if (expected_graduation_year === '' && profile.expected_graduation_year === undefined) {
+			// If explicitly sent as empty string and field doesn't exist, set it
+			profile.expected_graduation_year = '';
+		}
+		profile.about = about !== undefined ? about : profile.about;
+		
+		console.log("After assignment - expected_graduation_year:", profile.expected_graduation_year, "type:", typeof profile.expected_graduation_year);
 
 		// Update image URL if provided
 		if (imageUrl) {
@@ -201,9 +219,21 @@ exports.updateProfile = async (req, res) => {
 		const updatedProfile = await profile.save();
 
 		console.log("Profile updated successfully:", updatedProfile);
+		console.log("Saved expected_graduation_year:", updatedProfile.expected_graduation_year);
+		console.log("Saved expected_graduation_year type:", typeof updatedProfile.expected_graduation_year);
+		
+		// Convert to plain object and explicitly ensure all fields are included
+		const responseProfile = updatedProfile.toObject ? updatedProfile.toObject() : { ...updatedProfile };
+		// Explicitly set expected_graduation_year even if undefined in the object
+		responseProfile.expected_graduation_year = updatedProfile.expected_graduation_year !== undefined 
+			? updatedProfile.expected_graduation_year 
+			: (responseProfile.expected_graduation_year !== undefined ? responseProfile.expected_graduation_year : '');
+		
+		console.log("Response profile expected_graduation_year:", responseProfile.expected_graduation_year);
+		
 		res.status(200).json({
 			message: "Profile updated successfully.",
-			profile: updatedProfile,
+			profile: responseProfile,
 		});
 	} catch (error) {
 		console.error("Error updating profile:", error);

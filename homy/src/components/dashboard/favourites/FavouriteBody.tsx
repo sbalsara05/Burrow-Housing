@@ -6,7 +6,7 @@ const FavouriteBody = () => {
    return (
       <div className="dashboard-body">
          <div className="position-relative">
-            <DashboardHeaderTwo title="Favourites" />
+            <DashboardHeaderTwo title="Favorites" />
             <FavouriteArea/>
          </div>
       </div>

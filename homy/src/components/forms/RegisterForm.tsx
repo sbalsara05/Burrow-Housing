@@ -172,20 +172,30 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onOtpRequired }) => {
                 </div>
                 <div className="col-12">
                     <div className="input-group-meta position-relative mb-25">
-                        <label>Phone Number</label>
+                        <label>Phone Number*</label>
                         <input type="tel" {...register("whatsappNumber")} placeholder="+1 (123) 456-7890" />
                         <p className="form_error">{errors.whatsappNumber?.message}</p>
                     </div>
                 </div>
                 <div className="col-12">
                     <div className="agreement-checkbox d-flex justify-content-between align-items-center">
-                        <div>
-                            <input type="checkbox" id="terms" {...register("terms")} />
-                            <label htmlFor="terms">
-                                By hitting the "Register" button, you agree to the{" "}
-                                <Link to="#">Terms and Conditions</Link> & <Link to="#">Privacy Policy</Link>
-                            </label>
-                            <p className="form_error">{errors.terms?.message}</p>
+                        <div className="d-flex align-items-start">
+                            <input
+                                type="checkbox"
+                                id="terms"
+                                {...register("terms")}
+                                style={{ cursor: "pointer", marginTop: "4px" }}
+                            />
+                            <div className="ms-2">
+                                <label htmlFor="terms" style={{ cursor: "pointer" }}>
+                                    By hitting the "Register" button, you agree to the
+                                </label>{" "}
+                                <span>
+                                    <Link to="#">Terms and Conditions</Link> &{" "}
+                                    <Link to="#">Privacy Policy</Link>
+                                </span>
+                                <p className="form_error">{errors.terms?.message}</p>
+                            </div>
                         </div>
                     </div>
                 </div>

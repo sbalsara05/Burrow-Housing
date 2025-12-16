@@ -15,6 +15,7 @@ export interface Profile {
     school_email: string;
     majors_minors?: string;
     school_attending?: string;
+    expected_graduation_year?: string;
     about?: string;
     image?: string | null; // Stores the *URL* of the image from S3
     createdAt?: string;
@@ -27,6 +28,7 @@ interface ProfileUpdateData {
     school_email: string;
     majors_minors?: string;
     school_attending?: string;
+    expected_graduation_year?: string;
     about?: string;
     imageUrl?: string; // Will be set after image upload
 }
@@ -198,6 +200,7 @@ export const updateProfile = createAsyncThunk(
                 school_email: profileData.get('school_email') as string,
                 majors_minors: profileData.get('majors_minors') as string || undefined,
                 school_attending: profileData.get('school_attending') as string || undefined,
+                expected_graduation_year: profileData.get('expected_graduation_year') as string || undefined,
                 about: profileData.get('about') as string || undefined,
             };
 

@@ -621,11 +621,66 @@
             font-size: 15px;
             letter-spacing: -0.15px;
             font-weight: 500;
-            color: #000;
+            width: 175px;
+            line-height: 40px;
+            height: 42px;
+            text-align: center;
+            border-radius: 7px;
+            color: $color-one;
+            border: 1px solid $color-one;
+            background: transparent;
+            cursor: pointer;
             &:hover {
-                color: #ff5b5b;
+                background: #000;
+                border-color: #000;
+                color: #fff;
             }
         }
+    }
+
+    .profile-fields-grid {
+        width: 100%;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        column-gap: 24px;
+        row-gap: 16px;
+    }
+
+    // Property Type Toggle Styles
+    .property-type-toggle {
+        flex: 1;
+        padding: 12px 24px;
+        border: 1px solid #E9E9E9;
+        border-radius: 10px;
+        background: #fff;
+        color: #000;
+        font-size: 16px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        
+        &:hover {
+            border-color: $color-one;
+            color: $color-one;
+        }
+        
+        &.active {
+            background: $color-one;
+            border-color: $color-one;
+            color: #fff;
+        }
+        
+        &:first-child {
+            margin-right: 12px;
+        }
+    }
+
+    .profile-fields-grid .profile-field {
+        width: 100%;
+    }
+
+    .profile-fields-grid .profile-field--full {
+        grid-column: 1 / -1;
     }
 
     // Input Style
