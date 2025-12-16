@@ -35,7 +35,6 @@ const ProfileBody = () => {
         school_email: "",
         majors_minors: "",
         school_attending: "",
-        current_year: "",
         expected_graduation_year: "",
         about: "",
     });
@@ -43,6 +42,8 @@ const ProfileBody = () => {
     const [previewImage, setPreviewImage] = useState<string>("/assets/images/dashboard/no-profile-pic.png");
     // Store initial fetched data to enable cancel functionality
     const [initialDataForCancel, setInitialDataForCancel] = useState<any>(null);
+    // Track if we just completed an update to prevent useEffect from overwriting
+    const [justUpdated, setJustUpdated] = useState(false);
 
     // --- Fetch Profile Data ---
     const loadProfile = useCallback(() => {
@@ -60,17 +61,28 @@ const ProfileBody = () => {
 
     // --- Populate Form When Profile Data Arrives ---
     useEffect(() => {
+        // Don't overwrite formData if we just completed an update (let the handleSubmit handle it)
+        if (justUpdated) {
+            console.log("Skipping useEffect because justUpdated is true");
+            // Reset the flag after a short delay to allow formData to be set first
+            setTimeout(() => setJustUpdated(false), 100);
+            return;
+        }
+        
         if (profile) {
             console.log("ProfileBody: Populating form with fetched profile data:", profile);
+            console.log("ProfileBody: expected_graduation_year from profile:", profile.expected_graduation_year, "type:", typeof profile.expected_graduation_year);
+            // Explicitly check for these fields - preserve the actual value, even if it's an empty string
             const profileFormData = {
                 username: profile.username || '',
                 school_email: profile.school_email || '',
                 majors_minors: profile.majors_minors || '',
                 school_attending: profile.school_attending || '',
-                current_year: profile.current_year || '',
-                expected_graduation_year: profile.expected_graduation_year || '',
+                expected_graduation_year: (profile.expected_graduation_year !== undefined && profile.expected_graduation_year !== null) ? String(profile.expected_graduation_year) : '',
                 about: profile.about || '',
             };
+            console.log("Profile form data after processing:", profileFormData);
+            console.log("Profile form data - expected_graduation_year value:", profileFormData.expected_graduation_year);
             setFormData(profileFormData);
             
             // Set preview image from S3 URL or default
@@ -90,7 +102,6 @@ const ProfileBody = () => {
                 school_email: currentUser.email || '',
                 majors_minors: '',
                 school_attending: '',
-                current_year: '',
                 expected_graduation_year: '',
                 about: '',
             };
@@ -98,15 +109,20 @@ const ProfileBody = () => {
             setInitialDataForCancel({ ...fallbackFormData, imagePath: null });
             setPreviewImage("/assets/images/dashboard/no-profile-pic.png");
         }
-    }, [profile, currentUser]); // Depend on profile from Redux and currentUser
+    }, [profile, currentUser, justUpdated]); // Depend on profile from Redux and currentUser
 
     // --- Form Input Handlers ---
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
-        setFormData((prevData) => ({
-            ...prevData,
-            [name]: value,
-        }));
+        console.log(`Form field changed: ${name} = "${value}"`);
+        setFormData((prevData) => {
+            const newData = {
+                ...prevData,
+                [name]: value,
+            };
+            console.log("Updated formData:", newData);
+            return newData;
+        });
     };
 
     const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -158,28 +174,66 @@ const ProfileBody = () => {
         console.log("Form data:", formData);
         console.log("Selected image:", selectedImage?.name);
 
+        // Ensure all fields are explicitly included, even if empty strings
+        const profileDataToSend = {
+            username: formData.username || '',
+            school_email: formData.school_email || '',
+            majors_minors: formData.majors_minors || '',
+            school_attending: formData.school_attending || '',
+            expected_graduation_year: formData.expected_graduation_year !== undefined ? formData.expected_graduation_year : '',
+            about: formData.about || '',
+        };
+        
+        console.log("Profile data being sent to backend:", profileDataToSend);
+        console.log("Raw formData.expected_graduation_year before send:", formData.expected_graduation_year);
+
         try {
             // Use the new updateProfileWithImage thunk
             const resultAction = await dispatch(updateProfileWithImage({
-                profileData: formData,
+                profileData: profileDataToSend,
                 imageFile: selectedImage || undefined
             }));
 
             if (updateProfileWithImage.fulfilled.match(resultAction)) {
                 toast.success("Profile updated successfully!");
                 
+                // Set flag FIRST to prevent useEffect from overwriting when Redux state updates
+                setJustUpdated(true);
+                
                 // Update the 'initialDataForCancel' with the newly saved data
                 const updatedProfile = resultAction.payload;
-                setInitialDataForCancel({
+                console.log("Updated profile from backend:", updatedProfile);
+                console.log("Updated profile - expected_graduation_year:", updatedProfile.expected_graduation_year, "type:", typeof updatedProfile.expected_graduation_year);
+                
+                const updatedFormData = {
                     username: updatedProfile.username || '',
                     school_email: updatedProfile.school_email || '',
                     majors_minors: updatedProfile.majors_minors || '',
                     school_attending: updatedProfile.school_attending || '',
-                    current_year: updatedProfile.current_year || '',
-                    expected_graduation_year: updatedProfile.expected_graduation_year || '',
+                    expected_graduation_year: (updatedProfile.expected_graduation_year !== undefined && updatedProfile.expected_graduation_year !== null) ? String(updatedProfile.expected_graduation_year) : '',
                     about: updatedProfile.about || '',
+                };
+                
+                console.log("Updated form data to set:", updatedFormData);
+                console.log("Updated form data - expected_graduation_year value:", updatedFormData.expected_graduation_year);
+                
+                // Update formData state immediately with the saved values
+                // Use a function to ensure we're setting the latest state
+                setFormData(prev => {
+                    console.log("Setting formData from:", prev, "to:", updatedFormData);
+                    return updatedFormData;
+                });
+                
+                setInitialDataForCancel({
+                    ...updatedFormData,
                     imagePath: updatedProfile.image, // Store the new S3 image URL
                 });
+                
+                // Reset justUpdated flag after a delay to allow formData to update
+                setTimeout(() => {
+                    console.log("Resetting justUpdated flag");
+                    setJustUpdated(false);
+                }, 200);
                 
                 // Clear selected image after successful upload
                 setSelectedImage(null);
@@ -215,7 +269,6 @@ const ProfileBody = () => {
                 school_email: initialDataForCancel.school_email || '',
                 majors_minors: initialDataForCancel.majors_minors || '',
                 school_attending: initialDataForCancel.school_attending || '',
-                current_year: initialDataForCancel.current_year || '',
                 expected_graduation_year: initialDataForCancel.expected_graduation_year || '',
                 about: initialDataForCancel.about || '',
             });
@@ -270,8 +323,8 @@ const ProfileBody = () => {
                                         alt="Profile Preview"
                                         className="lazy-img user-img"
                                         style={{
-                                            width: '220px',
-                                            height: '220px',
+                                            width: '280px',
+                                            height: '280px',
                                             objectFit: 'cover',
                                             borderRadius: '16px',
                                             border: selectedImage ? '3px solid #ff6b35' : '1px solid #ddd',
@@ -325,7 +378,7 @@ const ProfileBody = () => {
                                 </div>
                             </div>
 
-                            {/* Right: Full Name, Current Year, Major (stacked) */}
+                            {/* Right: Full Name, Major (stacked) */}
                             <div className="col-md-8">
                                 <div className="dash-input-wrapper mb-30">
                                     <label>Full Name*</label>
@@ -339,16 +392,6 @@ const ProfileBody = () => {
                                     />
                                 </div>
                                 <div className="dash-input-wrapper mb-30">
-                                    <label>Current Year</label>
-                                    <input
-                                        type="text"
-                                        name="current_year"
-                                        placeholder="Enter your current year"
-                                        value={formData.current_year}
-                                        onChange={handleChange}
-                                    />
-                                </div>
-                                <div className="dash-input-wrapper mb-30">
                                     <label>Major*</label>
                                     <input
                                         type="text"
@@ -357,6 +400,16 @@ const ProfileBody = () => {
                                         value={formData.majors_minors}
                                         onChange={handleChange}
                                         required
+                                    />
+                                </div>
+                                <div className="dash-input-wrapper mb-30">
+                                    <label>Expected Graduation</label>
+                                    <input
+                                        type="text"
+                                        name="expected_graduation_year"
+                                        placeholder="e.g., 2026"
+                                        value={formData.expected_graduation_year}
+                                        onChange={handleChange}
                                     />
                                 </div>
                             </div>

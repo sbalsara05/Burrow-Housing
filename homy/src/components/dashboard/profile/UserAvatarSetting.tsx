@@ -1,20 +1,8 @@
 const UserAvatarSetting = ({ formData, handleChange }) => {
   return (
     <div className="profile-fields-grid">
-      {/* Graduation Year | University Email (side-by-side) */}
-      <div className="profile-field">
-        <div className="dash-input-wrapper">
-          <label>Graduation Year</label>
-          <input
-            type="text"
-            name="expected_graduation_year"
-            placeholder="Expected graduation year"
-            value={formData.expected_graduation_year}
-            onChange={handleChange}
-          />
-        </div>
-      </div>
-      <div className="profile-field">
+      {/* University Email (full width) */}
+      <div className="profile-field profile-field--full">
         <div className="dash-input-wrapper">
           <label>University Email*</label>
           <input
