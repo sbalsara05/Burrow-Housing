@@ -35,6 +35,8 @@ const ProfileBody = () => {
         school_email: "",
         majors_minors: "",
         school_attending: "",
+        current_year: "",
+        expected_graduation_year: "",
         about: "",
     });
     const [selectedImage, setSelectedImage] = useState<File | null>(null);
@@ -65,6 +67,8 @@ const ProfileBody = () => {
                 school_email: profile.school_email || '',
                 majors_minors: profile.majors_minors || '',
                 school_attending: profile.school_attending || '',
+                current_year: profile.current_year || '',
+                expected_graduation_year: profile.expected_graduation_year || '',
                 about: profile.about || '',
             };
             setFormData(profileFormData);
@@ -86,6 +90,8 @@ const ProfileBody = () => {
                 school_email: currentUser.email || '',
                 majors_minors: '',
                 school_attending: '',
+                current_year: '',
+                expected_graduation_year: '',
                 about: '',
             };
             setFormData(fallbackFormData);
@@ -169,6 +175,8 @@ const ProfileBody = () => {
                     school_email: updatedProfile.school_email || '',
                     majors_minors: updatedProfile.majors_minors || '',
                     school_attending: updatedProfile.school_attending || '',
+                    current_year: updatedProfile.current_year || '',
+                    expected_graduation_year: updatedProfile.expected_graduation_year || '',
                     about: updatedProfile.about || '',
                     imagePath: updatedProfile.image, // Store the new S3 image URL
                 });
@@ -207,6 +215,8 @@ const ProfileBody = () => {
                 school_email: initialDataForCancel.school_email || '',
                 majors_minors: initialDataForCancel.majors_minors || '',
                 school_attending: initialDataForCancel.school_attending || '',
+                current_year: initialDataForCancel.current_year || '',
+                expected_graduation_year: initialDataForCancel.expected_graduation_year || '',
                 about: initialDataForCancel.about || '',
             });
             
@@ -250,64 +260,109 @@ const ProfileBody = () => {
                     )}
 
                     <form onSubmit={handleSubmit}>
-                        {/* Image Upload Section */}
-                        <div className="user-avatar-setting d-flex align-items-center mb-30">
-                            <div className="position-relative">
-                                <img 
-                                    src={previewImage} 
-                                    alt="Profile Preview" 
-                                    className="lazy-img user-img" 
-                                    style={{ 
-                                        width: '100px', 
-                                        height: '100px', 
-                                        objectFit: 'cover', 
-                                        borderRadius: '50%',
-                                        border: selectedImage ? '3px solid #007bff' : '2px solid #ddd'
-                                    }} 
-                                />
-                                {selectedImage && (
-                                    <div 
-                                        className="position-absolute top-0 end-0 bg-primary text-white rounded-circle d-flex align-items-center justify-content-center"
-                                        style={{ width: '24px', height: '24px', fontSize: '12px' }}
-                                        title="New image selected"
-                                    >
-                                        ✓
+                        {/* Top row: photo on left, Full Name/Current Year/Major on right */}
+                        <div className="row align-items-start mb-40">
+                            {/* Left: Photo */}
+                            <div className="col-md-4 d-flex flex-column align-items-center">
+                                <div className="position-relative mb-3">
+                                    <img
+                                        src={previewImage}
+                                        alt="Profile Preview"
+                                        className="lazy-img user-img"
+                                        style={{
+                                            width: '220px',
+                                            height: '220px',
+                                            objectFit: 'cover',
+                                            borderRadius: '16px',
+                                            border: selectedImage ? '3px solid #ff6b35' : '1px solid #ddd',
+                                        }}
+                                    />
+                                    {selectedImage && (
+                                        <div
+                                            className="position-absolute top-0 end-0 bg-primary text-white rounded-circle d-flex align-items-center justify-content-center"
+                                            style={{ width: '28px', height: '28px', fontSize: '14px' }}
+                                            title="New image selected"
+                                        >
+                                            ✓
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div className="d-flex flex-column align-items-center w-100">
+                                    <div className="upload-btn position-relative tran3s mb-1">
+                                        {selectedImage ? 'Change Photo' : 'Upload Photo'}
+                                        <input
+                                            type="file"
+                                            id="uploadImg"
+                                            name="image"
+                                            onChange={handleImageChange}
+                                            accept="image/png, image/jpeg, image/jpg, image/webp"
+                                            disabled={isUpdating}
+                                            style={{
+                                                position: 'absolute',
+                                                inset: 0,
+                                                opacity: 0,
+                                                cursor: 'pointer',
+                                            }}
+                                        />
                                     </div>
-                                )}
+                                    <button
+                                        type="button"
+                                        className="delete-btn tran3s"
+                                        onClick={handleDeleteImage}
+                                        disabled={isUpdating}
+                                    >
+                                        {selectedImage ? 'Remove Selected' : 'Remove Photo'}
+                                    </button>
+
+                                    {selectedImage && (
+                                        <div className="alert alert-info mt-3 w-100 text-center" style={{ maxWidth: 260 }}>
+                                            <small>
+                                                Selected: {selectedImage.name} ({(selectedImage.size / 1024 / 1024).toFixed(2)} MB)
+                                            </small>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
-                            
-                            <div className="upload-btn position-relative tran3s ms-4 me-3">
-                                {selectedImage ? 'Change Photo' : 'Upload new photo'}
-                                <input 
-                                    type="file" 
-                                    id="uploadImg" 
-                                    name="image" 
-                                    onChange={handleImageChange} 
-                                    accept="image/png, image/jpeg, image/jpg, image/webp"
-                                    disabled={isUpdating}
-                                />
+
+                            {/* Right: Full Name, Current Year, Major (stacked) */}
+                            <div className="col-md-8">
+                                <div className="dash-input-wrapper mb-30">
+                                    <label>Full Name*</label>
+                                    <input
+                                        type="text"
+                                        name="username"
+                                        placeholder="Enter your full name"
+                                        value={formData.username}
+                                        onChange={handleChange}
+                                        required
+                                    />
+                                </div>
+                                <div className="dash-input-wrapper mb-30">
+                                    <label>Current Year</label>
+                                    <input
+                                        type="text"
+                                        name="current_year"
+                                        placeholder="Enter your current year"
+                                        value={formData.current_year}
+                                        onChange={handleChange}
+                                    />
+                                </div>
+                                <div className="dash-input-wrapper mb-30">
+                                    <label>Major*</label>
+                                    <input
+                                        type="text"
+                                        name="majors_minors"
+                                        placeholder="Enter your major"
+                                        value={formData.majors_minors}
+                                        onChange={handleChange}
+                                        required
+                                    />
+                                </div>
                             </div>
-                            
-                            <button
-                                type="button"
-                                className="delete-btn tran3s"
-                                onClick={handleDeleteImage}
-                                disabled={isUpdating}
-                            >
-                                {selectedImage ? 'Remove Selected' : 'Delete'}
-                            </button>
                         </div>
 
-                        {/* Show selected file info */}
-                        {selectedImage && (
-                            <div className="alert alert-info mb-3">
-                                <small>
-                                    Selected: {selectedImage.name} ({(selectedImage.size / 1024 / 1024).toFixed(2)} MB)
-                                </small>
-                            </div>
-                        )}
-
-                        {/* Form Fields Rendered by Sub-component */}
+                        {/* Full-width fields below: Graduation Year + University Email, then University, then About */}
                         <UserAvatarSetting formData={formData} handleChange={handleChange} />
 
                         {/* Action Buttons */}

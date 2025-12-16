@@ -160,6 +160,8 @@ exports.updateProfile = async (req, res) => {
 			school_email,
 			majors_minors,
 			school_attending,
+			current_year,
+			expected_graduation_year,
 			about,
 			imageUrl, // New field for image URL from S3
 		} = req.body; // Extract fields from the request body
@@ -190,6 +192,9 @@ exports.updateProfile = async (req, res) => {
 		profile.majors_minors = majors_minors || profile.majors_minors;
 		profile.school_attending =
 			school_attending || profile.school_attending;
+		profile.current_year = current_year || profile.current_year;
+		profile.expected_graduation_year =
+			expected_graduation_year || profile.expected_graduation_year;
 		profile.about = about || profile.about;
 
 		// Update image URL if provided

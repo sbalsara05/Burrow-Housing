@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, useRef } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import { GoogleMap, useJsApiLoader, Autocomplete, Marker } from '@react-google-maps/api';
 
 // Define the shape of the data this component needs and manages

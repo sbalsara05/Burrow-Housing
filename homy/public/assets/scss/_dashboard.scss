@@ -628,6 +628,22 @@
         }
     }
 
+    .profile-fields-grid {
+        width: 100%;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        column-gap: 24px;
+        row-gap: 16px;
+    }
+
+    .profile-fields-grid .profile-field {
+        width: 100%;
+    }
+
+    .profile-fields-grid .profile-field--full {
+        grid-column: 1 / -1;
+    }
+
     // Input Style
     .dash-input-wrapper {
         label {
