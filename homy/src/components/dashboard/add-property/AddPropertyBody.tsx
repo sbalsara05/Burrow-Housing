@@ -18,6 +18,8 @@ import SelectAmenities from "./SelectAmenities";
 import AddressAndLocation from "../profile/AddressAndLocation";
 import DashboardHeaderTwo from "../../../layouts/headers/dashboard/DashboardHeaderTwo";
 import PhotoUploader from './PhotoUploader';
+import PropertyTypeToggle from './PropertyTypeToggle';
+import NeighborhoodSelect from './NeighborhoodSelect';
 import { Link } from "react-router-dom";
 
 // Props for the component
@@ -28,6 +30,7 @@ interface AddPropertyBodyProps {
 
 // Shape for the form's state
 type FormDataShape = {
+    propertyType: string; // 'Apartment' or 'Room' - UI only, maps to category/roomType
     overview: { title: string; category: string; roomType: string; neighborhood: string; rent: number | ''; };
     listingDetails: { size?: number | ''; bedrooms: number; bathrooms: number; floorNo: number; };
     amenities: string[];
@@ -46,7 +49,8 @@ type FormDataShape = {
 
 // Initial state for "Add" mode
 const initialFormData: FormDataShape = {
-    overview: { title: '', category: '', roomType: '', neighborhood: 'Any', rent: '' },
+    propertyType: 'Apartment', // UI toggle value
+    overview: { title: '', category: 'Apartment', roomType: 'Single Room', neighborhood: 'Any', rent: '' },
     listingDetails: { bedrooms: 1, bathrooms: 1, floorNo: 1, size: '' },
     amenities: [],
     addressAndLocation: { address: '', line1: '', line2: '', city: '', state: '', zip: '' },
@@ -68,8 +72,13 @@ const AddPropertyBody: React.FC<AddPropertyBodyProps> = ({ isEditMode = false, p
 
     useEffect(() => {
         if (isEditMode && propertyToEdit) {
+            // Map category to propertyType for UI
+            const propertyType = propertyToEdit.overview?.category === 'Apartment' ? 'Apartment' : 'Room';
+            // Preserve the roomType from the property
+            const roomType = propertyToEdit.overview?.roomType || 'Single Room';
             setFormData({
-                overview: propertyToEdit.overview || { title: '', category: '', roomType: '', neighborhood: 'Any', rent: '' },
+                propertyType,
+                overview: propertyToEdit.overview || { title: '', category: 'Apartment', roomType, neighborhood: 'Any', rent: '' },
                 listingDetails: propertyToEdit.listingDetails || { bedrooms: 1, bathrooms: 1, floorNo: 1, size: '' },
                 amenities: propertyToEdit.amenities || [],
                 addressAndLocation: {
@@ -106,6 +115,36 @@ const AddPropertyBody: React.FC<AddPropertyBodyProps> = ({ isEditMode = false, p
     const handleTopLevelChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handlePropertyTypeChange = (propertyType: string) => {
+        setFormData(prev => {
+            // Map propertyType to category and roomType for backend
+            const category = propertyType === 'Apartment' ? 'Apartment' : 'Single Room';
+            // Keep existing roomType if switching to Room, otherwise default to Single Room
+            const roomType = propertyType === 'Room' 
+                ? (prev.overview.roomType || 'Single Room')
+                : 'Single Room';
+            return {
+                ...prev,
+                propertyType,
+                overview: {
+                    ...prev.overview,
+                    category,
+                    roomType,
+                },
+            };
+        });
+    };
+
+    const handleRoomTypeChange = (roomType: string) => {
+        setFormData(prev => ({
+            ...prev,
+            overview: {
+                ...prev.overview,
+                roomType,
+            },
+        }));
     };
 
     const handleAmenityChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -215,16 +254,148 @@ const AddPropertyBody: React.FC<AddPropertyBodyProps> = ({ isEditMode = false, p
 
                 <form onSubmit={handleSubmit}>
                     <div className="bg-white card-box border-20">
-                        <h4 className="dash-title-three">Property Details</h4>
-                        <div className="dash-input-wrapper mb-30">
-                            <label htmlFor="propertyTitle">Property Title*</label>
-                            <input type="text" id="propertyTitle" placeholder="e.g., Cozy 2-Bedroom near Fenway" value={formData.overview.title} onChange={(e) => handleNestedChange('overview', 'title', e.target.value)} required />
+                        {/* Property Type Toggle */}
+                        <div className="dash-input-wrapper mb-40">
+                            <label className="d-block mb-3">Property Type</label>
+                            <PropertyTypeToggle 
+                                propertyType={formData.propertyType}
+                                roomType={formData.overview.roomType}
+                                onPropertyTypeChange={handlePropertyTypeChange}
+                                onRoomTypeChange={handleRoomTypeChange}
+                            />
                         </div>
-                        <Overview overviewData={formData.overview} handleInputChange={(field, value) => handleNestedChange('overview', field, value)} />
+
+                        {/* Monthly Rent */}
+                        <div className="dash-input-wrapper mb-40">
+                            <label htmlFor="monthlyRent">Monthly Rent</label>
+                            <input 
+                                type="number" 
+                                id="monthlyRent" 
+                                placeholder="Enter monthly rent" 
+                                value={formData.overview.rent || ''} 
+                                onChange={(e) => handleNestedChange('overview', 'rent', e.target.value === '' ? '' : parseFloat(e.target.value))} 
+                                required 
+                                min="0"
+                            />
+                        </div>
+
+                        {/* Property Details - 2x2 Grid */}
+                        <div className="dash-input-wrapper mb-40">
+                            <label className="d-block mb-3">Property Details</label>
+                            <div className="row">
+                                <div className="col-md-6">
+                                    <div className="dash-input-wrapper mb-30">
+                                        <label htmlFor="squareFootage">Square Footage</label>
+                                        <input
+                                            type="number"
+                                            id="squareFootage"
+                                            placeholder="e.g., 1200"
+                                            value={formData.listingDetails.size || ''}
+                                            onChange={(e) => handleNestedChange('listingDetails', 'size', e.target.value === '' ? '' : parseFloat(e.target.value))}
+                                            min="0"
+                                        />
+                                    </div>
+                                </div>
+                                <div className="col-md-6">
+                                    <div className="dash-input-wrapper mb-30">
+                                        <label htmlFor="bathrooms">Number of Bathrooms</label>
+                                        <input
+                                            type="number"
+                                            id="bathrooms"
+                                            placeholder="e.g., 2"
+                                            value={formData.listingDetails.bathrooms || ''}
+                                            onChange={(e) => {
+                                                const val = e.target.value;
+                                                handleNestedChange('listingDetails', 'bathrooms', val === '' ? '' : parseInt(val) || '');
+                                            }}
+                                            onBlur={(e) => {
+                                                // If empty on blur, set to 1 (required field)
+                                                if (e.target.value === '') {
+                                                    handleNestedChange('listingDetails', 'bathrooms', 1);
+                                                }
+                                            }}
+                                            required
+                                            min="1"
+                                            max="3"
+                                        />
+                                    </div>
+                                </div>
+                                <div className="col-md-6">
+                                    <div className="dash-input-wrapper mb-30">
+                                        <label htmlFor="bedrooms">Number of Bedrooms</label>
+                                        <input
+                                            type="number"
+                                            id="bedrooms"
+                                            placeholder="e.g., 2"
+                                            value={formData.listingDetails.bedrooms || ''}
+                                            onChange={(e) => {
+                                                const val = e.target.value;
+                                                handleNestedChange('listingDetails', 'bedrooms', val === '' ? '' : parseInt(val) || '');
+                                            }}
+                                            onBlur={(e) => {
+                                                // If empty on blur, set to 1 (required field)
+                                                if (e.target.value === '') {
+                                                    handleNestedChange('listingDetails', 'bedrooms', 1);
+                                                }
+                                            }}
+                                            required
+                                            min="1"
+                                            max="5"
+                                        />
+                                    </div>
+                                </div>
+                                <div className="col-md-6">
+                                    <div className="dash-input-wrapper mb-30">
+                                        <label htmlFor="floors">Number of Floors</label>
+                                        <input
+                                            type="number"
+                                            id="floors"
+                                            placeholder="e.g., 1"
+                                            value={formData.listingDetails.floorNo || ''}
+                                            onChange={(e) => {
+                                                const val = e.target.value;
+                                                handleNestedChange('listingDetails', 'floorNo', val === '' ? '' : parseInt(val) || '');
+                                            }}
+                                            onBlur={(e) => {
+                                                // If empty on blur, set to 0 (required field)
+                                                if (e.target.value === '') {
+                                                    handleNestedChange('listingDetails', 'floorNo', 0);
+                                                }
+                                            }}
+                                            required
+                                            min="0"
+                                            max="5"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Neighborhood - Keep as requested */}
+                        <div className="dash-input-wrapper mb-40">
+                            <label htmlFor="neighborhood">Neighborhood*</label>
+                            <NeighborhoodSelect 
+                                value={formData.overview.neighborhood} 
+                                onChange={(value) => handleNestedChange('overview', 'neighborhood', value)} 
+                            />
+                        </div>
+
+                        {/* Lease Length */}
+                        <div className="dash-input-wrapper mb-40">
+                            <label htmlFor="leaseLength">Lease Length*</label>
+                            <input 
+                                type="text" 
+                                id="leaseLength"
+                                name="leaseLength"
+                                placeholder="e.g., 12 Months" 
+                                value={formData.leaseLength} 
+                                onChange={handleTopLevelChange} 
+                                required 
+                            />
+                        </div>
                     </div>
 
-                    <ListingDetails detailsData={formData.listingDetails} handleInputChange={(field, value) => handleNestedChange('listingDetails', field, value)} />
-
+                    {/* Photos */}
                     <PhotoUploader
                         onFilesChange={setFilesToUpload}
                         currentFiles={filesToUpload}
@@ -234,11 +405,13 @@ const AddPropertyBody: React.FC<AddPropertyBodyProps> = ({ isEditMode = false, p
                         disabled={isSubmitting}
                     />
 
+                    {/* Amenities */}
                     <div className="bg-white card-box border-20 mt-40">
-                        <h4 className="dash-title-three m0 pb-5">Select Amenities</h4>
+                        <h4 className="dash-title-three m0 pb-5">Amenities</h4>
                         <SelectAmenities selected={formData.amenities} onChange={handleAmenityChange} />
                     </div>
 
+                    {/* Address - Simplified but keep map */}
                     <AddressAndLocation
                         location={location}
                         setLocation={setLocation}
@@ -246,33 +419,28 @@ const AddPropertyBody: React.FC<AddPropertyBodyProps> = ({ isEditMode = false, p
                         handleAddressChange={(field, value) => handleNestedChange('addressAndLocation', field, value)}
                     />
 
+                    {/* Description - Large textarea */}
                     <div className="bg-white card-box border-20 mt-40">
-                        <h4 className="dash-title-three">Additional Details</h4>
-                        <div className="row">
-                            <div className="col-md-6">
-                                <div className="dash-input-wrapper mb-30">
-                                    <label htmlFor="leaseLength">Lease Length*</label>
-                                    <input type="text" name="leaseLength" id="leaseLength" placeholder="e.g., 12 Months" value={formData.leaseLength} onChange={handleTopLevelChange} required />
-                                </div>
-                            </div>
-                            <div className="col-md-6">
-                                <div className="dash-input-wrapper mb-30">
-                                    <label htmlFor="buildingName">Building Name (Optional)</label>
-                                    <input type="text" name="buildingName" id="buildingName" placeholder="e.g., The Grand" value={formData.buildingName} onChange={handleTopLevelChange} />
-                                </div>
-                            </div>
-                            <div className="col-12">
-                                <div className="dash-input-wrapper mb-30">
-                                    <label htmlFor="description">Description*</label>
-                                    <textarea name="description" id="description" className="size-lg" placeholder="Write about the property..." value={formData.description} onChange={handleTopLevelChange} required rows={5}></textarea>
-                                </div>
-                            </div>
+                        <div className="dash-input-wrapper mb-30">
+                            <label htmlFor="description">Description*</label>
+                            <textarea 
+                                name="description" 
+                                id="description" 
+                                className="size-lg" 
+                                placeholder="Write about the property..." 
+                                value={formData.description} 
+                                onChange={handleTopLevelChange} 
+                                required 
+                                rows={8}
+                                style={{ minHeight: '200px' }}
+                            ></textarea>
                         </div>
                     </div>
 
+                    {/* Save Button */}
                     <div className="button-group d-inline-flex align-items-center mt-30">
                         <button type="submit" className="dash-btn-two tran3s me-3" disabled={isSubmitting}>
-                            {isSubmitting ? "Saving..." : (isEditMode ? "Save Changes" : "Submit Property")}
+                            {isSubmitting ? "Saving..." : "Save Listing"}
                         </button>
                         <Link to="/dashboard/properties-list" className="dash-cancel-btn tran3s">Cancel</Link>
                     </div>
