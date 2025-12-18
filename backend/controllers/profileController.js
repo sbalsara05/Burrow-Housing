@@ -279,9 +279,9 @@ exports.getPublicProfile = async (req, res) => {
 		// Fetch both profile and user data in parallel
 		const [profile, user] = await Promise.all([
 			Profile.findOne({ userId })
-				// *** THE FIX IS HERE: Add 'createdAt' to the select string ***
+				// Include all fields needed for public profile display
 				.select(
-					"username school_attending image majors_minors about userId createdAt"
+					"username school_attending image majors_minors about userId createdAt expected_graduation_year"
 				)
 				.lean(),
 			User.findById(userId).select("createdAt name").lean(), // Still needed for fallback

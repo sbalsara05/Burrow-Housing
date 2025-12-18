@@ -65,8 +65,16 @@ const LoginModal: React.FC<LoginModalProps> = ({ loginModal, setLoginModal }) =>
     };
 
     const handleVerificationSuccess = () => {
-        setLoginModal(false); // Close the modal
-        navigate('/dashboard/profile'); // Redirect to dashboard
+        // Close modal and clear state before navigation to prevent backdrop from persisting
+        setLoginModal(false);
+        setView('login');
+        setOtpEmail("");
+        dispatch(clearAuthError());
+        dispatch(resetVerificationFlag());
+        // Small delay to ensure modal cleanup before navigation
+        setTimeout(() => {
+            navigate('/dashboard/profile'); // Redirect to dashboard
+        }, 100);
     };
 
     const closeModal = () => {

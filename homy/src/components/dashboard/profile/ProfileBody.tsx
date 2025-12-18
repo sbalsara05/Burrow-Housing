@@ -289,7 +289,15 @@ const ProfileBody = () => {
 
     // --- Loading State ---
     if (profileStatus === 'loading' && !profile) { // Show loading only on initial fetch
-        return <div className="dashboard-body"><p>Loading profile...</p></div>;
+        return (
+            <div className="dashboard-body">
+                <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '400px' }}>
+                    <div className="spinner-border text-primary" role="status">
+                        <span className="visually-hidden">Loading profile...</span>
+                    </div>
+                </div>
+            </div>
+        );
     }
 
     return (
@@ -314,7 +322,7 @@ const ProfileBody = () => {
 
                     <form onSubmit={handleSubmit}>
                         {/* Top row: photo on left, Full Name/Current Year/Major on right */}
-                        <div className="row align-items-start mb-40">
+                        <div className="row align-items-start mb-20">
                             {/* Left: Photo */}
                             <div className="col-md-4 d-flex flex-column align-items-center">
                                 <div className="position-relative mb-3">
@@ -341,8 +349,16 @@ const ProfileBody = () => {
                                     )}
                                 </div>
 
-                                <div className="d-flex flex-column align-items-center w-100">
-                                    <div className="upload-btn position-relative tran3s mb-1">
+                                <div className="d-flex flex-row align-items-center justify-content-center w-100" style={{ gap: '20px' }}>
+                                    <div 
+                                        className="upload-btn position-relative tran3s"
+                                        style={{
+                                            border: 'none',
+                                            background: 'transparent',
+                                            fontWeight: 'bold',
+                                            color: '#FF6725',
+                                        }}
+                                    >
                                         {selectedImage ? 'Change Photo' : 'Upload Photo'}
                                         <input
                                             type="file"
@@ -364,6 +380,12 @@ const ProfileBody = () => {
                                         className="delete-btn tran3s"
                                         onClick={handleDeleteImage}
                                         disabled={isUpdating}
+                                        style={{
+                                            border: 'none',
+                                            background: 'transparent',
+                                            fontWeight: 'bold',
+                                            color: '#FF6725',
+                                        }}
                                     >
                                         {selectedImage ? 'Remove Selected' : 'Remove Photo'}
                                     </button>

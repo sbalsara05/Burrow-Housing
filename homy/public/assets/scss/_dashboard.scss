@@ -123,7 +123,15 @@
     .border-15 {border-radius: 15px;}
     .border-20 {border-radius: 20px;}
     .border-30 {border-radius: 30px;}
-    .card-box {padding: 45px 60px 50px;}
+    .card-box {
+        padding: 45px 60px 50px;
+    }
+    
+    // Remove shadow and border from card-box in dashboard
+    .bg-white.card-box {
+        box-shadow: none !important;
+        border: none !important;
+    }
     .main-title {
         font-size: 28px;
         margin-bottom: 40px;
@@ -594,19 +602,18 @@
         .upload-btn {
             font-size: 15px;
             letter-spacing: -0.15px;
-            font-weight: 500;
+            font-weight: 700;
             width: 175px;
             line-height: 40px;
             height: 42px;
             text-align: center;
-            border-radius: 7px;
             color: $color-one;
-            border: 1px solid $color-one;
+            border: none;
+            background: transparent;
             cursor: pointer;
+            transition: all 0.3s ease;
             &:hover {
-                background: #000;
-                border-color: #000;
-                color: #fff;
+                opacity: 0.8;
             }
             input {
                 position: absolute;
@@ -620,20 +627,18 @@
         .delete-btn {
             font-size: 15px;
             letter-spacing: -0.15px;
-            font-weight: 500;
+            font-weight: 300;
             width: 175px;
             line-height: 40px;
             height: 42px;
             text-align: center;
-            border-radius: 7px;
             color: $color-one;
-            border: 1px solid $color-one;
+            border: none;
             background: transparent;
             cursor: pointer;
+            transition: all 0.3s ease;
             &:hover {
-                background: #000;
-                border-color: #000;
-                color: #fff;
+                opacity: 0.8;
             }
         }
     }

@@ -1,16 +1,16 @@
 import DashboardHeaderTwo from "../../../layouts/headers/dashboard/DashboardHeaderTwo";
-import FavouriteArea from "./FavouriteArea";
+import FavoriteArea from "./FavouriteArea"; // File name still uses Favourite, but component is FavoriteArea
 
-const FavouriteBody = () => {
+const FavoriteBody = () => {
 
    return (
       <div className="dashboard-body">
          <div className="position-relative">
             <DashboardHeaderTwo title="Favorites" />
-            <FavouriteArea/>
+            <FavoriteArea/>
          </div>
       </div>
    )
 }
 
-export default FavouriteBody;
+export default FavoriteBody;

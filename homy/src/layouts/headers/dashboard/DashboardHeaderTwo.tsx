@@ -127,20 +127,22 @@ const DashboardHeaderTwo: React.FC<DashboardHeaderTwoProps> = ({ title }) => {
     return (
         <>
             <header className="dashboard-header">
-                <div className="d-flex align-items-center justify-content-end">
+                <div className="d-flex align-items-center justify-content-between">
                     <h4 className="m0 d-none d-lg-block">{title}</h4>
 
-                    {/* Mobile Navigation Toggler */}
-                    <button
-                        onClick={() => setIsActive(true)}
-                        className="dash-mobile-nav-toggler d-block d-md-none me-auto"
-                        aria-label="Toggle mobile navigation"
-                    >
-                        <span></span>
-                    </button>
+                    <div className="d-flex align-items-center">
+                        {/* Mobile Navigation Toggler */}
+                        <button
+                            onClick={() => setIsActive(true)}
+                            className="dash-mobile-nav-toggler d-block d-md-none me-auto"
+                            aria-label="Toggle mobile navigation"
+                        >
+                            <span></span>
+                        </button>
 
-                    {/* Header Actions */}
-                    {headerActions.map(renderHeaderAction)}
+                        {/* Header Actions */}
+                        {headerActions.map(renderHeaderAction)}
+                    </div>
                 </div>
             </header>
 
