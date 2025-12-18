@@ -94,7 +94,7 @@ const AmbassadorRequestModal: React.FC<AmbassadorRequestModalProps> = ({
         preferredDates: preferredDates.trim()
       };
 
-      const response = await axios.post('/api/ambassador-requests', requestData, {
+      await axios.post('/api/ambassador-requests', requestData, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -112,9 +112,11 @@ const AmbassadorRequestModal: React.FC<AmbassadorRequestModalProps> = ({
   const handleClose = () => {
     setStep(1);
     setPreferredDates('');
-    setContactInfo('');
     setAdditionalDetails({});
     setSelectedPoint(null);
+    setNewPoint('');
+    setShowNewPointInput(false);
+    setInspectionPoints([]);
     onClose();
   };
 
@@ -132,16 +134,29 @@ const AmbassadorRequestModal: React.FC<AmbassadorRequestModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="tw-fixed tw-inset-0 tw-bg-black tw-bg-opacity-50 tw-flex tw-items-center tw-justify-center tw-p-4 tw-z-[9999]">
-      <div className="tw-bg-white tw-rounded-lg tw-max-w-4xl tw-w-full tw-max-h-[90vh] tw-overflow-y-auto">
+    <div 
+      className="tw-fixed tw-inset-0 tw-bg-black tw-bg-opacity-50 tw-flex tw-items-center tw-justify-center tw-p-4 tw-z-[9999]"
+      onClick={handleClose}
+      style={{ cursor: 'pointer' }}
+    >
+      <div 
+        className="tw-bg-white tw-rounded-lg tw-max-w-4xl tw-w-full tw-max-h-[90vh] tw-overflow-y-auto"
+        onClick={(e) => e.stopPropagation()}
+        style={{ cursor: 'default' }}
+      >
         {/* Step 1: Inspection Points */}
         {step === 1 && (
           <div className="tw-p-8">
             <div className="tw-flex tw-justify-between tw-items-center tw-mb-6">
               <h2 className="tw-text-2xl tw-font-semibold tw-m-0">Request Ambassador Viewing</h2>
               <button
-                onClick={handleClose}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleClose();
+                }}
                 className="tw-bg-transparent tw-border-none tw-cursor-pointer tw-text-gray-500 tw-p-0 hover:tw-text-gray-700"
+                type="button"
+                aria-label="Close modal"
               >
                 <X size={24} />
               </button>
@@ -249,8 +264,12 @@ const AmbassadorRequestModal: React.FC<AmbassadorRequestModalProps> = ({
 
             <div className="tw-flex tw-justify-between tw-pt-6">
               <button
-                onClick={handleClose}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleClose();
+                }}
                 className="tw-px-8 tw-py-3 tw-border tw-border-gray-300 tw-rounded tw-bg-white tw-cursor-pointer tw-font-medium hover:tw-bg-gray-50"
+                type="button"
               >
                 Cancel
               </button>
@@ -270,8 +289,13 @@ const AmbassadorRequestModal: React.FC<AmbassadorRequestModalProps> = ({
             <div className="tw-flex tw-justify-between tw-items-center tw-mb-6">
               <h2 className="tw-text-2xl tw-font-normal tw-m-0">Request Ambassador Viewing</h2>
               <button
-                onClick={handleClose}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleClose();
+                }}
                 className="tw-bg-transparent tw-border-none tw-cursor-pointer tw-text-gray-500 tw-p-0 hover:tw-text-gray-700"
+                type="button"
+                aria-label="Close modal"
               >
                 <X size={24} />
               </button>

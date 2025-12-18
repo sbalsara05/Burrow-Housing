@@ -1,10 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { selectAuthToken, selectCurrentUser } from '../../../redux/slices/authSlice';
+import { AppDispatch } from '../../../redux/slices/store';
 import DashboardHeaderTwo from '../../../layouts/headers/dashboard/DashboardHeaderTwo';
 import { toast } from 'react-toastify';
+import Fancybox from '../../../components/common/Fancybox';
+import { getPresignedUrlsForUpload } from '../../../redux/slices/propertySlice';
 
 interface InspectionPoint {
 	text: string;
@@ -53,6 +56,7 @@ interface RequestDetails {
 const AmbassadorRequestDetails: React.FC = () => {
 	const { requestId } = useParams<{ requestId: string }>();
 	const navigate = useNavigate();
+	const dispatch = useDispatch<AppDispatch>();
 	const token = useSelector(selectAuthToken);
 	const currentUser = useSelector(selectCurrentUser);
 	const [request, setRequest] = useState<RequestDetails | null>(null);
@@ -78,16 +82,37 @@ const AmbassadorRequestDetails: React.FC = () => {
 			// First, upload images if any
 			let imageUrls: string[] = [];
 			if (reviewImages.length > 0) {
-				// For now, we'll need to upload images to S3
-				// This is a simplified version - you may want to use presigned URLs
-				const formData = new FormData();
-				reviewImages.forEach((file) => {
-					formData.append('images', file);
-				});
+				try {
+					// Get presigned URLs for each image
+					const fileInfo = reviewImages.map(file => ({
+						filename: file.name,
+						contentType: file.type
+					}));
 
-				// Upload images (you'll need to create this endpoint or use existing S3 upload)
-				// For now, we'll skip image uploads and just send text
-				// TODO: Implement image upload to S3
+					const uploadTargets = await dispatch(getPresignedUrlsForUpload({ files: fileInfo })).unwrap();
+
+					// Upload each image to S3
+					await Promise.all(
+						uploadTargets.map((target: { signedUrl: string, publicUrl: string }, index: number) =>
+							fetch(target.signedUrl, {
+								method: 'PUT',
+								body: reviewImages[index],
+								headers: {
+									'Content-Type': reviewImages[index].type,
+									'x-amz-acl': 'public-read',
+								},
+							})
+						)
+					);
+
+					// Collect public URLs
+					imageUrls = uploadTargets.map((target: { publicUrl: string }) => target.publicUrl);
+				} catch (uploadError: any) {
+					console.error('Error uploading images:', uploadError);
+					toast.error(uploadError || 'Failed to upload images. Please try again.');
+					setIsSubmittingReview(false);
+					return;
+				}
 			}
 
 			// Submit review
@@ -190,7 +215,14 @@ const AmbassadorRequestDetails: React.FC = () => {
 	
 	const isAssignedAmbassador = ambassadorId && currentUserId && 
 		ambassadorId.toString() === currentUserId.toString();
-	const canSubmitReview = !request.review && isAssignedAmbassador && 
+	
+	// Check if review is actually submitted (has text and submittedAt)
+	const hasSubmittedReview = request.review && 
+		request.review.text && 
+		request.review.text.trim() && 
+		request.review.submittedAt;
+	
+	const canSubmitReview = !hasSubmittedReview && isAssignedAmbassador && 
 		(request.status === 'assigned' || request.status === 'approved');
 
 	// Debug logging
@@ -200,6 +232,9 @@ const AmbassadorRequestDetails: React.FC = () => {
 			currentUserId,
 			status: request.status,
 			hasReview: !!request.review,
+			hasSubmittedReview,
+			reviewText: request.review?.text,
+			reviewSubmittedAt: request.review?.submittedAt,
 			canSubmitReview
 		});
 	}
@@ -288,27 +323,52 @@ const AmbassadorRequestDetails: React.FC = () => {
 						</div>
 
 						{/* Review Section */}
-						{request.review ? (
+						{hasSubmittedReview ? (
 							<div className="mt-5">
 								<h4 className="dash-title-two mb-3">Review Submitted</h4>
 								<div className="border-20 p-4" style={{ backgroundColor: '#fff5f0', borderColor: '#ff6b35' }}>
 									<p className="mb-3" style={{ whiteSpace: 'pre-wrap' }}>{request.review.text}</p>
 									{request.review.images && request.review.images.length > 0 && (
-										<div className="row g-3 mb-3">
-											{request.review.images.map((imageUrl, idx) => (
-												<div key={idx} className="col-md-4">
-													<img
-														src={imageUrl}
-														alt={`Review image ${idx + 1}`}
-														className="img-fluid rounded"
-														style={{ maxHeight: '200px', objectFit: 'cover', width: '100%' }}
-													/>
-												</div>
-											))}
-										</div>
+										<Fancybox
+											options={{
+												Carousel: {
+													infinite: true,
+												},
+											}}
+										>
+											<div className="row g-3 mb-3">
+												{request.review.images.map((imageUrl, idx) => (
+													<div key={idx} className="col-md-4">
+														<a
+															href={imageUrl}
+															data-fancybox={`review-gallery-${request._id}`}
+															data-caption={`Review image ${idx + 1}`}
+															style={{ cursor: 'pointer', display: 'block' }}
+														>
+															<img
+																src={imageUrl}
+																alt={`Review image ${idx + 1}`}
+																className="img-fluid rounded"
+																style={{ 
+																	maxHeight: '200px', 
+																	objectFit: 'cover', 
+																	width: '100%',
+																	transition: 'transform 0.2s ease'
+																}}
+																onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.05)'; }}
+																onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; }}
+															/>
+														</a>
+													</div>
+												))}
+											</div>
+										</Fancybox>
 									)}
 									<p className="text-muted mb-0" style={{ fontSize: '0.9rem' }}>
-										Submitted: {new Date(request.review.submittedAt).toLocaleString()}
+										Submitted: {request.review.submittedAt ? (() => {
+											const date = new Date(request.review.submittedAt);
+											return isNaN(date.getTime()) ? 'Date not available' : date.toLocaleString();
+										})() : 'Date not available'}
 									</p>
 								</div>
 							</div>

@@ -4,6 +4,7 @@ import { toast } from 'react-toastify';
 import axios from 'axios';
 import DashboardHeaderTwo from '../../../layouts/headers/dashboard/DashboardHeaderTwo';
 import { Link, useNavigate } from 'react-router-dom';
+import Fancybox from '../../../components/common/Fancybox';
 
 // Try importing without AppDispatch first to isolate the issue
 import {
@@ -173,28 +174,47 @@ const MyRequestsBody = () => {
                                                         {req.review.text}
                                                     </p>
                                                     {req.review.images && req.review.images.length > 0 && (
-                                                        <div className="row g-3 mt-3">
-                                                            {req.review.images.map((imageUrl, idx) => (
-                                                                <div key={idx} className="col-md-4">
-                                                                    <div className="rounded overflow-hidden" style={{
-                                                                        aspectRatio: '1',
-                                                                        overflow: 'hidden',
-                                                                        boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-                                                                    }}>
-                                                                        <img
-                                                                            src={imageUrl}
-                                                                            alt={`Review image ${idx + 1}`}
-                                                                            className="img-fluid"
-                                                                            style={{ 
-                                                                                objectFit: 'cover', 
-                                                                                width: '100%',
-                                                                                height: '100%'
+                                                        <Fancybox
+                                                            options={{
+                                                                Carousel: {
+                                                                    infinite: true,
+                                                                },
+                                                            }}
+                                                        >
+                                                            <div className="row g-3 mt-3">
+                                                                {req.review.images.map((imageUrl, idx) => (
+                                                                    <div key={idx} className="col-md-4">
+                                                                        <a
+                                                                            href={imageUrl}
+                                                                            data-fancybox={`review-gallery-${req._id}`}
+                                                                            data-caption={`Review image ${idx + 1}`}
+                                                                            style={{ cursor: 'pointer', display: 'block' }}
+                                                                        >
+                                                                            <div className="rounded overflow-hidden" style={{
+                                                                                aspectRatio: '1',
+                                                                                overflow: 'hidden',
+                                                                                boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                                                                                transition: 'transform 0.2s ease'
                                                                             }}
-                                                                        />
+                                                                            onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.02)'; }}
+                                                                            onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; }}
+                                                                            >
+                                                                                <img
+                                                                                    src={imageUrl}
+                                                                                    alt={`Review image ${idx + 1}`}
+                                                                                    className="img-fluid"
+                                                                                    style={{ 
+                                                                                        objectFit: 'cover', 
+                                                                                        width: '100%',
+                                                                                        height: '100%'
+                                                                                    }}
+                                                                                />
+                                                                            </div>
+                                                                        </a>
                                                                     </div>
-                                                                </div>
-                                                            ))}
-                                                        </div>
+                                                                ))}
+                                                            </div>
+                                                        </Fancybox>
                                                     )}
                                                     <div className="d-flex align-items-center mt-3 pt-3 border-top" style={{ borderColor: '#ffe5d9' }}>
                                                         <i className="bi bi-clock me-2" style={{ color: '#666', fontSize: '0.85rem' }}></i>
