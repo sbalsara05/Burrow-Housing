@@ -23,6 +23,7 @@ const formatUserToProfile = (user: any, profile: any) => {
         school_email: profile?.school_email || user.email,
         majors_minors: profile?.majors_minors,
         school_attending: profile?.school_attending,
+        expected_graduation_year: profile?.expected_graduation_year,
         about: profile?.about,
         image: profile?.image,
     };

@@ -451,6 +451,11 @@ const SidebarInfo: React.FC<SidebarInfoProps> = ({
                                 <span>School:</span> <span className="fw-500 color-dark">{profile.school_attending}</span>
                             </li>
                         }
+                        {profile.expected_graduation_year && profile.expected_graduation_year.trim() !== '' &&
+                            <li className="d-flex justify-content-between">
+                                <span>Expected Graduation:</span> <span className="fw-500 color-dark">{profile.expected_graduation_year}</span>
+                            </li>
+                        }
                         <li className="d-flex align-items-start justify-content-between">
                             <span className="me-2">About:</span>
                             <span
