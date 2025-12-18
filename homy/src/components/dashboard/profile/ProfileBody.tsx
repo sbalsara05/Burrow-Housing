@@ -289,7 +289,15 @@ const ProfileBody = () => {
 
     // --- Loading State ---
     if (profileStatus === 'loading' && !profile) { // Show loading only on initial fetch
-        return <div className="dashboard-body"><p>Loading profile...</p></div>;
+        return (
+            <div className="dashboard-body">
+                <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '400px' }}>
+                    <div className="spinner-border text-primary" role="status">
+                        <span className="visually-hidden">Loading profile...</span>
+                    </div>
+                </div>
+            </div>
+        );
     }
 
     return (

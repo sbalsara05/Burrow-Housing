@@ -12,7 +12,7 @@ import {
     selectFavoritesError
 } from '../../../redux/slices/favoritesSlice';
 
-const FavouriteArea = () => {
+const FavoriteArea = () => {
     const dispatch = useDispatch<AppDispatch>();
     const favorites = useSelector(selectFavorites);
     const isLoading = useSelector(selectFavoritesLoading);
@@ -79,34 +79,50 @@ const FavouriteArea = () => {
 
     return (
         <>
-            <div className="row gx-xxl-5">
+            <div className="row gx-4" style={{ maxWidth: '1400px', margin: '0 auto' }}>
                 {favorites.map((item) => (
-                    <div key={item._id} className="col-lg-4 col-md-6 d-flex mb-50">
-                        <div className="listing-card-one border-25 h-100 w-100">
+                    <div key={item._id} className="col-xl-4 col-lg-6 col-md-6 d-flex mb-4">
+                        <div className="listing-card-one border-25 h-100 w-100 shadow-sm" style={{ transition: 'transform 0.2s, box-shadow 0.2s' }} 
+                             onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 8px 16px rgba(0,0,0,0.1)'; }}
+                             onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.05)'; }}>
                             <div className="img-gallery p-15">
-                                <div className="position-relative border-25 overflow-hidden">
-                                    <div className="tag bg-white text-dark fw-500 border-25 position-absolute top-3 left-3 z-10">
-                                        {item.overview.category}
-                                    </div>
-
+                                <div className="position-relative border-25" style={{ borderRadius: '12px', overflow: 'hidden' }}>
                                     {/* Property Image */}
-                                    <div className="property-image">
+                                    <div className="property-image" style={{ aspectRatio: '16/10', overflow: 'hidden' }}>
                                         <img
                                             src={item.images?.[0] || "/assets/images/listing/img_43.jpg"}
                                             alt={item.overview.category}
-                                            className="w-100 h-100 object-fit-cover"
-                                            style={{ height: '200px' }}
+                                            className="w-100 h-100"
+                                            style={{ 
+                                                objectFit: 'cover',
+                                                transition: 'transform 0.3s ease'
+                                            }}
+                                            onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.05)'; }}
+                                            onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; }}
                                         />
                                     </div>
 
                                     {/* Remove from favorites button */}
                                     <button
                                         onClick={() => handleRemoveFromFavorites(item._id)}
-                                        className="fav-btn tran3s position-absolute top-3 right-3 bg-white border-0 rounded-circle d-flex align-items-center justify-content-center"
-                                        style={{ width: '40px', height: '40px' }}
+                                        className="fav-btn tran3s position-absolute top-3 right-3 bg-white border-0 rounded-circle d-flex align-items-center justify-content-center shadow-sm"
+                                        style={{ 
+                                            width: '44px', 
+                                            height: '44px',
+                                            zIndex: 10,
+                                            transition: 'all 0.2s ease'
+                                        }}
+                                        onMouseEnter={(e) => { 
+                                            e.currentTarget.style.transform = 'scale(1.1)';
+                                            e.currentTarget.style.backgroundColor = '#fff5f5';
+                                        }}
+                                        onMouseLeave={(e) => { 
+                                            e.currentTarget.style.transform = 'scale(1)';
+                                            e.currentTarget.style.backgroundColor = '#fff';
+                                        }}
                                         title="Remove from favorites"
                                     >
-                                        <i className="fa-solid fa-heart text-danger"></i>
+                                        <i className="fa-solid fa-heart text-danger" style={{ fontSize: '18px' }}></i>
                                     </button>
                                 </div>
                             </div>
@@ -114,41 +130,64 @@ const FavouriteArea = () => {
                             <div className="property-info p-25">
                                 <Link
                                     to={`/listing_details/${item._id}`}
-                                    className="title tran3s text-decoration-none"
+                                    className="title tran3s text-decoration-none d-block mb-2"
+                                    style={{ 
+                                        fontSize: '18px', 
+                                        fontWeight: '600',
+                                        color: '#000',
+                                        lineHeight: '1.4'
+                                    }}
                                 >
                                     {`${item.listingDetails.bedrooms} Bed ${item.overview.category}`}
                                 </Link>
-                                <div className="address text-muted mb-3">
+                                <div className="address text-muted mb-3" style={{ fontSize: '14px', lineHeight: '1.5' }}>
                                     <i className="fa-light fa-location-dot me-1"></i>
-                                    {item.addressAndLocation.address}
+                                    {item.addressAndLocation.address || 'Address not available'}
                                 </div>
 
-                                <ul className="style-none feature d-flex flex-wrap align-items-center justify-content-between mb-3">
-                                    <li className="d-flex align-items-center">
-                                        <img src="/assets/images/icon/icon_04.svg" alt=""
-                                            className="lazy-img icon me-2" />
-                                        <span className="fs-16">{item.listingDetails.size} sqft</span>
-                                    </li>
+                                <ul className="style-none feature d-flex flex-wrap align-items-center gap-3 mb-3" style={{ margin: 0, padding: 0 }}>
+                                    {item.listingDetails.size && (
+                                        <li className="d-flex align-items-center">
+                                            <img src="/assets/images/icon/icon_04.svg" alt=""
+                                                className="lazy-img icon me-2" style={{ width: '18px', height: '18px' }} />
+                                            <span className="fs-16">{item.listingDetails.size.toLocaleString()} sqft</span>
+                                        </li>
+                                    )}
                                     <li className="d-flex align-items-center">
                                         <img src="/assets/images/icon/icon_05.svg" alt=""
-                                            className="lazy-img icon me-2" />
+                                            className="lazy-img icon me-2" style={{ width: '18px', height: '18px' }} />
                                         <span className="fs-16">{item.listingDetails.bedrooms} bed</span>
                                     </li>
                                     <li className="d-flex align-items-center">
                                         <img src="/assets/images/icon/icon_06.svg" alt=""
-                                            className="lazy-img icon me-2" />
+                                            className="lazy-img icon me-2" style={{ width: '18px', height: '18px' }} />
                                         <span className="fs-16">{item.listingDetails.bathrooms} bath</span>
                                     </li>
                                 </ul>
 
-                                <div className="pl-footer top-border d-flex align-items-center justify-content-between">
-                                    <strong className="price fw-500 color-dark">
+                                <div className="pl-footer top-border d-flex align-items-center justify-content-between pt-3 mt-3">
+                                    <strong className="price fw-600 color-dark" style={{ fontSize: '20px' }}>
                                         ${item.overview.rent.toLocaleString()}
-                                        <span className="fs-6 fw-normal text-muted">/month</span>
+                                        <span className="fs-6 fw-normal text-muted ms-1">/month</span>
                                     </strong>
                                     <Link
                                         to={`/listing_details/${item._id}`}
-                                        className="btn-four rounded-circle"
+                                        className="btn-four rounded-circle d-flex align-items-center justify-content-center"
+                                        style={{ 
+                                            width: '40px', 
+                                            height: '40px',
+                                            backgroundColor: '#000',
+                                            color: '#fff',
+                                            transition: 'all 0.2s ease'
+                                        }}
+                                        onMouseEnter={(e) => { 
+                                            e.currentTarget.style.backgroundColor = '#ff6b35';
+                                            e.currentTarget.style.transform = 'rotate(45deg)';
+                                        }}
+                                        onMouseLeave={(e) => { 
+                                            e.currentTarget.style.backgroundColor = '#000';
+                                            e.currentTarget.style.transform = 'rotate(0deg)';
+                                        }}
                                     >
                                         <i className="bi bi-arrow-up-right"></i>
                                     </Link>
@@ -176,4 +215,4 @@ const FavouriteArea = () => {
     );
 };
 
-export default FavouriteArea;
+export default FavoriteArea;

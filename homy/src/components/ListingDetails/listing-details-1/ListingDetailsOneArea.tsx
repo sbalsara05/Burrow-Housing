@@ -18,7 +18,6 @@ import { fetchFavorites } from '../../../redux/slices/favoritesSlice';
 import Sidebar from "./Sidebar";
 import MediaGallery from "./MediaGallery";
 import CommonBanner from "../listing-details-common/CommonBanner";
-import CommonPropertyOverview from "../listing-details-common/CommonPropertyOverview";
 import CommonAmenities from "../listing-details-common/CommonAmenities";
 import CommonNearbyList from "../listing-details-common/CommonNearbyList";
 import CommonLocation from "../listing-details-common/CommonLocation";
@@ -150,11 +149,6 @@ const ListingDetailsOneArea = () => {
                 <div className="container">
                     <CommonBanner property={property} />
                     <MediaGallery property={property} />
-
-                    <div className="property-feature-list bg-white shadow4 bg-whiterounded p-40 mt-50 mb-60 tw-rounded-md">
-                        <h4 className="sub-title-one mb-40 lg-mb-20">Property Overview</h4>
-                        <CommonPropertyOverview property={property} />
-                    </div>
 
                     <div className="row">
                         <div className="col-xl-8">

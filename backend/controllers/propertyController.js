@@ -386,6 +386,11 @@ exports.getAllProperties = async (req, res) => {
 		);
 
 		// --- Database Queries ---
+		// Only show Active listings by default (unless status filter is explicitly provided)
+		if (!req.query.status) {
+			filterObject.status = "Active";
+		}
+		
 		const properties = await Property.find(filterObject)
 			.sort({ createdAt: -1 }) // Default sort by newest
 			.skip(skip)

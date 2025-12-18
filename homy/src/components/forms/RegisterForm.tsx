@@ -184,20 +184,15 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onOtpRequired }) => {
                                 type="checkbox"
                                 id="terms"
                                 {...register("terms")}
-                                style={{ cursor: "pointer", marginTop: "4px" }}
                             />
-                            <div className="ms-2">
-                                <label htmlFor="terms" style={{ cursor: "pointer" }}>
-                                    By hitting the "Register" button, you agree to the
-                                </label>{" "}
-                                <span>
-                                    <Link to="#">Terms and Conditions</Link> &{" "}
-                                    <Link to="#">Privacy Policy</Link>
-                                </span>
-                                <p className="form_error">{errors.terms?.message}</p>
-                            </div>
+                            <label htmlFor="terms">
+                                By hitting the "Register" button, you agree to the{" "}
+                                <Link to="#" onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>Terms and Conditions</Link> &{" "}
+                                <Link to="#" onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>Privacy Policy</Link>
+                            </label>
                         </div>
                     </div>
+                    <p className="form_error" style={{ marginTop: "4px", marginLeft: "22px" }}>{errors.terms?.message}</p>
                 </div>
                 <div className="col-12">
                     <button
