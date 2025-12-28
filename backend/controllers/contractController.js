@@ -1,51 +1,76 @@
-const AWS = require("aws-sdk");
+const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
 const Contract = require("../models/contractModel");
 const Property = require("../models/propertyModel");
-const User = require("../models/userModel");
 const { generateContractPdf } = require("../services/pdfService");
 
-// Configure DigitalOcean Spaces (S3 Compatible)
-const spacesEndpoint = new AWS.Endpoint(process.env.SPACES_ENDPOINT);
-const s3 = new AWS.S3({
-	endpoint: spacesEndpoint,
-	accessKeyId: process.env.SPACES_KEY,
-	secretAccessKey: process.env.SPACES_SECRET,
-	region: "us-east-1",
-});
-const BUCKET_NAME = process.env.SPACES_BUCKET_NAME;
+// Configure DigitalOcean Spaces client using AWS SDK v3
+// Note: SDK v3 requires the full endpoint URL including the protocol
+const spacesEndpoint =
+	process.env.SPACES_ENDPOINT || "nyc3.digitaloceanspaces.com";
 
-// Helper: Upload Buffer/Base64 to Spaces
+const s3Client = new S3Client({
+	endpoint: `https://${spacesEndpoint}`,
+	region: "us-east-1", // Mandatory parameter for the SDK, even if using Spaces
+	credentials: {
+		accessKeyId: process.env.SPACES_KEY,
+		secretAccessKey: process.env.SPACES_SECRET,
+	},
+});
+
+const BUCKET_NAME = process.env.SPACES_BUCKET || "propertyimages";
+
+/**
+ * Uploads a file buffer to DigitalOcean Spaces.
+ * Returns the public URL of the uploaded file.
+ * * @param {Buffer} buffer - The file content
+ * @param {string} filename - The key/path for the file in storage
+ * @param {string} contentType - The MIME type of the file
+ */
 const uploadToSpaces = async (buffer, filename, contentType) => {
 	const params = {
 		Bucket: BUCKET_NAME,
 		Key: filename,
 		Body: buffer,
-		ACL: "public-read", // Makes the contract viewable/downloadable
+		ACL: "public-read", // Ensures the file is publicly accessible
 		ContentType: contentType,
 	};
-	const result = await s3.upload(params).promise();
-	return result.Location;
+
+	try {
+		const command = new PutObjectCommand(params);
+		await s3Client.send(command);
+
+		// Construct the URL manually as PutObjectCommand does not return the location in V3
+		return `https://${BUCKET_NAME}.${spacesEndpoint}/${filename}`;
+	} catch (error) {
+		console.error("Storage Upload Error:", error);
+		throw new Error("Failed to upload file to storage system");
+	}
 };
 
-// Initiate a Draft (Triggered from Chat/Request)
+/**
+ * Initiates a new contract draft between a lister and a tenant.
+ * Validates ownership and checks for existing active contracts.
+ */
 exports.createDraft = async (req, res) => {
 	try {
 		const { propertyId, tenantId } = req.body;
 		const listerId = req.user.userId;
 
-		// Verification: Ensure property exists and belongs to this lister
+		// Verify property ownership
 		const property = await Property.findOne({
 			_id: propertyId,
 			userId: listerId,
 		});
 
 		if (!property) {
-			return res.status(404).json({
-				message: "Property not found or you are not the owner.",
-			});
+			return res
+				.status(404)
+				.json({
+					message: "Property not found or access denied.",
+				});
 		}
 
-		// Check if an active contract already exists to prevent duplicates
+		// Prevent duplicate active contracts
 		const existingContract = await Contract.findOne({
 			property: propertyId,
 			tenant: tenantId,
@@ -65,16 +90,16 @@ exports.createDraft = async (req, res) => {
 			});
 		}
 
-		// Default Template Content
+		// Initialize default template
 		const defaultTemplate = `
-      <h3>Sublease Agreement</h3>
-      <p>The tenant agrees to pay a monthly rent of <strong>{{Rent_Amount}}</strong>.</p>
-      <p>Lease Start Date: <strong>{{Start_Date}}</strong></p>
-      <p>Lease End Date: <strong>{{End_Date}}</strong></p>
-      <p>Security Deposit: <strong>{{Security_Deposit}}</strong></p>
-    `;
+            <h3>Sublease Agreement</h3>
+            <p>The tenant agrees to pay a monthly rent of <strong>{{Rent_Amount}}</strong>.</p>
+            <p>Lease Start Date: <strong>{{Start_Date}}</strong></p>
+            <p>Lease End Date: <strong>{{End_Date}}</strong></p>
+            <p>Security Deposit: <strong>{{Security_Deposit}}</strong></p>
+        `;
 
-		// Pre-fill variables from Property data where possible
+		// Pre-fill variables from property details
 		const defaultVariables = {
 			Rent_Amount: property.overview?.rent
 				? `$${property.overview.rent}`
@@ -102,7 +127,10 @@ exports.createDraft = async (req, res) => {
 	}
 };
 
-// Get User's Agreements (For the Dashboard)
+/**
+ * Retrieves all agreements associated with the authenticated user
+ * (either as a lister or a tenant).
+ */
 exports.getMyAgreements = async (req, res) => {
 	try {
 		const userId = req.user.userId;
@@ -128,7 +156,10 @@ exports.getMyAgreements = async (req, res) => {
 	}
 };
 
-// Get Single Contract Details
+/**
+ * Retrieves a single contract by ID.
+ * Enforces security to ensure only participants can view the details.
+ */
 exports.getContractById = async (req, res) => {
 	try {
 		const contract = await Contract.findById(req.params.id)
@@ -136,21 +167,22 @@ exports.getContractById = async (req, res) => {
 			.populate("lister", "name")
 			.populate("tenant", "name");
 
-		if (!contract) {
+		if (!contract)
 			return res
 				.status(404)
 				.json({ message: "Contract not found" });
-		}
 
-		// Security Check: Only participants can view
 		const userId = req.user.userId;
-		if (
-			contract.lister._id.toString() !== userId &&
-			contract.tenant._id.toString() !== userId
-		) {
-			return res.status(403).json({
-				message: "Not authorized to view this contract",
-			});
+		const isParticipant =
+			contract.lister._id.toString() === userId ||
+			contract.tenant._id.toString() === userId;
+
+		if (!isParticipant) {
+			return res
+				.status(403)
+				.json({
+					message: "Not authorized to view this contract.",
+				});
 		}
 
 		res.json(contract);
@@ -160,7 +192,10 @@ exports.getContractById = async (req, res) => {
 	}
 };
 
-// Update Draft (Lister Only)
+/**
+ * Updates the draft content and variables.
+ * Restricted to the lister and only allowed when status is DRAFT.
+ */
 exports.updateDraft = async (req, res) => {
 	try {
 		const { templateHtml, variables } = req.body;
@@ -171,16 +206,19 @@ exports.updateDraft = async (req, res) => {
 				.status(404)
 				.json({ message: "Contract not found" });
 
-		// Only Lister can edit, and only in DRAFT mode
 		if (contract.lister.toString() !== req.user.userId) {
-			return res.status(403).json({
-				message: "Only the lister can edit the contract.",
-			});
+			return res
+				.status(403)
+				.json({
+					message: "Only the lister can edit the contract.",
+				});
 		}
 		if (contract.status !== "DRAFT") {
-			return res.status(400).json({
-				message: "Cannot edit a contract that is already locked or signed.",
-			});
+			return res
+				.status(400)
+				.json({
+					message: "Cannot edit a locked contract.",
+				});
 		}
 
 		contract.templateHtml = templateHtml;
@@ -194,10 +232,14 @@ exports.updateDraft = async (req, res) => {
 	}
 };
 
-// Sign Contract (Tenant and Lister Flow)
+/**
+ * Handles the signing process for both Tenant and Lister.
+ * - Tenant signature moves status to PENDING_LISTER_SIGNATURE.
+ * - Lister signature generates the final PDF, uploads it, and marks property as Rented.
+ */
 exports.signContract = async (req, res) => {
 	try {
-		const { signatureData } = req.body; // Base64 string from frontend
+		const { signatureData } = req.body; // Expects Base64 string
 		const userId = req.user.userId;
 		const contractId = req.params.id;
 
@@ -213,26 +255,26 @@ exports.signContract = async (req, res) => {
 		if (!isTenant && !isLister) {
 			return res
 				.status(403)
-				.json({ message: "Not authorized" });
+				.json({
+					message: "Not authorized to sign this contract.",
+				});
 		}
 
-		// --- TENANT SIGNATURE FLOW ---
+		// Tenant Execution Block
 		if (isTenant) {
 			if (contract.status !== "PENDING_TENANT_SIGNATURE") {
 				return res
 					.status(400)
 					.json({
-						message: "Not your turn to sign.",
+						message: "It is not currently your turn to sign.",
 					});
 			}
 
-			// Convert Base64 to Buffer
+			// Decode Base64 and Upload
 			const base64Image = signatureData
 				.split(";base64,")
 				.pop();
 			const buffer = Buffer.from(base64Image, "base64");
-
-			// Upload
 			const sigUrl = await uploadToSpaces(
 				buffer,
 				`signatures/tenant_${contractId}_${Date.now()}.png`,
@@ -250,13 +292,13 @@ exports.signContract = async (req, res) => {
 			return res.json(contract);
 		}
 
-		// --- LISTER SIGNATURE FLOW (FINALIZATION) ---
+		// Lister Execution Block (Finalization)
 		if (isLister) {
 			if (contract.status !== "PENDING_LISTER_SIGNATURE") {
 				return res
 					.status(400)
 					.json({
-						message: "Waiting for tenant first.",
+						message: "Waiting for tenant signature first.",
 					});
 			}
 
@@ -277,26 +319,24 @@ exports.signContract = async (req, res) => {
 				ipAddress: req.ip,
 			};
 
-			// Generate Final PDF
-			// Replace variables in HTML
+			// Prepare HTML for PDF Generation (Inject variables)
 			let finalHtml = contract.templateHtml;
 			if (contract.variables && contract.variables.size > 0) {
 				contract.variables.forEach((value, key) => {
-					// Global replace of {{Key}}
 					finalHtml = finalHtml
 						.split(`{{${key}}}`)
 						.join(value);
 				});
 			}
 
-			// Generate PDF Buffer (using the service we created)
+			// Generate PDF Buffer
 			const pdfBuffer = await generateContractPdf(
 				finalHtml,
 				contract.tenantSignature.url,
 				sigUrl
 			);
 
-			// Upload PDF to Spaces
+			// Upload Final PDF
 			const pdfUrl = await uploadToSpaces(
 				pdfBuffer,
 				`contracts/contract_${contractId}_final.pdf`,
@@ -307,9 +347,8 @@ exports.signContract = async (req, res) => {
 			contract.status = "COMPLETED";
 			await contract.save();
 
-			// Update Property Status
+			// Update Property Inventory Status
 			await Property.findByIdAndUpdate(contract.property, {
-				// Adjust field name based on your Property Model (e.g., status or isAvailable)
 				status: "Rented",
 			});
 
