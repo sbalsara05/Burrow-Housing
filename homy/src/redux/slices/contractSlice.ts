@@ -27,6 +27,14 @@ export interface Contract {
     status: 'DRAFT' | 'PENDING_TENANT_SIGNATURE' | 'PENDING_LISTER_SIGNATURE' | 'COMPLETED' | 'CANCELLED';
     templateHtml: string;
     variables: Record<string, string>;
+    tenantSignature?: {
+        url: string;
+        signedAt: string;
+    };
+    listerSignature?: {
+        url: string;
+        signedAt: string;
+    };
     finalPdfUrl?: string;
     createdAt: string;
     updatedAt: string;
@@ -128,6 +136,28 @@ export const updateDraft = createAsyncThunk(
     }
 );
 
+// Sign Contract (Tenant or Lister)
+export const signContract = createAsyncThunk(
+    'contract/signContract',
+    async ({ id, signatureData }: { id: string; signatureData: string }, { getState, rejectWithValue }) => {
+        const token = (getState() as RootState).auth.token;
+        if (!token) return rejectWithValue('Not authenticated');
+
+        try {
+            // We send the Base64 signature string to the backend
+            // The backend will upload it to S3 and update the contract status
+            const response = await axios.post(
+                `${API_URL}/contracts/${id}/sign`,
+                { signatureData },
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+            return response.data as Contract;
+        } catch (error: any) {
+            return rejectWithValue(error.response?.data?.message || 'Failed to sign contract');
+        }
+    }
+);
+
 // --- Slice Definition ---
 const contractSlice = createSlice({
     name: 'contract',
@@ -189,6 +219,21 @@ const contractSlice = createSlice({
         builder.addCase(updateDraft.fulfilled, (state, action: PayloadAction<Contract>) => {
             state.currentContract = action.payload;
             state.successMessage = "Draft saved";
+        });
+
+        // Sign Contract
+        builder.addCase(signContract.pending, (state) => {
+            state.isLoading = true;
+            state.error = null;
+        });
+        builder.addCase(signContract.fulfilled, (state, action: PayloadAction<Contract>) => {
+            state.isLoading = false;
+            state.currentContract = action.payload;
+            state.successMessage = "Contract signed successfully!";
+        });
+        builder.addCase(signContract.rejected, (state, action) => {
+            state.isLoading = false;
+            state.error = action.payload as string;
         });
     }
 });
