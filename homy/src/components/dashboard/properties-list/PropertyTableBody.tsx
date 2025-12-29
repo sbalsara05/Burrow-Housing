@@ -60,7 +60,7 @@ const PropertyTableBody: React.FC<PropertyTableBodyProps> = ({ properties, onDel
                         </div>
                     </td>
                     <td>{formatDate(item.createdAt)}</td>
-                    <td>0</td>
+                    <td>{item.viewCount ?? 0}</td>
                     <td>
                         <div className="property-status">{item.status || 'Active'}</div>
                     </td>

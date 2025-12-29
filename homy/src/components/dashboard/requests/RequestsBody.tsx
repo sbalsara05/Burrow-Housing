@@ -13,31 +13,6 @@ import {
 } from '../../../redux/slices/interestsSlice'
 import { selectIsAuthenticated } from '../../../redux/slices/authSlice'
 
-interface AmbassadorRequest {
-  _id: string
-  propertyId: {
-    _id: string
-    overview?: { title: string }
-    images?: string[]
-  }
-  requesterId: {
-    _id: string
-    name: string
-    email: string
-  }
-  status: string
-  preferredDates: string
-  propertyTitle?: string
-  inspectionPoints?: Array<{ text: string; details?: string }>
-  contactInfo?: string
-  createdAt: string
-  review?: {
-    text: string
-    images: string[]
-    submittedAt: string
-  }
-}
-
 const RequestsBody = () => {
   const dispatch = useDispatch<AppDispatch>()
   const navigate = useNavigate()
@@ -45,23 +20,25 @@ const RequestsBody = () => {
   const isAuthenticated = useSelector(selectIsAuthenticated)
   const requests = useSelector(selectReceivedInterests) || []
   const isLoading = useSelector(selectInterestsLoading)
-  const [ambassadorRequests, setAmbassadorRequests] = useState<AmbassadorRequest[]>([])
+  const [pendingAmbassadorRequests, setPendingAmbassadorRequests] = useState<any[]>([])
   const [loadingAmbassador, setLoadingAmbassador] = useState(true)
 
   useEffect(() => {
     if (isAuthenticated) {
       dispatch(fetchReceivedInterests())
-      fetchAmbassadorRequests()
+      fetchPendingAmbassadorRequests()
     }
   }, [dispatch, isAuthenticated])
 
-  const fetchAmbassadorRequests = async () => {
+  const fetchPendingAmbassadorRequests = async () => {
     try {
       setLoadingAmbassador(true)
       const response = await axios.get('/api/ambassador-requests/received')
-      setAmbassadorRequests(response.data)
+      // Only show pending requests (no decision made yet)
+      const pending = response.data.filter((req: any) => req.status === 'pending')
+      setPendingAmbassadorRequests(pending)
     } catch (error: any) {
-      console.error('Error fetching ambassador requests:', error)
+      console.error('Error fetching pending ambassador requests:', error)
     } finally {
       setLoadingAmbassador(false)
     }
@@ -71,7 +48,7 @@ const RequestsBody = () => {
     try {
       await axios.put(`/api/ambassador-requests/${requestId}/status`, { status })
       toast.success(`Request ${status} successfully.`)
-      fetchAmbassadorRequests()
+      fetchPendingAmbassadorRequests()
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Failed to update request')
     }
@@ -107,12 +84,11 @@ const RequestsBody = () => {
     return <div className="dashboard-body text-center">Please log in to view received requests.</div>
   }
 
-  if ((isLoading || loadingAmbassador) && requests.length === 0 && ambassadorRequests.length === 0) {
+  if ((isLoading || loadingAmbassador) && requests.length === 0 && pendingAmbassadorRequests.length === 0) {
     return <div className="dashboard-body"><p>Loading received requests...</p></div>
   }
 
-  const totalRequests = requests.length + ambassadorRequests.length
-  const hasNoRequests = totalRequests === 0 && !isLoading && !loadingAmbassador
+  const hasNoRequests = requests.length === 0 && pendingAmbassadorRequests.length === 0 && !isLoading && !loadingAmbassador
 
   return (
     <div className="dashboard-body">
@@ -123,16 +99,16 @@ const RequestsBody = () => {
         {hasNoRequests ? (
           <div className="bg-white card-box border-20 text-center p-5">
             <h4>No received requests yet.</h4>
-            <p className="text-muted">You'll see requests here when users are interested in your properties.</p>
+            <p className="text-muted">You'll see interest requests here when users are interested in your properties.</p>
           </div>
         ) : (
           <>
-            {/* Ambassador Requests Section */}
-            {ambassadorRequests.length > 0 && (
+            {/* Pending Ambassador Requests Section */}
+            {pendingAmbassadorRequests.length > 0 && (
               <div className="mb-5">
                 <h4 className="dash-title-two mb-4">Ambassador Requests</h4>
                 <div className="row g-4 justify-content-start">
-                  {ambassadorRequests.map((req: AmbassadorRequest) => (
+                  {pendingAmbassadorRequests.map((req: any) => (
                     <div className="col-lg-4 col-md-6" key={req._id}>
                       <div className="bg-white card-box border-20 p-4 h-100 d-flex flex-column">
                         <div className="text-center mb-3">
@@ -170,7 +146,7 @@ const RequestsBody = () => {
                           <div className="mb-3">
                             <p className="mb-1 small text-muted"><strong>Inspection Points:</strong></p>
                             <ul className="small mb-0 ps-3">
-                              {req.inspectionPoints.slice(0, 3).map((point, idx) => (
+                              {req.inspectionPoints.slice(0, 3).map((point: any, idx: number) => (
                                 <li key={idx} className="mb-1">{point.text}</li>
                               ))}
                               {req.inspectionPoints.length > 3 && (
@@ -180,106 +156,21 @@ const RequestsBody = () => {
                           </div>
                         )}
 
-                        {/* Review Section */}
-                        {req.review && req.status === 'completed' && (
-                          <div className="mb-3 pb-3 border-bottom">
-                            <div className="d-flex align-items-center mb-2">
-                              <i className="bi bi-check-circle-fill me-2" style={{ fontSize: '16px', color: '#28a745' }}></i>
-                              <h6 className="mb-0 fw-semibold" style={{ color: '#333', fontSize: '0.95rem' }}>
-                                Ambassador Review
-                              </h6>
-                            </div>
-                            <div className="rounded-3 p-3" style={{ 
-                              backgroundColor: '#fff5f0', 
-                              border: '1px solid #ffe5d9',
-                              boxShadow: '0 2px 6px rgba(255, 107, 53, 0.08)'
-                            }}>
-                              <p className="mb-2 small" style={{ 
-                                whiteSpace: 'pre-wrap', 
-                                color: '#333',
-                                lineHeight: '1.5',
-                                fontSize: '0.875rem'
-                              }}>
-                                {req.review.text}
-                              </p>
-                              {req.review.images && req.review.images.length > 0 && (
-                                <Fancybox
-                                  options={{
-                                    Carousel: {
-                                      infinite: true,
-                                    },
-                                  }}
-                                >
-                                  <div className="row g-2 mt-2">
-                                    {req.review.images.map((imageUrl, idx) => (
-                                      <div key={idx} className="col-6">
-                                        <a
-                                          href={imageUrl}
-                                          data-fancybox={`review-gallery-${req._id}`}
-                                          data-caption={`Review image ${idx + 1}`}
-                                          style={{ cursor: 'pointer', display: 'block' }}
-                                        >
-                                          <div className="rounded overflow-hidden" style={{
-                                            aspectRatio: '1',
-                                            overflow: 'hidden',
-                                            boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-                                            transition: 'transform 0.2s ease'
-                                          }}
-                                          onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.02)'; }}
-                                          onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; }}
-                                          >
-                                            <img
-                                              src={imageUrl}
-                                              alt={`Review image ${idx + 1}`}
-                                              className="img-fluid"
-                                              style={{ 
-                                                objectFit: 'cover', 
-                                                width: '100%',
-                                                height: '100%'
-                                              }}
-                                            />
-                                          </div>
-                                        </a>
-                                      </div>
-                                    ))}
-                                  </div>
-                                </Fancybox>
-                              )}
-                              <div className="d-flex align-items-center mt-2 pt-2 border-top" style={{ borderColor: '#ffe5d9' }}>
-                                <i className="bi bi-clock me-1" style={{ color: '#666', fontSize: '0.75rem' }}></i>
-                                <span className="text-muted" style={{ fontSize: '0.75rem' }}>
-                                  {new Date(req.review.submittedAt).toLocaleDateString('en-US', { 
-                                    month: 'short', 
-                                    day: 'numeric', 
-                                    year: 'numeric'
-                                  })}
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-                        )}
-
                         <div className="mt-auto pt-3">
-                          {req.status === 'pending' ? (
-                            <div className="d-flex gap-2">
-                              <button 
-                                onClick={() => handleUpdateAmbassadorStatus(req._id, 'declined')} 
-                                className="btn btn-outline-danger flex-fill"
-                              >
-                                Decline
-                              </button>
-                              <button 
-                                onClick={() => handleUpdateAmbassadorStatus(req._id, 'approved')} 
-                                className="btn btn-success flex-fill"
-                              >
-                                Approve
-                              </button>
-                            </div>
-                          ) : (
-                            <div className={`alert alert-${getStatusBadgeClass(req.status)} text-center mb-0`}>
-                              Status: <span className="text-capitalize">{req.status || 'unknown'}</span>
-                            </div>
-                          )}
+                          <div className="d-flex gap-2">
+                            <button 
+                              onClick={() => handleUpdateAmbassadorStatus(req._id, 'declined')} 
+                              className="btn btn-outline-danger flex-fill"
+                            >
+                              Decline
+                            </button>
+                            <button 
+                              onClick={() => handleUpdateAmbassadorStatus(req._id, 'approved')} 
+                              className="btn btn-success flex-fill"
+                            >
+                              Approve
+                            </button>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -291,8 +182,8 @@ const RequestsBody = () => {
             {/* Interest Requests Section */}
             {requests.length > 0 && (
               <div>
-                {ambassadorRequests.length > 0 && <h4 className="dash-title-two mb-4 mt-5">Interest Requests</h4>}
-                {ambassadorRequests.length === 0 && <h4 className="dash-title-two mb-4">Interest Requests</h4>}
+                {pendingAmbassadorRequests.length > 0 && <h4 className="dash-title-two mb-4 mt-5">Interest Requests</h4>}
+                {pendingAmbassadorRequests.length === 0 && <h4 className="dash-title-two mb-4">Interest Requests</h4>}
                 <div className="row g-4 justify-content-start">
                   {requests.map((req: any) => (
                     <div className="col-lg-4 col-md-6" key={req._id}>
