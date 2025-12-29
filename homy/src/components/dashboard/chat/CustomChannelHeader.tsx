@@ -1,10 +1,11 @@
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom'; // Added useNavigate
 import { useChannelStateContext, useChatContext } from 'stream-chat-react';
-import { AppDispatch, RootState } from '../../../redux/slices/store';
+import { AppDispatch } from '../../../redux/slices/store';
 import { fetchPropertyById, selectCurrentProperty } from '../../../redux/slices/propertySlice';
 import { selectCurrentUser } from '../../../redux/slices/authSlice';
+import { createDraft } from '../../../redux/slices/contractSlice'; // Added createDraft import
 import useListerProfile from '../../../hooks/useListerProfile';
 
 interface CustomChannelHeaderProps {
@@ -13,11 +14,17 @@ interface CustomChannelHeaderProps {
 
 const CustomChannelHeader: React.FC<CustomChannelHeaderProps> = ({ toggleSidebar }) => {
     const dispatch = useDispatch<AppDispatch>();
+    const navigate = useNavigate(); // Hook for redirection
     const { channel } = useChannelStateContext();
     const { client } = useChatContext();
 
+    // Selectors
+    const currentUser = useSelector(selectCurrentUser); // Get logged in user
     const property = useSelector(selectCurrentProperty);
+
+    // Data extraction
     const propertyId = (channel.data?.propertyId as string) || null;
+    const listerId = (channel.data?.listerId as string) || null;
 
     useEffect(() => {
         if (propertyId && property?._id !== propertyId) {
@@ -25,6 +32,7 @@ const CustomChannelHeader: React.FC<CustomChannelHeaderProps> = ({ toggleSidebar
         }
     }, [propertyId, property, dispatch]);
 
+    // Member logic
     const members = Object.values(channel.state.members).filter(
         ({ user }) => user?.id !== client.userID
     );
@@ -32,9 +40,28 @@ const CustomChannelHeader: React.FC<CustomChannelHeaderProps> = ({ toggleSidebar
 
     const { profile: otherUserProfile, isLoading: isProfileLoading } = useListerProfile(otherUserFromStream?.id);
 
-    // Determine the most up-to-date information to display
+    // Determine display info
     const displayName = otherUserProfile?.username || otherUserFromStream?.name || 'User';
     const displayImage = otherUserProfile?.image || otherUserFromStream?.image || '/assets/images/dashboard/no-profile-pic.png';
+
+    // --- CONTRACT LOGIC START ---
+    // Check if current user is the Lister (Landlord)
+    const isLister = currentUser?._id === listerId;
+    const tenantId = otherUserFromStream?.id;
+
+    const handleCreateDraft = async () => {
+        if (!propertyId || !tenantId) {
+            alert("Missing property or tenant information.");
+            return;
+        }
+        try {
+            const result = await dispatch(createDraft({ propertyId, tenantId })).unwrap();
+            navigate(`/dashboard/agreements/${result._id}/edit`);
+        } catch (err) {
+            console.error("Failed to create draft", err);
+        }
+    };
+    // --- CONTRACT LOGIC END ---
 
     return (
         <div className="burrow-chat-header-container">
@@ -69,9 +96,25 @@ const CustomChannelHeader: React.FC<CustomChannelHeaderProps> = ({ toggleSidebar
                         <p className="burrow-property-banner__title">{property.overview.title}</p>
                         <p className="burrow-property-banner__price">${property.overview.rent.toLocaleString()}/month</p>
                     </div>
-                    <Link to={`/listing_details/${property._id}`} className="burrow-property-banner__btn">
-                        View Listing
-                    </Link>
+
+                    {/* Action Buttons Wrapper */}
+                    <div className="d-flex gap-2">
+                        <Link to={`/listing_details/${property._id}`} className="burrow-property-banner__btn">
+                            View Listing
+                        </Link>
+
+                        {/* NEW BUTTON: Only shows for Lister */}
+                        {isLister && (
+                            <button
+                                onClick={handleCreateDraft}
+                                className="burrow-property-banner__btn"
+                                style={{ backgroundColor: '#2c3e50', borderColor: '#2c3e50' }} // Darker color to distinguish
+                                title="Start a sublease agreement"
+                            >
+                                Draft Contract
+                            </button>
+                        )}
+                    </div>
                 </div>
             )}
         </div>
