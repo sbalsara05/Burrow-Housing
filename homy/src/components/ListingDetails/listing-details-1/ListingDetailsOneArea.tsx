@@ -48,12 +48,14 @@ const ListingDetailsOneArea = () => {
     useEffect(() => {
         if (propertyId) {
             dispatch(clearPropertyError());
+            // Always fetch by ID to get latest data including ambassador status
+            // Use cached data as fallback while loading
             const propFromList = allProperties.find(p => p._id === propertyId);
             if (propFromList) {
                 dispatch(selectPropertyFromList(propFromList));
-            } else {
-                dispatch(fetchPropertyById(propertyId));
             }
+            // Always fetch fresh data to ensure we have ambassador status
+            dispatch(fetchPropertyById(propertyId));
         }
         if (isAuthenticated) {
             dispatch(fetchFavorites());

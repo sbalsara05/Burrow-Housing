@@ -36,6 +36,7 @@ export interface Property {
     description: string;
     images: string[]; // Array of image URLs
     status?: "Active" | "Pending" | "Inactive"; // Optional status field
+    hasBeenViewedByAmbassador?: boolean; // Whether property has been viewed by an ambassador
     createdAt: string; // Store as ISO string date from MongoDB
     updatedAt: string; // Store as ISO string date from MongoDB
 }

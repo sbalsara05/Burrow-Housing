@@ -111,6 +111,12 @@ const CommonBanner: React.FC<CommonBannerProps> = ({ property, style_3 }) => {
     const displayTitle = property.title || `${property.listingDetails.bedrooms} Bed ${property.overview.category} in ${property.overview.neighborhood}`;
     const displayTag = property.tag || (property.overview.category === 'Apartment' ? 'FOR SUBLEASE' : 'FOR SUBLEASE');
     const estimatedPayment = (property.overview.rent / 20).toFixed(0);
+    
+    // Debug: Log ambassador status
+    if (property.hasBeenViewedByAmbassador !== undefined) {
+        console.log('🏠 Property ID:', property._id);
+        console.log('✅ Ambassador Verified:', property.hasBeenViewedByAmbassador);
+    }
 
     return (
         <div className="row">
@@ -124,6 +130,14 @@ const CommonBanner: React.FC<CommonBannerProps> = ({ property, style_3 }) => {
                                 {displayTag}
                             </div>
                         </div>
+                        {property.hasBeenViewedByAmbassador && (
+                            <div className="tw-rounded-full tw-size-fit tw-bg-primary tw-text-black tw-font-medium">
+                                <div className="d-flex align-items-center justify-content-center text-uppercase mt-15 tw-pl-4 tw-pr-4 tw-pb-2 tw-gap-2">
+                                    <i className="bi bi-check-circle-fill text-dark"></i>
+                                    <span className="tw-font-semibold text-dark tw-text-sm">Ambassador Verified</span>
+                                </div>
+                            </div>
+                        )}
                         {fullAddress && (
                             <a href={googleMapsUrl} target="_blank" rel="noopener noreferrer" className="address-link"
                                title={`View "${fullAddress}" on Google Maps`}>
