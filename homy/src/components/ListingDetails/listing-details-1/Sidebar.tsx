@@ -43,7 +43,7 @@ const Sidebar: React.FC<SidebarProps> = ({ property, onInterestedClick, interest
 
     return (
         <div className="col-xl-4 col-lg-8 me-auto ms-auto">
-            <div className="theme-sidebar-one dot-bg p-30 ms-xxl-3 lg-mt-80 tw-top-5 tw-z-10">
+            <div className="theme-sidebar-one dot-bg p-30 lg-mt-80 tw-top-5 tw-z-10">
                 <SidebarInfo
                     profile={profileToDisplay}
                     isLoading={isLoadingDisplay}

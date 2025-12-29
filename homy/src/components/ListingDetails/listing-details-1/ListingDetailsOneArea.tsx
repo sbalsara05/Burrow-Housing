@@ -152,9 +152,9 @@ const ListingDetailsOneArea = () => {
                     <CommonBanner property={property} />
                     <MediaGallery property={property} />
 
-                    <div className="row">
+                    <div className="row tw-mt-8">
                         <div className="col-xl-8">
-                            <div className="property-overview mb-50 bg-white shadow4  p-40 tw-rounded-md">
+                            <div className="property-overview bg-white shadow4 p-40 tw-rounded-md">
                                 <h4 className="mb-20">Overview</h4>
                                 <p className="fs-20 lh-lg">{property.description || "No detailed description available."}</p>
                             </div>
