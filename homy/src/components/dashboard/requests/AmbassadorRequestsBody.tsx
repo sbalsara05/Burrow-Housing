@@ -50,7 +50,9 @@ const AmbassadorRequestsBody = () => {
     try {
       setLoadingAmbassador(true);
       const response = await axios.get('/api/ambassador-requests/received');
-      setAmbassadorRequests(response.data);
+      // Only show requests that have been responded to (not pending)
+      const responded = response.data.filter((req: AmbassadorRequest) => req.status !== 'pending');
+      setAmbassadorRequests(responded);
     } catch (error: any) {
       console.error('Error fetching ambassador requests:', error);
       toast.error('Failed to load ambassador requests');
@@ -89,8 +91,8 @@ const AmbassadorRequestsBody = () => {
   return (
     <div className="dashboard-body">
       <div className="position-relative">
-        <DashboardHeaderTwo title="Ambassador Requests" />
-        <h2 className="main-title d-block d-lg-none">Ambassador Requests</h2>
+        <DashboardHeaderTwo title="Ambassador Responses" />
+        <h2 className="main-title d-block d-lg-none">Ambassador Responses</h2>
         
         {loadingAmbassador ? (
           <div className="bg-white card-box border-20 text-center p-5">
@@ -98,7 +100,7 @@ const AmbassadorRequestsBody = () => {
           </div>
         ) : hasNoRequests ? (
           <div className="bg-white card-box border-20 text-center p-5">
-            <h4>No ambassador requests yet.</h4>
+            <h4>No ambassador responses yet.</h4>
             <p className="text-muted">You'll see ambassador viewing requests here when users request an ambassador for your properties.</p>
           </div>
         ) : (

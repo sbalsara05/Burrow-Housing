@@ -20,12 +20,39 @@ const RequestsBody = () => {
   const isAuthenticated = useSelector(selectIsAuthenticated)
   const requests = useSelector(selectReceivedInterests) || []
   const isLoading = useSelector(selectInterestsLoading)
+  const [pendingAmbassadorRequests, setPendingAmbassadorRequests] = useState<any[]>([])
+  const [loadingAmbassador, setLoadingAmbassador] = useState(true)
 
   useEffect(() => {
     if (isAuthenticated) {
       dispatch(fetchReceivedInterests())
+      fetchPendingAmbassadorRequests()
     }
   }, [dispatch, isAuthenticated])
+
+  const fetchPendingAmbassadorRequests = async () => {
+    try {
+      setLoadingAmbassador(true)
+      const response = await axios.get('/api/ambassador-requests/received')
+      // Only show pending requests (no decision made yet)
+      const pending = response.data.filter((req: any) => req.status === 'pending')
+      setPendingAmbassadorRequests(pending)
+    } catch (error: any) {
+      console.error('Error fetching pending ambassador requests:', error)
+    } finally {
+      setLoadingAmbassador(false)
+    }
+  }
+
+  const handleUpdateAmbassadorStatus = async (requestId: string, status: 'approved' | 'declined') => {
+    try {
+      await axios.put(`/api/ambassador-requests/${requestId}/status`, { status })
+      toast.success(`Request ${status} successfully.`)
+      fetchPendingAmbassadorRequests()
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Failed to update request')
+    }
+  }
 
   const handleDecline = async (id: string) => {
     try {
@@ -57,11 +84,11 @@ const RequestsBody = () => {
     return <div className="dashboard-body text-center">Please log in to view received requests.</div>
   }
 
-  if (isLoading && requests.length === 0) {
+  if ((isLoading || loadingAmbassador) && requests.length === 0 && pendingAmbassadorRequests.length === 0) {
     return <div className="dashboard-body"><p>Loading received requests...</p></div>
   }
 
-  const hasNoRequests = requests.length === 0 && !isLoading
+  const hasNoRequests = requests.length === 0 && pendingAmbassadorRequests.length === 0 && !isLoading && !loadingAmbassador
 
   return (
     <div className="dashboard-body">
@@ -76,10 +103,87 @@ const RequestsBody = () => {
           </div>
         ) : (
           <>
+            {/* Pending Ambassador Requests Section */}
+            {pendingAmbassadorRequests.length > 0 && (
+              <div className="mb-5">
+                <h4 className="dash-title-two mb-4">Ambassador Requests</h4>
+                <div className="row g-4 justify-content-start">
+                  {pendingAmbassadorRequests.map((req: any) => (
+                    <div className="col-lg-4 col-md-6" key={req._id}>
+                      <div className="bg-white card-box border-20 p-4 h-100 d-flex flex-column">
+                        <div className="text-center mb-3">
+                          <img
+                            src={req.propertyId?.images?.[0] || "/assets/images/listing/img_placeholder.jpg"}
+                            alt="property"
+                            className="img-fluid rounded"
+                            style={{ maxHeight: '180px', objectFit: 'cover', width: '100%' }}
+                          />
+                        </div>
+
+                        <div className="text-center mb-3">
+                          <h5 className="mb-1">{req.requesterId?.name || 'Requester'}</h5>
+                          <p className="text-muted small mb-0">{req.requesterId?.email || ''}</p>
+                        </div>
+
+                        <div className="mb-3">
+                          <p className="mb-1 small text-muted"><strong>Property:</strong></p>
+                          <h6 className="color-dark mb-0">
+                            <Link
+                              to={`/listing_details/${req.propertyId?._id}`}
+                              className="text-decoration-underline"
+                            >
+                              {req.propertyTitle || req.propertyId?.overview?.title || 'Property'}
+                            </Link>
+                          </h6>
+                        </div>
+
+                        <div className="mb-3">
+                          <p className="mb-1 small text-muted"><strong>Preferred Dates:</strong></p>
+                          <p className="mb-0">{req.preferredDates}</p>
+                        </div>
+
+                        {req.inspectionPoints && req.inspectionPoints.length > 0 && (
+                          <div className="mb-3">
+                            <p className="mb-1 small text-muted"><strong>Inspection Points:</strong></p>
+                            <ul className="small mb-0 ps-3">
+                              {req.inspectionPoints.slice(0, 3).map((point: any, idx: number) => (
+                                <li key={idx} className="mb-1">{point.text}</li>
+                              ))}
+                              {req.inspectionPoints.length > 3 && (
+                                <li className="text-muted">+{req.inspectionPoints.length - 3} more</li>
+                              )}
+                            </ul>
+                          </div>
+                        )}
+
+                        <div className="mt-auto pt-3">
+                          <div className="d-flex gap-2">
+                            <button 
+                              onClick={() => handleUpdateAmbassadorStatus(req._id, 'declined')} 
+                              className="btn btn-outline-danger flex-fill"
+                            >
+                              Decline
+                            </button>
+                            <button 
+                              onClick={() => handleUpdateAmbassadorStatus(req._id, 'approved')} 
+                              className="btn btn-success flex-fill"
+                            >
+                              Approve
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Interest Requests Section */}
             {requests.length > 0 && (
               <div>
-                <h4 className="dash-title-two mb-4">Interest Requests</h4>
+                {pendingAmbassadorRequests.length > 0 && <h4 className="dash-title-two mb-4 mt-5">Interest Requests</h4>}
+                {pendingAmbassadorRequests.length === 0 && <h4 className="dash-title-two mb-4">Interest Requests</h4>}
                 <div className="row g-4 justify-content-start">
                   {requests.map((req: any) => (
                     <div className="col-lg-4 col-md-6" key={req._id}>

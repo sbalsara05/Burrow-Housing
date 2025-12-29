@@ -123,8 +123,14 @@ const DashboardHeaderOne: React.FC<DashboardHeaderOneProps> = ({ isActive, setIs
                     activeIconPath: '/assets/images/dashboard/icon/icon_6_active.svg'
                 }] : []),
                 {
+                    path: '/dashboard/my-ambassador-requests',
+                    label: 'My Ambassador Requests',
+                    iconPath: '/assets/images/dashboard/icon/icon_2.svg',
+                    activeIconPath: '/assets/images/dashboard/icon/icon_2_active.svg'
+                },
+                {
                     path: '/dashboard/ambassador-requests',
-                    label: 'Ambassador Requests',
+                    label: 'Ambassador Responses',
                     iconPath: '/assets/images/dashboard/icon/icon_1.svg',
                     activeIconPath: '/assets/images/dashboard/icon/icon_1_active.svg'
                 }

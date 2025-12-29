@@ -6,7 +6,7 @@ import AmbassadorRequestsBody from '../components/dashboard/requests/AmbassadorR
 const DashboardAmbassadorRequests = () => {
     return (
         <Wrapper>
-            <SEO pageTitle={'Ambassador Requests - Burrow'} />
+            <SEO pageTitle={'Ambassador Responses - Burrow'} />
             <DashboardHeaderOne />
             <AmbassadorRequestsBody />
         </Wrapper>
