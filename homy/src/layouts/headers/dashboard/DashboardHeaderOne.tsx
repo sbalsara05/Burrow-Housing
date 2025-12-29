@@ -28,12 +28,12 @@ const DashboardHeaderOne: React.FC<DashboardHeaderOneProps> = ({ isActive, setIs
     const location = useLocation();
     const user = useSelector(selectCurrentUser);
     const [pathname, setPathname] = useState(window.location.pathname);
-    
+
     // Update pathname when location changes
     useEffect(() => {
         setPathname(location.pathname);
     }, [location.pathname]);
-    
+
     const isChatPage = pathname === '/dashboard/chat';
 
     // Check if user is an active ambassador
@@ -77,7 +77,7 @@ const DashboardHeaderOne: React.FC<DashboardHeaderOneProps> = ({ isActive, setIs
                 {
                     path: '/dashboard/received-requests',
                     label: 'Received Requests',
-                    iconPath: '/assets/images/dashboard/icon/icon_1.svg', 
+                    iconPath: '/assets/images/dashboard/icon/icon_1.svg',
                     activeIconPath: '/assets/images/dashboard/icon/icon_1_active.svg',
                 },
             ]
@@ -97,6 +97,12 @@ const DashboardHeaderOne: React.FC<DashboardHeaderOneProps> = ({ isActive, setIs
                     label: 'Favorites',
                     iconPath: '/assets/images/dashboard/icon/icon_8.svg',
                     activeIconPath: '/assets/images/dashboard/icon/icon_8_active.svg'
+                },
+                {
+                    path: '/dashboard/my-agreements',
+                    label: 'My Agreements',
+                    iconPath: '/assets/images/dashboard/icon/icon_5.svg',
+                    activeIconPath: '/assets/images/dashboard/icon/icon_5_active.svg'
                 },
             ]
         },

@@ -9,21 +9,19 @@ const {
 } = require("../controllers/contractController");
 const { authenticateToken } = require("../middlewares/authMiddleware"); // Verify your auth middleware path
 
-// 1. Create a new draft
-// URL: POST /api/contracts/initiate
+// Create a new draft
 router.post("/initiate", authenticateToken, createDraft);
-// 2. Get all agreements for the user
-// URL: GET /api/contracts/my-agreements
+
+// Get all agreements for the user
 router.get("/my-agreements", authenticateToken, getMyAgreements);
 
-// 3. Get single contract by ID
-// URL: GET /api/contracts/:id
+// Get single contract by ID
 router.get("/:id", authenticateToken, getContractById);
-// 4. Update a draft (Lister only)
-// URL: PUT /api/contracts/:id
-router.put("/:id", authenticateToken, updateDraft);
 
-// 5. Sign a contract
-// URL: POST /api/contracts/:id/sign
+// Update a draft (Lister only)
+router.put("/:id/update-draft", authenticateToken, updateDraft);
+
+// Sign a contract
 router.post("/:id/sign", authenticateToken, signContract);
+
 module.exports = router;

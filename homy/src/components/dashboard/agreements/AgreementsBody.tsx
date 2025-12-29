@@ -28,8 +28,8 @@ const AgreementsBody = () => {
 
     // Helper to determine the Action Button text/link
     const getAction = (contract: any) => {
-        const isLister = contract.lister._id === user?._id;
-        const isTenant = contract.tenant._id === user?._id;
+        const isLister = contract.lister?._id === user?._id;
+        const isTenant = contract.tenant?._id === user?._id;
 
         // 1. Draft Stage
         if (contract.status === 'DRAFT') {
@@ -138,8 +138,8 @@ const AgreementsBody = () => {
                                     </td>
                                     <td>
                                         {contract.lister._id === user?._id
-                                            ? `Tenant: ${contract.tenant.name}`
-                                            : `Landlord: ${contract.lister.name}`}
+                                            ? `Tenant: ${contract.tenant?.name}`
+                                            : `Landlord: ${contract.lister?.name}`}
                                     </td>
                                     <td>
                                         <div className={`property-status-badge ${contract.status === 'COMPLETED' ? 'active' : 'pending'
