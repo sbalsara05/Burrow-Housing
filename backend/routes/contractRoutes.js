@@ -1,0 +1,35 @@
+const express = require("express");
+const router = express.Router();
+const {
+	createDraft,
+	getMyAgreements,
+	getContractById,
+	updateDraft,
+	lockContract,
+	signContract,
+	deleteContract,
+} = require("../controllers/contractController");
+const { authenticateToken } = require("../middlewares/authMiddleware"); // Verify your auth middleware path
+
+// Create a new draft
+router.post("/initiate", authenticateToken, createDraft);
+
+// Get all agreements for the user
+router.get("/my-agreements", authenticateToken, getMyAgreements);
+
+// Get single contract by ID
+router.get("/:id", authenticateToken, getContractById);
+
+// Update a draft (Lister only)
+router.put("/:id/update-draft", authenticateToken, updateDraft);
+
+// Sign a contract
+router.post("/:id/sign", authenticateToken, signContract);
+
+// Lock/finalize a contract (Lister only)
+router.post("/:id/lock", authenticateToken, lockContract);
+
+// Delete a contract (Lister only, DRAFT or CANCELLED only)
+router.delete("/:id", authenticateToken, deleteContract);
+
+module.exports = router;

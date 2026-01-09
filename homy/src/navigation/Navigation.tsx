@@ -31,6 +31,9 @@ import DashboardAmbassadorRequests from '../pages/DashboardAmbassadorRequests';
 import DashboardMyAmbassadorRequests from '../pages/DashboardMyAmbassadorRequests';
 import PublicProfilePage from '../pages/PublicProfilePage';
 import ResetPasswordPage from '../pages/ResetPasswordPage';
+import DashboardMyAgreements from '../pages/DashboardMyAgreements';
+import DashboardContractBuilder from '../pages/DashboardContractBuilder';
+import DashboardContractViewer from '../pages/DashboardContractViewer';
 
 const AppNavigation = () => {
     return (
@@ -69,15 +72,14 @@ const AppNavigation = () => {
 
                 {/* --- PROTECTED ROUTES --- */}
                 {/* These routes are only accessible to authenticated users.
-            If a non-authenticated user tries to access them, they will be
-            redirected to the login page ("/home"). */}
+                    If a non-authenticated user tries to access them, they will be
+                    redirected to the login page ("/home"). */}
 
                 <Route element={<ProtectedRoute />}>
                     <Route path="/dashboard/dashboard-index" element={<DashboardIndex />} />
                     <Route path="/dashboard/profile" element={<DashboardProfile />} />
                     <Route path="/dashboard/chat/conversation/:id" element={<DashboardChatConversationMain />} />
                     <Route path="/dashboard/chat" element={<DashboardChatMain />} />
-
                     <Route path="/dashboard/account-settings" element={<DashboardAccountSettings />} />
                     <Route path="/dashboard/account-settings/password-change" element={<PasswordChange />} />
                     <Route path="/dashboard/properties-list" element={<DashboardPropertiesList />} />
@@ -85,14 +87,19 @@ const AppNavigation = () => {
                     <Route path="/dashboard/favourites" element={<DashboardFavourites />} />
                     <Route path="/dashboard/review" element={<DashboardReview />} />
                     <Route path="/dashboard/edit-property/:id" element={<DashboardEditProperty />} />
-					<Route path="/dashboard/received-requests" element={<DashboardReceivedRequests />} />
-					<Route path="/dashboard/my-requests" element={<DashboardMyRequests />} />
-					<Route path="/dashboard/ambassador" element={<DashboardAmbassador />} />
+                    <Route path="/dashboard/received-requests" element={<DashboardReceivedRequests />} />
+                    <Route path="/dashboard/my-requests" element={<DashboardMyRequests />} />
+                    <Route path="/dashboard/ambassador" element={<DashboardAmbassador />} />
 					<Route path="/dashboard/my-ambassador-requests" element={<DashboardMyAmbassadorRequests />} />
 					<Route path="/dashboard/ambassador-requests" element={<DashboardAmbassadorRequests />} />
-					<Route path="/dashboard/ambassador/request/:requestId" element={<DashboardAmbassadorRequestDetails />} />
-					{/* Add any other future protected routes inside this wrapper */}
+                    <Route path="/dashboard/ambassador/request/:requestId" element={<DashboardAmbassadorRequestDetails />} />
+                    <Route path="/dashboard/my-agreements" element={<DashboardMyAgreements />} />
+                    <Route path="/dashboard/agreements/:id/edit" element={<DashboardContractBuilder />} />
+                    <Route path="/dashboard/agreements/:id/sign" element={<DashboardContractViewer />} />
+                    {/* Add any other future protected routes inside this wrapper */}
                 </Route>
+
+
 
                 {/* --- CATCH-ALL / NOT FOUND ROUTE --- */}
                 {/* This route will match any URL that hasn't been matched above. */}
