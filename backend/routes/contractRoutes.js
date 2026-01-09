@@ -5,7 +5,9 @@ const {
 	getMyAgreements,
 	getContractById,
 	updateDraft,
+	lockContract,
 	signContract,
+	deleteContract,
 } = require("../controllers/contractController");
 const { authenticateToken } = require("../middlewares/authMiddleware"); // Verify your auth middleware path
 
@@ -23,5 +25,11 @@ router.put("/:id/update-draft", authenticateToken, updateDraft);
 
 // Sign a contract
 router.post("/:id/sign", authenticateToken, signContract);
+
+// Lock/finalize a contract (Lister only)
+router.post("/:id/lock", authenticateToken, lockContract);
+
+// Delete a contract (Lister only, DRAFT or CANCELLED only)
+router.delete("/:id", authenticateToken, deleteContract);
 
 module.exports = router;

@@ -136,6 +136,26 @@ export const updateDraft = createAsyncThunk(
     }
 );
 
+// Lock Contract
+export const lockContract = createAsyncThunk(
+    'contract/lockContract',
+    async (id: string, { getState, rejectWithValue }) => {
+        const token = (getState() as RootState).auth.token;
+        if (!token) return rejectWithValue('Not authenticated');
+
+        try {
+            const response = await axios.post(
+                `${API_URL}/contracts/${id}/lock`,
+                {},
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+            return response.data as Contract;
+        } catch (error: any) {
+            return rejectWithValue(error.response?.data?.message || 'Failed to lock contract');
+        }
+    }
+);
+
 // Sign Contract (Tenant or Lister)
 export const signContract = createAsyncThunk(
     'contract/signContract',
@@ -154,6 +174,25 @@ export const signContract = createAsyncThunk(
             return response.data as Contract;
         } catch (error: any) {
             return rejectWithValue(error.response?.data?.message || 'Failed to sign contract');
+        }
+    }
+);
+
+// Delete Contract
+export const deleteContract = createAsyncThunk(
+    'contract/deleteContract',
+    async (id: string, { getState, rejectWithValue }) => {
+        const token = (getState() as RootState).auth.token;
+        if (!token) return rejectWithValue('Not authenticated');
+
+        try {
+            await axios.delete(
+                `${API_URL}/contracts/${id}`,
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+            return id;
+        } catch (error: any) {
+            return rejectWithValue(error.response?.data?.message || 'Failed to delete contract');
         }
     }
 );
@@ -221,6 +260,21 @@ const contractSlice = createSlice({
             state.successMessage = "Draft saved";
         });
 
+        // Lock Contract
+        builder.addCase(lockContract.pending, (state) => {
+            state.isLoading = true;
+            state.error = null;
+        });
+        builder.addCase(lockContract.fulfilled, (state, action: PayloadAction<Contract>) => {
+            state.isLoading = false;
+            state.currentContract = action.payload;
+            state.successMessage = "Contract sent to tenant successfully!";
+        });
+        builder.addCase(lockContract.rejected, (state, action) => {
+            state.isLoading = false;
+            state.error = action.payload as string;
+        });
+
         // Sign Contract
         builder.addCase(signContract.pending, (state) => {
             state.isLoading = true;
@@ -232,6 +286,21 @@ const contractSlice = createSlice({
             state.successMessage = "Contract signed successfully!";
         });
         builder.addCase(signContract.rejected, (state, action) => {
+            state.isLoading = false;
+            state.error = action.payload as string;
+        });
+
+        // Delete Contract
+        builder.addCase(deleteContract.pending, (state) => {
+            state.isLoading = true;
+            state.error = null;
+        });
+        builder.addCase(deleteContract.fulfilled, (state, action: PayloadAction<string>) => {
+            state.isLoading = false;
+            state.contracts = state.contracts.filter(c => c._id !== action.payload);
+            state.successMessage = "Contract deleted successfully";
+        });
+        builder.addCase(deleteContract.rejected, (state, action) => {
             state.isLoading = false;
             state.error = action.payload as string;
         });

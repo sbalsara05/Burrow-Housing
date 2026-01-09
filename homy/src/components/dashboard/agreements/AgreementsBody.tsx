@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '../../../redux/slices/store';
-import { fetchMyAgreements } from '../../../redux/slices/contractSlice';
+import { fetchMyAgreements, deleteContract } from '../../../redux/slices/contractSlice';
 
 const AgreementsBody = () => {
     const dispatch = useDispatch<AppDispatch>();
@@ -15,6 +15,18 @@ const AgreementsBody = () => {
     useEffect(() => {
         dispatch(fetchMyAgreements());
     }, [dispatch]);
+
+    const handleDelete = async (contractId: string) => {
+        if (!window.confirm('Are you sure you want to delete this contract? This cannot be undone.')) {
+            return;
+        }
+
+        try {
+            await dispatch(deleteContract(contractId)).unwrap();
+        } catch (error) {
+            console.error("Delete error:", error);
+        }
+    };
 
     // Filter logic
     const activeContracts = contracts.filter(c =>
@@ -31,49 +43,67 @@ const AgreementsBody = () => {
         const isLister = contract.lister?._id === user?._id;
         const isTenant = contract.tenant?._id === user?._id;
 
-        // 1. Draft Stage
-        if (contract.status === 'DRAFT') {
-            if (isLister) {
-                return (
-                    <Link to={`/dashboard/agreements/${contract._id}/edit`} className="btn-two text-uppercase btn-sm">
-                        Edit Draft
-                    </Link>
-                );
-            }
-            return <span className="badge bg-secondary">Waiting for Landlord</span>;
-        }
-
-        // 2. Pending Tenant Signature
-        if (contract.status === 'PENDING_TENANT_SIGNATURE') {
-            if (isTenant) {
-                return (
-                    <Link to={`/dashboard/agreements/${contract._id}/sign`} className="btn-two text-uppercase btn-sm">
-                        Review & Sign
-                    </Link>
-                );
-            }
-            return <span className="badge bg-warning text-dark">Waiting for Tenant</span>;
-        }
-
-        // 3. Pending Lister Signature
-        if (contract.status === 'PENDING_LISTER_SIGNATURE') {
-            if (isLister) {
-                return (
-                    <Link to={`/dashboard/agreements/${contract._id}/countersign`} className="btn-two text-uppercase btn-sm">
-                        Countersign
-                    </Link>
-                );
-            }
-            return <span className="badge bg-info text-dark">Processing</span>;
-        }
-
-        // 4. Completed
+        // Completed contracts - Download PDF only
         if (contract.status === 'COMPLETED') {
             return (
                 <a href={contract.finalPdfUrl} target="_blank" rel="noopener noreferrer" className="btn-one btn-sm">
                     Download PDF
                 </a>
             );
+        }
+
+        // Lister actions
+        if (isLister) {
+            return (
+                <div className="d-flex gap-2">
+                    {/* Edit button - only for DRAFT */}
+                    {contract.status === 'DRAFT' && (
+                        <Link to={`/dashboard/agreements/${contract._id}/edit`} className="btn-two text-uppercase btn-sm">
+                            Edit
+                        </Link>
+                    )}
+
+                    {/* Countersign button - only for PENDING_LISTER_SIGNATURE */}
+                    {contract.status === 'PENDING_LISTER_SIGNATURE' && (
+                        <Link to={`/dashboard/agreements/${contract._id}/sign`} className="btn-two text-uppercase btn-sm">
+                            Countersign
+                        </Link>
+                    )}
+
+                    {/* Status badges for pending states */}
+                    {contract.status === 'PENDING_TENANT_SIGNATURE' && (
+                        <span className="badge bg-warning text-dark me-2">Waiting for Tenant</span>
+                    )}
+
+                    {/* Delete/Cancel button - always available for lister (except COMPLETED) */}
+                    <button
+                        onClick={() => handleDelete(contract._id)}
+                        className="btn btn-sm btn-outline-danger"
+                        title={contract.status === 'DRAFT' ? 'Delete draft' : 'Cancel and recall contract'}
+                    >
+                        {contract.status === 'DRAFT' ? 'Delete' : 'Cancel'}
+                    </button>
+                </div>
+            );
+        }
+
+        // Tenant actions
+        if (isTenant) {
+            if (contract.status === 'DRAFT') {
+                return <span className="badge bg-secondary">Landlord is drafting...</span>;
+            }
+
+            if (contract.status === 'PENDING_TENANT_SIGNATURE') {
+                return (
+                    <Link to={`/dashboard/agreements/${contract._id}/sign`} className="btn-two text-uppercase btn-sm">
+                        Review & Sign
+                    </Link>
+                );
+            }
+
+            if (contract.status === 'PENDING_LISTER_SIGNATURE') {
+                return <span className="badge bg-info text-dark">Waiting for Landlord</span>;
+            }
         }
 
         return null;
@@ -128,7 +158,7 @@ const AgreementsBody = () => {
                                     <td>
                                         <div className="d-flex align-items-center">
                                             <img
-                                                src={contract.property.images[0] || "/assets/images/dashboard/img_01.jpg"}
+                                                src={contract.property.images[0] || "/assets/images/icon_01.svg"}
                                                 alt="property"
                                                 className="lazy-img rounded-circle me-2"
                                                 style={{ width: '40px', height: '40px', objectFit: 'cover' }}

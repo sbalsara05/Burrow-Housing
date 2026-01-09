@@ -1,11 +1,11 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css'; // Standard Quill styles
 
 import { AppDispatch, RootState } from '../../../redux/slices/store';
-import { fetchContractById, updateDraft } from '../../../redux/slices/contractSlice';
+import { fetchContractById, updateDraft, lockContract } from '../../../redux/slices/contractSlice';
 import VariableSidebar from './VariableSidebar';
 
 const ContractBuilder = () => {
@@ -74,12 +74,16 @@ const ContractBuilder = () => {
         }
     };
 
-    const handleFinalize = () => {
-        // Placeholder for next step (locking the contract)
-        alert("Proceeding to lock contract for Tenant signature...");
-        // Logic: dispatch(lockContract(id)) then navigate back or show success modal
-    };
+    const handleFinalize = async () => {
+        if (!id) return;
 
+        try {
+            await dispatch(lockContract(id)).unwrap();
+            navigate('/dashboard/my-agreements');
+        } catch (error) {
+            console.error("Lock contract error:", error);
+        }
+    };
     if (isLoading && !currentContract) return <div className="p-5 text-center">Loading Builder...</div>;
 
     return (

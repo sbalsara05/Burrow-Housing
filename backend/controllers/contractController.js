@@ -1,6 +1,7 @@
 const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
 const Contract = require("../models/contractModel");
 const Property = require("../models/propertyModel");
+const User = require("../models/userModel");
 const { generateContractPdf } = require("../services/pdfService");
 
 // Configure DigitalOcean Spaces client using AWS SDK v3
@@ -63,12 +64,23 @@ exports.createDraft = async (req, res) => {
 		});
 
 		if (!property) {
-			return res
-				.status(404)
-				.json({
-					message: "Property not found or access denied.",
-				});
+			return res.status(404).json({
+				message: "Property not found or access denied.",
+			});
 		}
+
+		// In createDraft, right after getting propertyId and tenantId
+		console.log("Creating contract with:");
+		console.log("  propertyId:", propertyId);
+		console.log("  listerId:", listerId);
+		console.log("  tenantId:", tenantId);
+
+		// Check if tenant user exists
+		const tenantUser = await User.findById(tenantId);
+		console.log(
+			"  Tenant user found:",
+			tenantUser ? tenantUser.name : "NOT FOUND"
+		);
 
 		// Prevent duplicate active contracts
 		const existingContract = await Contract.findOne({
@@ -109,7 +121,7 @@ exports.createDraft = async (req, res) => {
 			Security_Deposit: "",
 		};
 
-		const newContract = await Contract.create({
+		const contract = await Contract.create({
 			property: propertyId,
 			lister: listerId,
 			tenant: tenantId,
@@ -117,7 +129,16 @@ exports.createDraft = async (req, res) => {
 			variables: defaultVariables,
 		});
 
-		res.status(201).json(newContract);
+		// Populate related fields while keeping all other fields
+		const populatedContract = await Contract.findById(contract._id)
+			.populate(
+				"property",
+				"overview.title addressAndLocation.address images"
+			)
+			.populate("lister", "name email")
+			.populate("tenant", "name email");
+
+		res.status(201).json(populatedContract);
 	} catch (error) {
 		console.error("Error creating draft:", error);
 		res.status(500).json({
@@ -164,8 +185,8 @@ exports.getContractById = async (req, res) => {
 	try {
 		const contract = await Contract.findById(req.params.id)
 			.populate("property")
-			.populate("lister", "name")
-			.populate("tenant", "name");
+			.populate("lister", "name email")
+			.populate("tenant", "name email");
 
 		if (!contract)
 			return res
@@ -178,11 +199,9 @@ exports.getContractById = async (req, res) => {
 			contract.tenant._id.toString() === userId;
 
 		if (!isParticipant) {
-			return res
-				.status(403)
-				.json({
-					message: "Not authorized to view this contract.",
-				});
+			return res.status(403).json({
+				message: "Not authorized to view this contract.",
+			});
 		}
 
 		res.json(contract);
@@ -207,27 +226,80 @@ exports.updateDraft = async (req, res) => {
 				.json({ message: "Contract not found" });
 
 		if (contract.lister.toString() !== req.user.userId) {
-			return res
-				.status(403)
-				.json({
-					message: "Only the lister can edit the contract.",
-				});
+			return res.status(403).json({
+				message: "Only the lister can edit the contract.",
+			});
 		}
 		if (contract.status !== "DRAFT") {
-			return res
-				.status(400)
-				.json({
-					message: "Cannot edit a locked contract.",
-				});
+			return res.status(400).json({
+				message: "Cannot edit a locked contract.",
+			});
 		}
 
 		contract.templateHtml = templateHtml;
 		contract.variables = variables;
 		await contract.save();
 
-		res.json(contract);
+		// Populate before sending response
+		const populatedContract = await Contract.findById(contract._id)
+			.populate(
+				"property",
+				"overview.title addressAndLocation.address images"
+			)
+			.populate("lister", "name email")
+			.populate("tenant", "name email");
+
+		res.json(populatedContract);
 	} catch (error) {
 		console.error("Error updating draft:", error);
+		res.status(500).json({ message: "Server Error" });
+	}
+};
+
+/**
+ * Locks the contract and transitions status from DRAFT to PENDING_TENANT_SIGNATURE.
+ * Restricted to the lister only.
+ */
+exports.lockContract = async (req, res) => {
+	try {
+		const contract = await Contract.findById(req.params.id);
+
+		if (!contract) {
+			return res
+				.status(404)
+				.json({ message: "Contract not found" });
+		}
+
+		// Security: Only lister can lock
+		if (contract.lister.toString() !== req.user.userId) {
+			return res.status(403).json({
+				message: "Only the lister can finalize the contract.",
+			});
+		}
+
+		// Status validation
+		if (contract.status !== "DRAFT") {
+			return res.status(400).json({
+				message: "Contract is already locked.",
+			});
+		}
+
+		// Lock the contract
+		contract.status = "PENDING_TENANT_SIGNATURE";
+		await contract.save();
+
+		// Populate before sending response
+		const populatedContract = await Contract.findById(contract._id)
+			.populate(
+				"property",
+				"overview.title addressAndLocation.address images"
+			)
+			.populate("lister", "name email")
+			.populate("tenant", "name email");
+
+		res.json(populatedContract);
+	} catch (error) {
+		console.error("Error locking contract:", error);
 		res.status(500).json({ message: "Server Error" });
 	}
 };
@@ -253,21 +325,17 @@ exports.signContract = async (req, res) => {
 		const isLister = contract.lister.toString() === userId;
 
 		if (!isTenant && !isLister) {
-			return res
-				.status(403)
-				.json({
-					message: "Not authorized to sign this contract.",
-				});
+			return res.status(403).json({
+				message: "Not authorized to sign this contract.",
+			});
 		}
 
 		// Tenant Execution Block
 		if (isTenant) {
 			if (contract.status !== "PENDING_TENANT_SIGNATURE") {
-				return res
-					.status(400)
-					.json({
-						message: "It is not currently your turn to sign.",
-					});
+				return res.status(400).json({
+					message: "It is not currently your turn to sign.",
+				});
 			}
 
 			// Decode Base64 and Upload
@@ -295,11 +363,9 @@ exports.signContract = async (req, res) => {
 		// Lister Execution Block (Finalization)
 		if (isLister) {
 			if (contract.status !== "PENDING_LISTER_SIGNATURE") {
-				return res
-					.status(400)
-					.json({
-						message: "Waiting for tenant signature first.",
-					});
+				return res.status(400).json({
+					message: "Waiting for tenant signature first.",
+				});
 			}
 
 			// Upload Lister Signature
@@ -352,7 +418,17 @@ exports.signContract = async (req, res) => {
 				status: "Rented",
 			});
 
-			return res.json(contract);
+			const populatedContract = await Contract.findById(
+				contract._id
+			)
+				.populate(
+					"property",
+					"overview.title addressAndLocation.address images"
+				)
+				.populate("lister", "name email")
+				.populate("tenant", "name email");
+
+			return res.json(populatedContract);
 		}
 	} catch (error) {
 		console.error("Signing Error:", error);
@@ -360,5 +436,46 @@ exports.signContract = async (req, res) => {
 			message: "Error processing signature",
 			error: error.message,
 		});
+	}
+};
+
+/**
+ * Deletes or cancels a contract.
+ * Lister can delete DRAFT contracts or cancel contracts waiting for signatures.
+ * Cannot delete/cancel contracts that have been signed by both parties.
+ */
+exports.deleteContract = async (req, res) => {
+	try {
+		const contract = await Contract.findById(req.params.id);
+
+		if (!contract) {
+			return res
+				.status(404)
+				.json({ message: "Contract not found" });
+		}
+
+		// Security: Only lister can delete
+		if (contract.lister.toString() !== req.user.userId) {
+			return res.status(403).json({
+				message: "Only the lister can delete this contract.",
+			});
+		}
+
+		// Determine action based on status
+		if (contract.status === "COMPLETED") {
+			return res.status(400).json({
+				message: "Cannot delete completed contracts. Both parties have signed.",
+			});
+		}
+
+		// For DRAFT, PENDING_TENANT_SIGNATURE, PENDING_LISTER_SIGNATURE, CANCELLED - allow deletion
+		await Contract.findByIdAndDelete(req.params.id);
+
+		const action =
+			contract.status === "DRAFT" ? "deleted" : "cancelled";
+		res.json({ message: `Contract ${action} successfully` });
+	} catch (error) {
+		console.error("Error deleting contract:", error);
+		res.status(500).json({ message: "Server Error" });
 	}
 };
