@@ -163,7 +163,10 @@ const AgreementsBody = () => {
                                                 className="lazy-img rounded-circle me-2"
                                                 style={{ width: '40px', height: '40px', objectFit: 'cover' }}
                                             />
-                                            <span>{contract.property.overview?.title || "Untitled Property"}</span>
+                                            <span>
+                                                {contract.property.overview?.title ||
+                                                    `${contract.property?.listingDetails?.bedrooms || ''} Bed ${contract.property.overview?.category || 'Property'}`.trim()}
+                                            </span>
                                         </div>
                                     </td>
                                     <td>

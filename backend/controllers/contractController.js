@@ -69,19 +69,6 @@ exports.createDraft = async (req, res) => {
 			});
 		}
 
-		// In createDraft, right after getting propertyId and tenantId
-		console.log("Creating contract with:");
-		console.log("  propertyId:", propertyId);
-		console.log("  listerId:", listerId);
-		console.log("  tenantId:", tenantId);
-
-		// Check if tenant user exists
-		const tenantUser = await User.findById(tenantId);
-		console.log(
-			"  Tenant user found:",
-			tenantUser ? tenantUser.name : "NOT FOUND"
-		);
-
 		// Prevent duplicate active contracts
 		const existingContract = await Contract.findOne({
 			property: propertyId,
@@ -133,7 +120,7 @@ exports.createDraft = async (req, res) => {
 		const populatedContract = await Contract.findById(contract._id)
 			.populate(
 				"property",
-				"overview.title addressAndLocation.address images"
+				"overview addressAndLocation.address images listingDetails.bedrooms"
 			)
 			.populate("lister", "name email")
 			.populate("tenant", "name email");
@@ -161,7 +148,7 @@ exports.getMyAgreements = async (req, res) => {
 		})
 			.populate(
 				"property",
-				"overview.title addressAndLocation.address images"
+				"overview addressAndLocation.address images listingDetails.bedrooms"
 			)
 			.populate("lister", "name email")
 			.populate("tenant", "name email")
@@ -184,7 +171,10 @@ exports.getMyAgreements = async (req, res) => {
 exports.getContractById = async (req, res) => {
 	try {
 		const contract = await Contract.findById(req.params.id)
-			.populate("property")
+			.populate(
+				"property",
+				"overview addressAndLocation.address images listingDetails.bedrooms"
+			)
 			.populate("lister", "name email")
 			.populate("tenant", "name email");
 
@@ -244,7 +234,7 @@ exports.updateDraft = async (req, res) => {
 		const populatedContract = await Contract.findById(contract._id)
 			.populate(
 				"property",
-				"overview.title addressAndLocation.address images"
+				"overview addressAndLocation.address images listingDetails.bedrooms"
 			)
 			.populate("lister", "name email")
 			.populate("tenant", "name email");
@@ -292,7 +282,7 @@ exports.lockContract = async (req, res) => {
 		const populatedContract = await Contract.findById(contract._id)
 			.populate(
 				"property",
-				"overview.title addressAndLocation.address images"
+				"overview addressAndLocation.address images listingDetails.bedrooms"
 			)
 			.populate("lister", "name email")
 			.populate("tenant", "name email");
@@ -423,7 +413,7 @@ exports.signContract = async (req, res) => {
 			)
 				.populate(
 					"property",
-					"overview.title addressAndLocation.address images"
+					"overview addressAndLocation.address images listingDetails.bedrooms"
 				)
 				.populate("lister", "name email")
 				.populate("tenant", "name email");
