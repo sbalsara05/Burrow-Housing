@@ -47,23 +47,25 @@ const RequestsBody = () => {
     const isAuthenticated = useSelector(selectIsAuthenticated)
     const requests = useSelector(selectReceivedInterests) || []
     const isLoading = useSelector(selectInterestsLoading)
-    const [ambassadorRequests, setAmbassadorRequests] = useState<AmbassadorRequest[]>([])
+    const [pendingAmbassadorRequests, setPendingAmbassadorRequests] = useState<any[]>([])
     const [loadingAmbassador, setLoadingAmbassador] = useState(true)
 
     useEffect(() => {
         if (isAuthenticated) {
             dispatch(fetchReceivedInterests())
-            fetchAmbassadorRequests()
+            fetchPendingAmbassadorRequests()
         }
     }, [dispatch, isAuthenticated])
 
-    const fetchAmbassadorRequests = async () => {
+    const fetchPendingAmbassadorRequests = async () => {
         try {
             setLoadingAmbassador(true)
             const response = await axios.get('/api/ambassador-requests/received')
-            setAmbassadorRequests(response.data)
+      // Only show pending requests (no decision made yet)
+      const pending = response.data.filter((req: any) => req.status === 'pending')
+            setPendingAmbassadorRequests(pending)
         } catch (error: any) {
-            console.error('Error fetching ambassador requests:', error)
+            console.error('Error fetching pending ambassador requests:', error)
         } finally {
             setLoadingAmbassador(false)
         }
@@ -73,7 +75,7 @@ const RequestsBody = () => {
         try {
             await axios.put(`/api/ambassador-requests/${requestId}/status`, { status })
             toast.success(`Request ${status} successfully.`)
-            fetchAmbassadorRequests()
+            fetchPendingAmbassadorRequests()
         } catch (error: any) {
             toast.error(error.response?.data?.message || 'Failed to update request')
         }
@@ -123,12 +125,11 @@ const RequestsBody = () => {
         return <div className="dashboard-body text-center">Please log in to view received requests.</div>
     }
 
-    if ((isLoading || loadingAmbassador) && requests.length === 0 && ambassadorRequests.length === 0) {
+    if ((isLoading || loadingAmbassador) && requests.length === 0 && pendingAmbassadorRequests.length === 0) {
         return <div className="dashboard-body"><p>Loading received requests...</p></div>
     }
 
-    const totalRequests = requests.length + ambassadorRequests.length
-    const hasNoRequests = totalRequests === 0 && !isLoading && !loadingAmbassador
+  const hasNoRequests = requests.length === 0 && pendingAmbassadorRequests.length === 0 && !isLoading && !loadingAmbassador
 
     return (
         <div className="dashboard-body">
@@ -139,16 +140,16 @@ const RequestsBody = () => {
                 {hasNoRequests ? (
                     <div className="bg-white card-box border-20 text-center p-5">
                         <h4>No received requests yet.</h4>
-                        <p className="text-muted">You'll see requests here when users are interested in your properties.</p>
+                        <p className="text-muted">You'll see interest requests here when users are interested in your properties.</p>
                     </div>
                 ) : (
                     <>
-                        {/* Ambassador Requests Section */}
-                        {ambassadorRequests.length > 0 && (
+                        {/* Pending Ambassador Requests Section */}
+                        {pendingAmbassadorRequests.length > 0 && (
                             <div className="mb-5">
                                 <h4 className="dash-title-two mb-4">Ambassador Requests</h4>
                                 <div className="row g-4 justify-content-start">
-                                    {ambassadorRequests.map((req: AmbassadorRequest) => (
+                                    {pendingAmbassadorRequests.map((req: any) => (
                                         <div className="col-lg-4 col-md-6" key={req._id}>
                                             <div className="bg-white card-box border-20 p-4 h-100 d-flex flex-column">
                                                 <div className="text-center mb-3">
@@ -186,7 +187,7 @@ const RequestsBody = () => {
                                                     <div className="mb-3">
                                                         <p className="mb-1 small text-muted"><strong>Inspection Points:</strong></p>
                                                         <ul className="small mb-0 ps-3">
-                                                            {req.inspectionPoints.slice(0, 3).map((point, idx) => (
+                                                            {req.inspectionPoints.slice(0, 3).map((point:any, idx:number) => (
                                                                 <li key={idx} className="mb-1">{point.text}</li>
                                                             ))}
                                                             {req.inspectionPoints.length > 3 && (
@@ -227,7 +228,7 @@ const RequestsBody = () => {
                                                                     }}
                                                                 >
                                                                     <div className="row g-2 mt-2">
-                                                                        {req.review.images.map((imageUrl, idx) => (
+                                                                        {req.review.images.map((imageUrl:any, idx:number) => (
                                                                             <div key={idx} className="col-6">
                                                                                 <a
                                                                                     href={imageUrl}
@@ -307,8 +308,8 @@ const RequestsBody = () => {
                         {/* Interest Requests Section */}
                         {requests.length > 0 && (
                             <div>
-                                {ambassadorRequests.length > 0 && <h4 className="dash-title-two mb-4 mt-5">Interest Requests</h4>}
-                                {ambassadorRequests.length === 0 && <h4 className="dash-title-two mb-4">Interest Requests</h4>}
+                                {pendingAmbassadorRequests.length > 0 && <h4 className="dash-title-two mb-4 mt-5">Interest Requests</h4>}
+                                {pendingAmbassadorRequests.length === 0 && <h4 className="dash-title-two mb-4">Interest Requests</h4>}
                                 <div className="row g-4 justify-content-start">
                                     {requests.map((req: any) => (
                                         <div className="col-lg-4 col-md-6" key={req._id}>

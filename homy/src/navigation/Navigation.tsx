@@ -27,6 +27,8 @@ import DashboardReceivedRequests from '../pages/DashboardReceivedRequests';
 import DashboardMyRequests from '../pages/DashboardMyRequests';
 import DashboardAmbassador from '../pages/DashboardAmbassador';
 import DashboardAmbassadorRequestDetails from '../pages/DashboardAmbassadorRequestDetails';
+import DashboardAmbassadorRequests from '../pages/DashboardAmbassadorRequests';
+import DashboardMyAmbassadorRequests from '../pages/DashboardMyAmbassadorRequests';
 import PublicProfilePage from '../pages/PublicProfilePage';
 import ResetPasswordPage from '../pages/ResetPasswordPage';
 import DashboardMyAgreements from '../pages/DashboardMyAgreements';
@@ -88,6 +90,8 @@ const AppNavigation = () => {
                     <Route path="/dashboard/received-requests" element={<DashboardReceivedRequests />} />
                     <Route path="/dashboard/my-requests" element={<DashboardMyRequests />} />
                     <Route path="/dashboard/ambassador" element={<DashboardAmbassador />} />
+					<Route path="/dashboard/my-ambassador-requests" element={<DashboardMyAmbassadorRequests />} />
+					<Route path="/dashboard/ambassador-requests" element={<DashboardAmbassadorRequests />} />
                     <Route path="/dashboard/ambassador/request/:requestId" element={<DashboardAmbassadorRequestDetails />} />
                     <Route path="/dashboard/my-agreements" element={<DashboardMyAgreements />} />
                     <Route path="/dashboard/agreements/:id/edit" element={<DashboardContractBuilder />} />

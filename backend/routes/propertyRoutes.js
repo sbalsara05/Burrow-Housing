@@ -4,7 +4,7 @@ const {
 	getUserProfile,
 	updateUserProfile,
 } = require("../controllers/userController");
-const { authenticateToken } = require("../middlewares/authMiddleware");
+const { authenticateToken, optionalAuthenticateToken } = require("../middlewares/authMiddleware");
 const {
 	getMyProperties,
 	addNewProperty,
@@ -22,7 +22,7 @@ router.post("/properties/add", authenticateToken, addNewProperty);
 
 router.get("/properties", authenticateToken, getMyProperties);
 router.get("/properties/all", getAllProperties);
-router.get('/properties/id/:id', getPropertyById);
+router.get('/properties/id/:id', optionalAuthenticateToken, getPropertyById);
 router.get('/properties/user/:userId', getPropertiesByUserId);
 
 router.delete("/properties/:id", authenticateToken, deleteProperty);

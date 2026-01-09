@@ -16,6 +16,7 @@ const {
 const Interest = require("../models/interestModel");
 const Notification = require("../models/notificationModel");
 const { getStreamClient } = require("../services/streamService");
+const AmbassadorRequest = require("../models/ambassadorRequestModel");
 
 /**
  * Controller to get the properties of a user
@@ -440,7 +441,8 @@ exports.getPropertyById = async (req, res) => {
 		// 		});
 		// }
 
-		const property = await Property.findById(propertyId).lean(); // Use lean() for performance
+		// First, get the property to check ownership
+		const property = await Property.findById(propertyId).lean();
 
 		if (!property) {
 			console.log(`Property not found for ID: ${propertyId}`);
@@ -449,8 +451,44 @@ exports.getPropertyById = async (req, res) => {
 				.json({ message: "Property not found." });
 		}
 
-		console.log(`Property found:`, property);
-		res.status(200).json(property); // Return the full property object
+		// Check if the viewer is the property owner
+		const isOwner = req.user && req.user.userId && 
+			property.userId.toString() === req.user.userId.toString();
+
+		// Only increment view count if the viewer is NOT the owner
+		if (!isOwner) {
+			await Property.findByIdAndUpdate(
+				propertyId,
+				{ $inc: { viewCount: 1 } }
+			);
+			// Update the property object with incremented count
+			property.viewCount = (property.viewCount || 0) + 1;
+		}
+
+		// Check if property has been viewed by an ambassador (has completed ambassador request)
+		// Convert propertyId to ObjectId to ensure proper matching
+		const propertyObjectId = mongoose.Types.ObjectId.isValid(propertyId) 
+			? new mongoose.Types.ObjectId(propertyId) 
+			: propertyId;
+		
+		const completedRequest = await AmbassadorRequest.findOne({
+			propertyId: propertyObjectId,
+			status: "completed"
+		}).lean();
+
+		const hasBeenViewedByAmbassador = !!completedRequest;
+
+		// Add the ambassador view status to the property object
+		// Ensure viewCount is always a number (for older properties that might not have this field)
+		const propertyWithAmbassadorStatus = {
+			...property,
+			viewCount: property.viewCount ?? 0,
+			hasBeenViewedByAmbassador: hasBeenViewedByAmbassador
+		};
+
+		console.log(`Property found:`, property._id);
+		console.log(`Ambassador view status: ${hasBeenViewedByAmbassador} (found ${completedRequest ? 'completed request' : 'no completed requests'})`);
+		res.status(200).json(propertyWithAmbassadorStatus); // Return the full property object with ambassador status
 	} catch (error) {
 		console.error(
 			`Error fetching property by ID ${req.params.id}:`,

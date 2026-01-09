@@ -118,18 +118,30 @@ const DashboardHeaderOne: React.FC<DashboardHeaderOneProps> = ({ isActive, setIs
                 }
             ]
         },
-        ...(isActiveAmbassador ? [{
-            title: 'Ambassador', // Ambassador section
+        {
+            title: 'Ambassador', // Ambassador section - visible to all users
             showDivider: true,
             items: [
-                {
+                ...(isActiveAmbassador ? [{
                     path: '/dashboard/ambassador',
                     label: 'Ambassador Dashboard',
                     iconPath: '/assets/images/dashboard/icon/icon_6.svg',
                     activeIconPath: '/assets/images/dashboard/icon/icon_6_active.svg'
+                }] : []),
+                {
+                    path: '/dashboard/my-ambassador-requests',
+                    label: 'My Ambassador Requests',
+                    iconPath: '/assets/images/dashboard/icon/icon_2.svg',
+                    activeIconPath: '/assets/images/dashboard/icon/icon_2_active.svg'
+                },
+                {
+                    path: '/dashboard/ambassador-requests',
+                    label: 'Ambassador Responses',
+                    iconPath: '/assets/images/dashboard/icon/icon_1.svg',
+                    activeIconPath: '/assets/images/dashboard/icon/icon_1_active.svg'
                 }
             ]
-        }] : [])
+        }
     ];
 
     const handleNavigation = (path: string) => {
