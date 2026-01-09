@@ -18,7 +18,7 @@ const SignaturePad: React.FC<SignaturePadProps> = ({ onSave, onCancel }) => {
     const save = () => {
         if (sigCanvas.current && !sigCanvas.current.isEmpty()) {
             // Returns a base64 string (data:image/png;base64,...)
-            const dataUrl = sigCanvas.current.getTrimmedCanvas().toDataURL('image/png');
+            const dataUrl = sigCanvas.current.toDataURL('image/png');
             onSave(dataUrl);
         }
     };
