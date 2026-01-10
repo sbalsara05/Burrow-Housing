@@ -3,6 +3,7 @@ const Property = require("../models/propertyModel");
 const Notification = require("../models/notificationModel");
 const User = require("../models/userModel");
 const mongoose = require("mongoose");
+const { queueNotificationEmail, queueBulkNotificationEmails } = require("../utils/notificationEmailHelper");
 
 // POST /api/ambassador-requests
 exports.submitAmbassadorRequest = async (req, res) => {
@@ -83,6 +84,18 @@ exports.submitAmbassadorRequest = async (req, res) => {
 			},
 		});
 		await newNotification.save();
+
+		// Queue email notification
+		await queueNotificationEmail(listerId, "ambassador_request", {
+			message: notificationMessage,
+			link: "/dashboard/requests",
+			metadata: {
+				propertyId: property._id,
+				requesterId: requesterId,
+				requestId: newRequest._id,
+			},
+		});
+
 		console.log(`[Ambassador Notification] Created request notification for lister ${listerId} for request ${newRequest._id}`);
 
 		res.status(201).json({
@@ -226,6 +239,18 @@ exports.updateAmbassadorRequestStatus = async (req, res) => {
 					},
 				});
 				await newNotification.save();
+
+				// Queue email notification
+				await queueNotificationEmail(request.requesterId, "ambassador_request_update", {
+					message: notificationMessage,
+					link: "/dashboard/my-requests",
+					metadata: {
+						propertyId: request.propertyId,
+						requestId: request._id,
+						status: status,
+					},
+				});
+
 				console.log(`[Ambassador Notification] Created ${status} notification for requester ${request.requesterId} for request ${request._id}`);
 			} else {
 				console.log(`[Ambassador Notification] Skipped requester notification - lister: ${!!lister}, property: ${!!property}`);
@@ -265,6 +290,18 @@ exports.updateAmbassadorRequestStatus = async (req, res) => {
 				if (ambassadorNotifications.length > 0) {
 					const savedNotifications = await Notification.insertMany(ambassadorNotifications);
 					console.log(`[Ambassador Notifications] Created ${savedNotifications.length} notifications for ambassadors`);
+
+					// Queue email notifications for all ambassadors
+					const ambassadorUserIds = activeAmbassadors.map((a) => a._id.toString());
+					const notificationData = {
+						message: `New ambassador request available for "${property?.overview?.title || request.propertyTitle || "property"}" at ${property?.addressAndLocation?.address || request.propertyTitle || "a property"}`,
+						link: "/dashboard/ambassador",
+						metadata: {
+							propertyId: request.propertyId,
+							requestId: request._id,
+						},
+					};
+					await queueBulkNotificationEmails(ambassadorUserIds, "ambassador_request", notificationData);
 				} else {
 					console.log("[Ambassador Notifications] No active ambassadors found to notify");
 				}
@@ -350,11 +387,23 @@ exports.submitAmbassadorReview = async (req, res) => {
 		});
 		await newNotification.save();
 
+		// Queue email notification for requester
+		await queueNotificationEmail(request.requesterId, "ambassador_request_update", {
+			message: notificationMessage,
+			link: `/dashboard/my-requests`,
+			metadata: {
+				propertyId: request.propertyId,
+				requestId: request._id,
+				ambassadorId: ambassadorId,
+			},
+		});
+
 		// Also notify the lister
+		const listerNotificationMessage = `An ambassador has completed the inspection and submitted a review for "${title}" at ${address}.`;
 		const listerNotification = new Notification({
 			userId: request.listerId,
 			type: "ambassador_request_update",
-			message: `An ambassador has completed the inspection and submitted a review for "${title}" at ${address}.`,
+			message: listerNotificationMessage,
 			link: `/dashboard/requests`,
 			metadata: {
 				propertyId: request.propertyId,
@@ -363,6 +412,17 @@ exports.submitAmbassadorReview = async (req, res) => {
 			},
 		});
 		await listerNotification.save();
+
+		// Queue email notification for lister
+		await queueNotificationEmail(request.listerId, "ambassador_request_update", {
+			message: listerNotificationMessage,
+			link: `/dashboard/requests`,
+			metadata: {
+				propertyId: request.propertyId,
+				requestId: request._id,
+				ambassadorId: ambassadorId,
+			},
+		});
 
 		console.log(`[Ambassador Review] Review submitted for request ${requestId} by ambassador ${ambassadorId}`);
 
@@ -424,6 +484,17 @@ exports.cancelAmbassadorRequest = async (req, res) => {
 			},
 		});
 		await newNotification.save();
+
+		// Queue email notification
+		await queueNotificationEmail(request.listerId, "ambassador_request_cancelled", {
+			message: notificationMessage,
+			link: "/dashboard/ambassador-requests",
+			metadata: {
+				propertyId: request.propertyId,
+				requesterId: requesterId,
+				requestId: request._id,
+			},
+		});
 
 		res.status(200).json({
 			message: "Ambassador request cancelled successfully.",

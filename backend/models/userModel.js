@@ -41,6 +41,19 @@ const userSchema = new mongoose.Schema(
 				ref: "Property",
 			},
 		], // Array of favorite property IDs
+		emailNotifications: {
+			enabled: { type: Boolean, default: true },
+			newInterest: { type: Boolean, default: true },
+			interestApproved: { type: Boolean, default: true },
+			interestDeclined: { type: Boolean, default: true },
+			interestWithdrawn: { type: Boolean, default: true },
+			newMessage: { type: Boolean, default: true },
+			propertyDeleted: { type: Boolean, default: true },
+			propertyFavorited: { type: Boolean, default: true },
+			ambassadorRequest: { type: Boolean, default: true },
+			ambassadorRequestUpdate: { type: Boolean, default: true },
+			ambassadorRequestCancelled: { type: Boolean, default: true },
+		},
 	},
 	{ timestamps: true }
 );

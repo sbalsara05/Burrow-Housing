@@ -4,6 +4,7 @@ const Notification = require("../models/notificationModel");
 const User = require("../models/userModel");
 const Profile = require("../models/profileModel");
 const mongoose = require("mongoose");
+const { queueNotificationEmail } = require("../utils/notificationEmailHelper");
 
 // POST /api/interests
 exports.submitInterest = async (req, res) => {
@@ -69,6 +70,16 @@ exports.submitInterest = async (req, res) => {
 			},
 		});
 		await newNotification.save();
+
+		// Queue email notification
+		await queueNotificationEmail(listerId, "new_interest", {
+			message: notificationMessage,
+			link: "/dashboard/received-requests",
+			metadata: {
+				propertyId: property._id,
+				renterId: renterId,
+			},
+		});
 		// -----------------------------------------
 
 		res.status(201).json({
@@ -238,6 +249,16 @@ exports.withdrawInterest = async (req, res) => {
 			},
 		});
 		await newNotification.save();
+
+		// Queue email notification
+		await queueNotificationEmail(interest.listerId, "interest_withdrawn", {
+			message: notificationMessage,
+			link: "/dashboard/requests",
+			metadata: {
+				propertyId: interest.propertyId,
+				renterId: renterId,
+			},
+		});
 		// -----------------------------------------
 
 		res.status(200).json({

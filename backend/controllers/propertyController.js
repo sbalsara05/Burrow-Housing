@@ -17,6 +17,7 @@ const Interest = require("../models/interestModel");
 const Notification = require("../models/notificationModel");
 const { getStreamClient } = require("../services/streamService");
 const AmbassadorRequest = require("../models/ambassadorRequestModel");
+const { queueBulkNotificationEmails } = require("../utils/notificationEmailHelper");
 
 /**
  * Controller to get the properties of a user
@@ -579,6 +580,14 @@ exports.deleteProperty = async (req, res) => {
 			await Notification.insertMany(notifications, {
 				session,
 			});
+
+			// Queue email notifications for affected renters
+			const notificationData = {
+				message: `The property "${property.overview.title}" you were interested in is no longer available.`,
+				link: "/all_listings",
+				metadata: { propertyId },
+			};
+			await queueBulkNotificationEmails(renterIds, "property_deleted", notificationData);
 
 			// 3. Delete Interest documents
 			await Interest.deleteMany({ propertyId }).session(

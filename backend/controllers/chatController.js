@@ -3,6 +3,7 @@ const Interest = require("../models/interestModel");
 const Notification = require("../models/notificationModel");
 const Property = require("../models/propertyModel");
 const mongoose = require("mongoose");
+const { queueNotificationEmail } = require("../utils/notificationEmailHelper");
 
 // Test endpoint to verify Stream Chat connection
 exports.testStreamConnection = async (req, res) => {
@@ -203,6 +204,16 @@ exports.approveInterestAndCreateChannel = async (req, res) => {
 			},
 		});
 		await newNotification.save();
+
+		// Queue email notification
+		await queueNotificationEmail(renterId, "interest_approved", {
+			message: notificationMessage,
+			link: "/dashboard/chat",
+			metadata: {
+				propertyId: propertyId,
+				listerId: listerId,
+			},
+		});
 		// -----------------------------------------
 
 		const populatedInterest = await Interest.findById(interestId)
@@ -272,6 +283,16 @@ exports.declineInterest = async (req, res) => {
 			},
 		});
 		await newNotification.save();
+
+		// Queue email notification
+		await queueNotificationEmail(interest.renterId, "interest_declined", {
+			message: notificationMessage,
+			link: `/listing_details_01/${interest.propertyId}`,
+			metadata: {
+				propertyId: interest.propertyId,
+				listerId: listerId,
+			},
+		});
 		// -----------------------------------------
 
 		const populatedInterest = await Interest.findById(interestId)

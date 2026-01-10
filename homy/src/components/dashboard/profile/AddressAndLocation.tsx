@@ -35,7 +35,10 @@ const defaultCenter = {
 };
 const API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
-const libraries: "places"[] = ['places']; // Explicitly type the libraries array
+// Libraries array for Google Maps - must include 'places' for Autocomplete to work
+// The useJsApiLoader hook requires this to be passed as an array
+// Without this, Autocomplete component will throw an error about missing libraries prop
+const libraries: ("places" | "drawing" | "geometry" | "localContext" | "visualization")[] = ['places'];
 
 const AddressAndLocation: React.FC<AddressAndLocationProps> = ({
     location,
@@ -44,10 +47,23 @@ const AddressAndLocation: React.FC<AddressAndLocationProps> = ({
     handleAddressChange
 }) => {
 
+    // Validate API key
+    if (!API_KEY) {
+        return (
+            <div className="bg-white card-box border-20 mt-40">
+                <h4 className="dash-title-three">Address & Location</h4>
+                <div className="alert alert-danger mt-3">
+                    <strong>Configuration Error:</strong> Google Maps API key is missing. Please set VITE_GOOGLE_MAPS_API_KEY in your .env file.
+                </div>
+            </div>
+        );
+    }
+
     const { isLoaded, loadError } = useJsApiLoader({
         id: 'google-map-script',
         googleMapsApiKey: API_KEY,
-        libraries: libraries, // 👈 Crucial for Autocomplete
+        libraries: libraries, // 👈 Crucial for Autocomplete to work - must include 'places'
+        preventGoogleFontsLoading: true, // Optional: prevent loading Google Fonts
     });
 
     const [autocomplete, setAutocomplete] = useState<google.maps.places.Autocomplete | null>(null);
@@ -105,8 +121,30 @@ const AddressAndLocation: React.FC<AddressAndLocationProps> = ({
         }
     };
 
-    if (loadError) return <div>Error loading maps. Please check your API key and network connection.</div>;
-    if (!isLoaded) return <div>Loading Maps Interface...</div>;
+    if (loadError) {
+        return (
+            <div className="bg-white card-box border-20 mt-40">
+                <h4 className="dash-title-three">Address & Location</h4>
+                <div className="alert alert-danger mt-3">
+                    <strong>Error loading maps:</strong> {loadError.message || 'Please check your API key and network connection.'}
+                </div>
+            </div>
+        );
+    }
+
+    if (!isLoaded) {
+        return (
+            <div className="bg-white card-box border-20 mt-40">
+                <h4 className="dash-title-three">Address & Location</h4>
+                <div className="text-center py-5">
+                    <div className="spinner-border text-primary" role="status">
+                        <span className="visually-hidden">Loading Maps Interface...</span>
+                    </div>
+                    <p className="mt-3">Loading Maps Interface...</p>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="bg-white card-box border-20 mt-40">

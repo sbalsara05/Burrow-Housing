@@ -57,13 +57,66 @@ mongoose.connect(uri, { useNewUrlParser: true, useUnifiedTopology: true })
 	.then(() => console.log("MongoDB connected"))
 	.catch((err) => console.error("Connection error:", err));
 
-// Initialize Redis connection
+// Initialize Redis connection and email queue
 (async () => {
 	try {
-		await getRedisClient();
-		console.log("Redis initialized successfully");
+		console.log("Initializing Redis connection...");
+		const redisClient = await getRedisClient();
+		
+		// Initialize email queue after Redis is ready
+		console.log("Initializing email notification queue...");
+		require("./queues/emailQueue");
+		
+		// Wait a moment for queue to initialize
+		await new Promise(resolve => setTimeout(resolve, 500));
+		
+		console.log("✓ Email notification queue initialized");
+
+		// Verify environment variables
+		console.log("\n📧 Email Notification Configuration:");
+		if (!process.env.BREVO_NOTIFICATION_TEMPLATE_ID) {
+			console.warn(
+				"  ⚠️  BREVO_NOTIFICATION_TEMPLATE_ID is not set. Email notifications will fail."
+			);
+			console.warn(
+				"     See SETUP_BREVO_TEMPLATE.md for instructions on creating a template."
+			);
+		} else {
+			console.log(
+				`  ✓ Template ID configured: ${process.env.BREVO_NOTIFICATION_TEMPLATE_ID}`
+			);
+		}
+
+		if (!process.env.BREVO_API_KEY) {
+			console.warn(
+				"  ⚠️  BREVO_API_KEY is not set. Email notifications will fail."
+			);
+		} else {
+			console.log("  ✓ Brevo API key configured");
+		}
+		
+		if (!process.env.BREVO_SENDER_EMAIL) {
+			console.warn(
+				"  ⚠️  BREVO_SENDER_EMAIL is not set. Check your email service configuration."
+			);
+		} else {
+			console.log(`  ✓ Sender email: ${process.env.BREVO_SENDER_EMAIL}`);
+		}
+		
+		if (!process.env.REDIS_URL) {
+			console.warn(
+				"  ⚠️  REDIS_URL is not set. Email queue will not work."
+			);
+		} else {
+			console.log("  ✓ Redis URL configured");
+		}
+		console.log(""); // Empty line for readability
 	} catch (error) {
-		console.error("Failed to initialize Redis:", error);
+		console.error("\n✗ Failed to initialize email notification system:");
+		console.error(`  Error: ${error.message}`);
+		console.error(
+			"  Email notifications will not work until this is resolved.\n"
+		);
 	}
 })();
 
