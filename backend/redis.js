@@ -5,8 +5,15 @@ let redisClient;
 
 async function connectRedis() {
 	// Replace with your actual Redis Enterprise Cloud connection string
-	const redisUrl =
-		process.env.REDIS_URL;
+	const redisUrl = process.env.REDIS_URL;
+
+	if (!redisUrl) {
+		throw new Error(
+			"REDIS_URL is not set in environment variables. Email notifications require Redis."
+		);
+	}
+
+	console.log("Connecting to Redis...");
 
 	redisClient = createClient({
 		url: redisUrl,
@@ -21,11 +28,21 @@ async function connectRedis() {
 	});
 
 	redisClient.on("connect", () => {
-		console.log("Connected to Redis");
+		console.log("✓ Connected to Redis");
 	});
 
-	await redisClient.connect();
-	return redisClient;
+	redisClient.on("ready", () => {
+		console.log("✓ Redis client ready");
+	});
+
+	try {
+		await redisClient.connect();
+		console.log("✓ Redis initialized successfully");
+		return redisClient;
+	} catch (error) {
+		console.error("✗ Failed to connect to Redis:", error.message);
+		throw error;
+	}
 }
 
 // Initialize Redis connection

@@ -3,6 +3,7 @@ const Property = require("../models/propertyModel");
 const User = require("../models/userModel");
 const Notification = require("../models/notificationModel");
 const mongoose = require("mongoose");
+const { queueNotificationEmail } = require("../utils/notificationEmailHelper");
 
 // GET /api/ambassador/dashboard/stats
 exports.getAmbassadorDashboardStats = async (req, res) => {
@@ -382,6 +383,17 @@ exports.claimRequest = async (req, res) => {
 				},
 			});
 			await newNotification.save();
+
+			// Queue email notification
+			await queueNotificationEmail(ambassadorId, "ambassador_request", {
+				message: notificationMessage,
+				link: `/dashboard/ambassador/request/${request._id}`,
+				metadata: {
+					propertyId: request.propertyId,
+					requestId: request._id,
+				},
+			});
+
 			console.log(`[Ambassador Notification] Created claim notification for ambassador ${ambassadorId} for request ${request._id}`);
 		} catch (notificationError) {
 			// Log error but don't fail the claim

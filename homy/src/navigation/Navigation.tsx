@@ -73,6 +73,8 @@ const AppNavigation = () => {
             redirected to the login page ("/home"). */}
 
                 <Route element={<ProtectedRoute />}>
+                    {/* Redirect /dashboard/notifications to profile with query param to open notifications */}
+                    <Route path="/dashboard/notifications" element={<Navigate to="/dashboard/profile?openNotifications=true" replace />} />
                     <Route path="/dashboard/dashboard-index" element={<DashboardIndex />} />
                     <Route path="/dashboard/profile" element={<DashboardProfile />} />
                     <Route path="/dashboard/chat/conversation/:id" element={<DashboardChatConversationMain />} />

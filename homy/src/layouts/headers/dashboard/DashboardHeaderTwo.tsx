@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch } from '../../../redux/slices/store';
 import Notification from "./Notification";
@@ -28,10 +28,62 @@ const DashboardHeaderTwo: React.FC<DashboardHeaderTwoProps> = ({ title }) => {
     const profile = useSelector(selectProfile);
     const dispatch = useDispatch<AppDispatch>();
     const unreadCount = useSelector(selectUnreadNotificationCount);
+    const location = useLocation();
 
     useEffect(() => {
         dispatch(fetchNotifications(1)); // Fetch the first page of notifications
     }, [dispatch]);
+
+    // Auto-open notifications dropdown if query param is present
+    useEffect(() => {
+        const urlParams = new URLSearchParams(location.search);
+        const shouldOpenNotifications = urlParams.get('openNotifications') === 'true';
+        
+        if (!shouldOpenNotifications) {
+            return;
+        }
+
+        // Wait for DOM and Bootstrap to be ready
+        const timer = setTimeout(() => {
+            const button = document.getElementById('notification-dropdown') as HTMLButtonElement;
+            
+            if (!button) {
+                return;
+            }
+
+            // Try Bootstrap 5 dropdown API first
+            const bootstrap = (window as any).bootstrap;
+            if (bootstrap?.Dropdown) {
+                try {
+                    const dropdown = bootstrap.Dropdown.getOrCreateInstance(button);
+                    dropdown.show();
+                    // Mark notifications as read if needed
+                    if (unreadCount > 0) {
+                        dispatch(markNotificationsAsRead());
+                    }
+                } catch (e) {
+                    console.warn('Failed to open dropdown via Bootstrap API, using click fallback:', e);
+                    // Fallback to manual click (this will trigger handleNotificationOpen via onClick)
+                    button.click();
+                }
+            } else {
+                // Fallback: trigger click event (this will trigger handleNotificationOpen via onClick)
+                button.click();
+            }
+            
+            // Clean up URL by removing query param after a brief delay
+            setTimeout(() => {
+                const currentParams = new URLSearchParams(window.location.search);
+                if (currentParams.has('openNotifications')) {
+                    currentParams.delete('openNotifications');
+                    const newUrl = window.location.pathname + (currentParams.toString() ? `?${currentParams.toString()}` : '');
+                    window.history.replaceState({}, '', newUrl);
+                }
+            }, 100);
+        }, 500); // Delay to ensure Bootstrap and DOM are ready
+        
+        return () => clearTimeout(timer);
+    }, [location.search, unreadCount, dispatch]);
 
     // Memoized avatar URL to prevent unnecessary recalculations
     const avatarSrc = useMemo(() => {

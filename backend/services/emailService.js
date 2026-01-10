@@ -47,11 +47,15 @@ const sendTransactionalEmail = async (templateId, toEmail, toName, params) => {
 		);
 		return true;
 	} catch (error) {
-		console.error(
-			`Error sending Brevo email to ${toEmail}:`,
-			error.response ? error.response.body : error
-		);
-		throw new Error(`Failed to send email via Brevo.`);
+		const errorDetails = error.response?.body || error.message || error;
+		console.error(`[Email Service] Error sending Brevo email to ${toEmail}:`);
+		console.error(`[Email Service] Error response:`, JSON.stringify(errorDetails, null, 2));
+		console.error(`[Email Service] Status code:`, error.response?.statusCode || error.status || 'N/A');
+		console.error(`[Email Service] Full error:`, error);
+		
+		// Create a more informative error message
+		const errorMessage = error.response?.body?.message || error.message || 'Unknown error';
+		throw new Error(`Failed to send email via Brevo: ${errorMessage}`);
 	}
 };
 
@@ -154,7 +158,8 @@ const sendPasswordResetEmail = async (email, resetToken) => {
 	}
 
 	// This link points to your frontend. We will build this page in Phase 2.
-	const resetLink = `http://www.burrowhousing.com/reset-password?token=${resetToken}`;
+	const frontendUrl = process.env.FRONTEND_URL || "https://www.burrowhousing.com";
+	const resetLink = `${frontendUrl}/reset-password?token=${resetToken}`;
 
 	await sendTransactionalEmail(
 		parseInt(process.env.BREVO_PASS_RESET_TEMPLATE_ID),
@@ -163,8 +168,114 @@ const sendPasswordResetEmail = async (email, resetToken) => {
 		{ name: user.name, reset_link: resetLink }
 	);
 };
+
+/**
+ * Sends a notification email to a user.
+ * @param {string} toEmail - The recipient's email address.
+ * @param {string} toName - The recipient's name.
+ * @param {string} notificationType - The type of notification (e.g., 'new_interest', 'new_message').
+ * @param {object} notificationData - Additional data for the notification (message, link, etc.).
+ */
+const sendNotificationEmail = async (
+	toEmail,
+	toName,
+	notificationType,
+	notificationData
+) => {
+	if (!toEmail || !toName) {
+		throw new Error("Email and name are required");
+	}
+
+	// Get the frontend base URL from environment or use default
+	const frontendUrl =
+		process.env.FRONTEND_URL || "https://www.burrowhousing.com";
+	
+	// Build the notification link with query param to auto-open notifications dropdown
+	let notificationLink;
+	if (notificationData.link) {
+		// Check if link already has query params
+		const separator = notificationData.link.includes('?') ? '&' : '?';
+		notificationLink = `${frontendUrl}${notificationData.link}${separator}openNotifications=true`;
+	} else {
+		notificationLink = `${frontendUrl}/dashboard/notifications`;
+	}
+
+	// Prepare email parameters
+	const emailParams = {
+		name: toName,
+		message: notificationData.message || "You have a new notification.",
+		link: notificationLink,
+		linkText: "View Notification",
+		// Add any additional metadata
+		...(notificationData.metadata || {}),
+	};
+
+	// Map notification types to template IDs (if you have specific templates)
+	// For now, use a generic notification template
+	// You can create specific templates in Brevo and map them here
+	const templateIdMap = {
+		new_interest: process.env.BREVO_NOTIFICATION_TEMPLATE_ID,
+		interest_approved: process.env.BREVO_NOTIFICATION_TEMPLATE_ID,
+		interest_declined: process.env.BREVO_NOTIFICATION_TEMPLATE_ID,
+		interest_withdrawn: process.env.BREVO_NOTIFICATION_TEMPLATE_ID,
+		new_message: process.env.BREVO_NOTIFICATION_TEMPLATE_ID,
+		property_deleted: process.env.BREVO_NOTIFICATION_TEMPLATE_ID,
+		property_favorited: process.env.BREVO_NOTIFICATION_TEMPLATE_ID,
+		ambassador_request: process.env.BREVO_NOTIFICATION_TEMPLATE_ID,
+		ambassador_request_update: process.env.BREVO_NOTIFICATION_TEMPLATE_ID,
+		ambassador_request_cancelled: process.env.BREVO_NOTIFICATION_TEMPLATE_ID,
+	};
+
+	const templateId =
+		templateIdMap[notificationType] ||
+		process.env.BREVO_NOTIFICATION_TEMPLATE_ID;
+
+	if (!templateId) {
+		const errorMsg = `[Email Service] ERROR: No notification template ID configured (BREVO_NOTIFICATION_TEMPLATE_ID). Cannot send email to ${toEmail}.`;
+		console.error(errorMsg);
+		console.error(
+			"[Email Service] To fix this:\n" +
+			"  1. Log into Brevo dashboard (https://app.brevo.com)\n" +
+			"  2. Go to Transactional Emails > Templates\n" +
+			"  3. Create a new template with variables: {{params.name}}, {{params.message}}, {{params.link}}\n" +
+			"  4. Copy the template ID\n" +
+			"  5. Add BREVO_NOTIFICATION_TEMPLATE_ID=<template_id> to your .env file\n" +
+			"  6. Restart your server"
+		);
+		throw new Error(
+			"Email notification template ID is not configured. Please set BREVO_NOTIFICATION_TEMPLATE_ID in environment variables. See server logs for instructions."
+		);
+	}
+
+	// Validate template ID is a number
+	const templateIdNum = parseInt(templateId);
+	if (isNaN(templateIdNum)) {
+		const errorMsg = `[Email Service] ERROR: Invalid template ID "${templateId}". Template ID must be a number.`;
+		console.error(errorMsg);
+		throw new Error(`Invalid email template ID: ${templateId}`);
+	}
+
+	console.log(
+		`[Email Service] Sending ${notificationType} email to ${toEmail} using template ${templateIdNum}`
+	);
+
+	try {
+		await sendTransactionalEmail(templateIdNum, toEmail, toName, emailParams);
+		console.log(
+			`[Email Service] ✓ Successfully sent ${notificationType} email to ${toEmail}`
+		);
+	} catch (error) {
+		console.error(
+			`[Email Service] ✗ Failed to send ${notificationType} email to ${toEmail}:`,
+			error.message
+		);
+		throw error;
+	}
+};
+
 module.exports = {
 	sendOTP,
 	verifyOTP,
-	sendPasswordResetEmail, // Exporting for future use
+	sendPasswordResetEmail,
+	sendNotificationEmail,
 };
