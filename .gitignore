@@ -13,3 +13,6 @@ node_modules/
 .cursor/debug.log
 # Template files
 themeforest-*/
+#notes
+/notes
+*.xml

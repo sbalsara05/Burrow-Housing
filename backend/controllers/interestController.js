@@ -2,7 +2,7 @@ const Interest = require("../models/interestModel");
 const Property = require("../models/propertyModel");
 const Notification = require("../models/notificationModel");
 const User = require("../models/userModel");
-const Profile = require('../models/profileModel');
+const Profile = require("../models/profileModel");
 const mongoose = require("mongoose");
 const { queueNotificationEmail } = require("../utils/notificationEmailHelper");
 
@@ -109,27 +109,42 @@ exports.getReceivedInterests = async (req, res) => {
 				select: "overview images", // Get key property details
 			})
 			.sort({ createdAt: -1 }) // Show newest requests first
-            .lean();
+			.lean();
 
-        const populatedInterests = await Promise.all(interests.map(async (interest) => {
-            if (interest.renterId) {
-                // Select all necessary public fields from the Profile model
-                const renterProfile = await Profile.findOne({ userId: interest.renterId._id })
-                    .select('username school_attending majors_minors image')
-                    .lean();
-                
-                // Merge the profile info into the renterId object for the frontend
-                if (renterProfile) {
-                    Object.assign(interest.renterId, renterProfile);
-                }
+		const populatedInterests = await Promise.all(
+			interests.map(async (interest) => {
+				if (interest.renterId) {
+					// Select all necessary public fields from the Profile model
+					const renterProfile =
+						await Profile.findOne({
+							userId: interest
+								.renterId._id,
+						})
+							.select(
+								"username school_attending majors_minors image"
+							)
+							.lean();
 
-				// Fallback for username if it doesn't exist on profile
-				if (!interest.renterId.username) {
-					interest.renterId.username = interest.renterId.name;
+					// Merge the profile info into the renterId object for the frontend
+					if (renterProfile) {
+						const userId =
+							interest.renterId._id; // Preserve the User ID
+						Object.assign(
+							interest.renterId,
+							renterProfile
+						);
+						interest.renterId._id = userId; // Restore the User ID (not Profile ID)
+					}
+
+					// Fallback for username if it doesn't exist on profile
+					if (!interest.renterId.username) {
+						interest.renterId.username =
+							interest.renterId.name;
+					}
 				}
-            }
-            return interest;
-        }));
+				return interest;
+			})
+		);
 
 		res.status(200).json(populatedInterests);
 	} catch (error) {
@@ -197,26 +212,20 @@ exports.withdrawInterest = async (req, res) => {
 	try {
 		const interest = await Interest.findById(interestId);
 		if (!interest) {
-			return res
-				.status(404)
-				.json({
-					message: "Interest request not found.",
-				});
+			return res.status(404).json({
+				message: "Interest request not found.",
+			});
 		}
 		// Security Check: Only the renter who created it can withdraw
 		if (interest.renterId.toString() !== renterId) {
-			return res
-				.status(403)
-				.json({
-					message: "You are not authorized to withdraw this request.",
-				});
+			return res.status(403).json({
+				message: "You are not authorized to withdraw this request.",
+			});
 		}
 		if (interest.status !== "pending") {
-			return res
-				.status(400)
-				.json({
-					message: `Cannot withdraw a request with status '${interest.status}'.`,
-				});
+			return res.status(400).json({
+				message: `Cannot withdraw a request with status '${interest.status}'.`,
+			});
 		}
 
 		interest.status = "withdrawn";
