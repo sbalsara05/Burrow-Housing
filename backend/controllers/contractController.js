@@ -3,6 +3,8 @@ const Contract = require("../models/contractModel");
 const Property = require("../models/propertyModel");
 const User = require("../models/userModel");
 const { generateContractPdf } = require("../services/pdfService");
+const Notification = require("../models/notificationModel");
+const { sendTransactionalEmail } = require("../services/emailService");
 
 // Configure DigitalOcean Spaces client using AWS SDK v3
 // Note: SDK v3 requires the full endpoint URL including the protocol
@@ -287,6 +289,60 @@ exports.lockContract = async (req, res) => {
 			.populate("lister", "name email")
 			.populate("tenant", "name email");
 
+		// Send notification to tenant
+		const propertyTitle =
+			populatedContract.property.overview?.title ||
+			`${
+				populatedContract.property.listingDetails
+					?.bedrooms || ""
+			} Bed ${
+				populatedContract.property.overview?.category ||
+				"Property"
+			}`.trim();
+
+		await Notification.create({
+			userId: populatedContract.tenant._id,
+			type: "contract_pending",
+			message: `${populatedContract.lister.name} has sent you a sublease agreement for ${propertyTitle}`,
+			link: `/dashboard/agreements/${populatedContract._id}/sign`,
+			metadata: {
+				contractId: populatedContract._id,
+				propertyId: populatedContract.property._id,
+				listerId: populatedContract.lister._id,
+			},
+		});
+
+		// Send email to tenant
+		const reviewUrl = `http://www.burrowhousing.com/dashboard/agreements/${populatedContract._id}/sign`;
+
+		await sendTransactionalEmail(
+			4,
+			populatedContract.tenant.email,
+			populatedContract.tenant.name,
+			{
+				tenant_name: populatedContract.tenant.name,
+				lister_name: populatedContract.lister.name,
+				property_title: propertyTitle,
+				property_address:
+					populatedContract.property
+						.addressAndLocation?.address ||
+					"Address not available",
+				rent_amount:
+					populatedContract.variables.get(
+						"Rent_Amount"
+					) || "TBD",
+				start_date:
+					populatedContract.variables.get(
+						"Start_Date"
+					) || "TBD",
+				end_date:
+					populatedContract.variables.get(
+						"End_Date"
+					) || "TBD",
+				review_url: reviewUrl,
+			}
+		);
+
 		res.json(populatedContract);
 	} catch (error) {
 		console.error("Error locking contract:", error);
@@ -347,7 +403,68 @@ exports.signContract = async (req, res) => {
 			contract.status = "PENDING_LISTER_SIGNATURE";
 			await contract.save();
 
-			return res.json(contract);
+			// Populate before sending response
+			const populatedContract = await Contract.findById(
+				contract._id
+			)
+				.populate(
+					"property",
+					"overview.title addressAndLocation.address images listingDetails.bedrooms"
+				)
+				.populate("lister", "name email")
+				.populate("tenant", "name email");
+
+			// Send notification to lister
+			const propertyTitle =
+				populatedContract.property.overview?.title ||
+				`${
+					populatedContract.property
+						.listingDetails?.bedrooms || ""
+				} Bed ${
+					populatedContract.property.overview
+						?.category || "Property"
+				}`.trim();
+
+			await Notification.create({
+				userId: populatedContract.lister._id,
+				type: "contract_tenant_signed",
+				message: `${populatedContract.tenant.name} has signed the sublease agreement for ${propertyTitle}`,
+				link: `/dashboard/agreements/${populatedContract._id}/sign`,
+				metadata: {
+					contractId: populatedContract._id,
+					propertyId: populatedContract.property
+						._id,
+					tenantId: populatedContract.tenant._id,
+				},
+			});
+
+			// Send email to lister
+			const countersignUrl = `http://www.burrowhousing.com/dashboard/agreements/${contractId}/sign`;
+
+			await sendTransactionalEmail(
+				5,
+				populatedContract.lister.email,
+				populatedContract.lister.name,
+				{
+					lister_name:
+						populatedContract.lister.name,
+					tenant_name:
+						populatedContract.tenant.name,
+					property_title: propertyTitle,
+					signed_date:
+						new Date().toLocaleDateString(
+							"en-US",
+							{
+								month: "long",
+								day: "numeric",
+								year: "numeric",
+							}
+						),
+					countersign_url: countersignUrl,
+				}
+			);
+
+			return res.json(populatedContract);
 		}
 
 		// Lister Execution Block (Finalization)
@@ -417,6 +534,87 @@ exports.signContract = async (req, res) => {
 				)
 				.populate("lister", "name email")
 				.populate("tenant", "name email");
+
+			// Send notifications to both parties
+			const propertyTitle =
+				populatedContract.property.overview?.title ||
+				`${
+					populatedContract.property
+						.listingDetails?.bedrooms || ""
+				} Bed ${
+					populatedContract.property.overview
+						?.category || "Property"
+				}`.trim();
+
+			// Notification for tenant
+			await Notification.create({
+				userId: populatedContract.tenant._id,
+				type: "contract_completed",
+				message: `Your sublease agreement for ${propertyTitle} is now complete!`,
+				link: `/dashboard/my-agreements`,
+				metadata: {
+					contractId: populatedContract._id,
+					propertyId: populatedContract.property
+						._id,
+				},
+			});
+
+			// Notification for lister
+			await Notification.create({
+				userId: populatedContract.lister._id,
+				type: "contract_completed",
+				message: `The sublease agreement for ${propertyTitle} is now complete!`,
+				link: `/dashboard/my-agreements`,
+				metadata: {
+					contractId: populatedContract._id,
+					propertyId: populatedContract.property
+						._id,
+				},
+			});
+
+			// Email to both parties
+			const emailParams = {
+				property_title: propertyTitle,
+				lister_name: populatedContract.lister.name,
+				tenant_name: populatedContract.tenant.name,
+				start_date:
+					populatedContract.variables.get(
+						"Start_Date"
+					) || "TBD",
+				end_date:
+					populatedContract.variables.get(
+						"End_Date"
+					) || "TBD",
+				rent_amount:
+					populatedContract.variables.get(
+						"Rent_Amount"
+					) || "TBD",
+				pdf_url: populatedContract.finalPdfUrl,
+			};
+
+			// Email to tenant
+			await sendTransactionalEmail(
+				6,
+				populatedContract.tenant.email,
+				populatedContract.tenant.name,
+				{
+					...emailParams,
+					user_name: populatedContract.tenant
+						.name,
+				}
+			);
+
+			// Email to lister
+			await sendTransactionalEmail(
+				6,
+				populatedContract.lister.email,
+				populatedContract.lister.name,
+				{
+					...emailParams,
+					user_name: populatedContract.lister
+						.name,
+				}
+			);
 
 			return res.json(populatedContract);
 		}
