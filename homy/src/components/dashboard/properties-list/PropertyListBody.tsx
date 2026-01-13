@@ -7,6 +7,7 @@ import NiceSelect from "../../../ui/NiceSelect";
 import PropertyTableBody from "./PropertyTableBody";
 import { toast } from 'react-toastify';
 import DeleteConfirmationModal from '../../../modals/DeleteConfirmationModal';
+import { useSidebarCollapse } from '../../../hooks/useSidebarCollapse';
 import {
     fetchUserProperties,
     selectUserProperties,
@@ -20,6 +21,7 @@ import {
 
 const PropertyListBody = () => {
     const dispatch = useDispatch<AppDispatch>();
+    const isCollapsed = useSidebarCollapse();
 
     const { userProperties, isLoading, error, userPropertiesSort } = useSelector((state: RootState) => state.properties);
 
@@ -76,7 +78,7 @@ const PropertyListBody = () => {
     };
 
     return (
-        <div className="dashboard-body">
+        <div className={`dashboard-body ${isCollapsed ? 'sidebar-collapsed' : ''}`}>
             <div className="position-relative">
                 <DashboardHeaderTwo title="My Properties" />
                 <h2 className="main-title d-block d-lg-none">My Properties</h2>

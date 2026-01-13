@@ -5,6 +5,7 @@ import axios from 'axios';
 import DashboardHeaderTwo from '../../../layouts/headers/dashboard/DashboardHeaderTwo';
 import { Link, useNavigate } from 'react-router-dom';
 import Fancybox from '../../../components/common/Fancybox';
+import { useSidebarCollapse } from '../../../hooks/useSidebarCollapse';
 
 // Try importing without AppDispatch first to isolate the issue
 import {
@@ -22,6 +23,7 @@ import type { AppDispatch } from '../../../redux/store'; // Changed path
 const MyRequestsBody = () => {
     const dispatch = useDispatch<AppDispatch>();
     const navigate = useNavigate();
+    const isCollapsed = useSidebarCollapse();
     const requests = useSelector(selectSentInterests);
     const isLoading = useSelector(selectInterestsLoading);
     const error = useSelector(selectInterestsError);
@@ -47,7 +49,7 @@ const MyRequestsBody = () => {
     const hasNoRequests = requests.length === 0 && !isLoading;
 
     return (
-        <div className="dashboard-body">
+        <div className={`dashboard-body ${isCollapsed ? 'sidebar-collapsed' : ''}`}>
             <div className="position-relative">
                 <DashboardHeaderTwo title="My Sent Requests" />
                 <h2 className="main-title d-block d-lg-none">My Sent Requests</h2>

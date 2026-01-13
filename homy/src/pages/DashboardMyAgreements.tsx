@@ -1,17 +1,17 @@
 import React from 'react';
 import Wrapper from '../layouts/Wrapper';
 import SEO from '../components/SEO';
-import DashboardHeaderOne from "../layouts/headers/dashboard/DashboardHeaderOne";
 import DashboardHeaderTwo from "../layouts/headers/dashboard/DashboardHeaderTwo";
-import AgreementsBody from '../components/dashboard/agreements/AgreementsBody'; // We will create this next
+import AgreementsBody from '../components/dashboard/agreements/AgreementsBody';
+import { useSidebarCollapse } from '../hooks/useSidebarCollapse';
 
 const DashboardMyAgreements = () => {
+    const isCollapsed = useSidebarCollapse();
+
     return (
         <Wrapper>
             <SEO pageTitle={'My Agreements - Burrow Housing'} />
-            {/* Sidebar */}
-            <DashboardHeaderOne />
-            <div className="dashboard-body">
+            <div className={`dashboard-body ${isCollapsed ? 'sidebar-collapsed' : ''}`}>
                 <div className="position-relative">
                     {/* Top Header */}
                     <DashboardHeaderTwo title="My Agreements" />

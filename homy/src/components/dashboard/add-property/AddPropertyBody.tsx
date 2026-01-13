@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { AppDispatch, RootState } from '../../../redux/slices/store';
+import { useSidebarCollapse } from '../../../hooks/useSidebarCollapse';
 import {
     addNewProperty,
     updateUserProperty,
@@ -62,6 +63,7 @@ const initialFormData: FormDataShape = {
 const AddPropertyBody: React.FC<AddPropertyBodyProps> = ({ isEditMode = false, propertyToEdit }) => {
     const dispatch = useDispatch<AppDispatch>();
     const navigate = useNavigate();
+    const isCollapsed = useSidebarCollapse();
     const isSubmitting = useSelector(selectIsAddingProperty);
     const error = useSelector(selectPropertyError);
 
@@ -246,7 +248,7 @@ const AddPropertyBody: React.FC<AddPropertyBodyProps> = ({ isEditMode = false, p
     const pageTitle = isEditMode ? "Edit Property" : "Add New Property";
 
     return (
-        <div className="dashboard-body">
+        <div className={`dashboard-body ${isCollapsed ? 'sidebar-collapsed' : ''}`}>
             <div className="position-relative">
                 <DashboardHeaderTwo title={pageTitle} />
                 <h2 className="main-title d-block d-lg-none">{pageTitle}</h2>

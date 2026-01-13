@@ -4,6 +4,7 @@ import UserAvatarSetting from "./UserAvatarSetting"; // Renders form fields
 import DashboardHeaderTwo from "../../../layouts/headers/dashboard/DashboardHeaderTwo";
 import { toast } from "react-toastify";
 import { AppDispatch } from '../../../redux/slices/store.ts';
+import { useSidebarCollapse } from '../../../hooks/useSidebarCollapse';
 // Import actions and selectors from profileSlice
 import { 
     fetchProfile, 
@@ -20,6 +21,7 @@ import { selectCurrentUser } from "../../../redux/slices/authSlice";
 
 const ProfileBody = () => {
     const dispatch = useDispatch<AppDispatch>();
+    const isCollapsed = useSidebarCollapse();
     // Select state from the profile slice
     const profile = useSelector(selectProfile);
     const isLoading = useSelector(selectProfileLoading);
@@ -301,7 +303,7 @@ const ProfileBody = () => {
     }
 
     return (
-        <div className="dashboard-body">
+        <div className={`dashboard-body ${isCollapsed ? 'sidebar-collapsed' : ''}`}>
             <div className="position-relative">
                 <DashboardHeaderTwo title="Profile" />
                 <h2 className="main-title d-block d-lg-none">Profile</h2>

@@ -6,6 +6,7 @@ import { toast } from 'react-toastify'
 import DashboardHeaderTwo from '../../../layouts/headers/dashboard/DashboardHeaderTwo'
 import type { AppDispatch } from '../../../redux/slices/store'
 import Fancybox from '../../../components/common/Fancybox'
+import { useSidebarCollapse } from '../../../hooks/useSidebarCollapse'
 
 import {
     fetchReceivedInterests,
@@ -43,6 +44,7 @@ interface AmbassadorRequest {
 const RequestsBody = () => {
     const dispatch = useDispatch<AppDispatch>()
     const navigate = useNavigate()
+    const isCollapsed = useSidebarCollapse()
 
     const isAuthenticated = useSelector(selectIsAuthenticated)
     const requests = useSelector(selectReceivedInterests) || []
@@ -132,7 +134,7 @@ const RequestsBody = () => {
   const hasNoRequests = requests.length === 0 && pendingAmbassadorRequests.length === 0 && !isLoading && !loadingAmbassador
 
     return (
-        <div className="dashboard-body">
+        <div className={`dashboard-body ${isCollapsed ? 'sidebar-collapsed' : ''}`}>
             <div className="position-relative">
                 <DashboardHeaderTwo title="Received Requests" />
                 <h2 className="main-title d-block d-lg-none">Received Requests</h2>
