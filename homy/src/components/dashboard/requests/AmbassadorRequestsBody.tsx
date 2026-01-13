@@ -6,6 +6,7 @@ import { toast } from 'react-toastify';
 import { selectIsAuthenticated } from '../../../redux/slices/authSlice';
 import DashboardHeaderTwo from '../../../layouts/headers/dashboard/DashboardHeaderTwo';
 import Fancybox from '../../../components/common/Fancybox';
+import { useSidebarCollapse } from '../../../hooks/useSidebarCollapse';
 
 interface AmbassadorRequest {
   _id: string;
@@ -37,6 +38,7 @@ interface AmbassadorRequest {
 const AmbassadorRequestsBody = () => {
   const navigate = useNavigate();
   const isAuthenticated = useSelector(selectIsAuthenticated);
+  const isCollapsed = useSidebarCollapse();
   const [ambassadorRequests, setAmbassadorRequests] = useState<AmbassadorRequest[]>([]);
   const [loadingAmbassador, setLoadingAmbassador] = useState(true);
 
@@ -89,7 +91,7 @@ const AmbassadorRequestsBody = () => {
   const hasNoRequests = ambassadorRequests.length === 0 && !loadingAmbassador;
 
   return (
-    <div className="dashboard-body">
+    <div className={`dashboard-body ${isCollapsed ? 'sidebar-collapsed' : ''}`}>
       <div className="position-relative">
         <DashboardHeaderTwo title="Ambassador Responses" />
         <h2 className="main-title d-block d-lg-none">Ambassador Responses</h2>

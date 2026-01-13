@@ -7,6 +7,7 @@ import { Channel, ChannelList, Window, MessageList, MessageInput, Thread, useCha
 import CustomChannelHeader from './CustomChannelHeader';
 import CustomEmptyStateIndicator from './CustomEmptyStateIndicator';
 import CustomLoadingComponent from './CustomLoadingComponent';
+import { useSidebarCollapse } from '../../../hooks/useSidebarCollapse';
 // Import the default Stream Chat CSS for styling
 import 'stream-chat-react/dist/css/v2/index.css';
 
@@ -236,6 +237,7 @@ const ChatUIComponent = () => {
     const [searchParams] = useSearchParams();
     const channelIdFromUrl = searchParams.get('channel');
     const { client } = useChatContext();
+    const isCollapsed = useSidebarCollapse();
 
     const toggleSidebar = () => {
         // Sidebar toggle for mobile (if needed)
@@ -247,7 +249,7 @@ const ChatUIComponent = () => {
     } : undefined;
 
     return (
-        <div className="dashboard-body">
+        <div className={`dashboard-body ${isCollapsed ? 'sidebar-collapsed' : ''}`}>
             <div className="position-relative">
                 <DashboardHeaderTwo title="Chat" />
                 <div className="bg-white card-box p-0 border-20 tw-rounded-lg tw-overflow-hidden">
@@ -289,7 +291,6 @@ const ChatUIComponent = () => {
 const DashboardChatMain = () => {
     return (
         <>
-            <DashboardHeaderOne />
             <ChatProvider>
                 <ChatUIComponent />
             </ChatProvider>

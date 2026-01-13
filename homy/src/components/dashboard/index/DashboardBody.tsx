@@ -1,5 +1,6 @@
 import DashboardHeaderTwo from "../../../layouts/headers/dashboard/DashboardHeaderTwo";
 import NiceSelect from "../../../ui/NiceSelect";
+import { useSidebarCollapse } from '../../../hooks/useSidebarCollapse';
 
 interface DataType {
    id: number;
@@ -40,9 +41,10 @@ const dashboard_card_data: DataType[] = [
 const DashboardBody = () => {
 
    const selectHandler = () => { };
+   const isCollapsed = useSidebarCollapse();
 
    return (
-      <div className="dashboard-body">
+      <div className={`dashboard-body ${isCollapsed ? 'sidebar-collapsed' : ''}`}>
          <div className="position-relative">
             <DashboardHeaderTwo title="Dashboard" />
 
