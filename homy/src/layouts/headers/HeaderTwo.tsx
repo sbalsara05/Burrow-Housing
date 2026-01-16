@@ -159,10 +159,19 @@ const HeaderTwo: React.FC<HeaderTwoProps> = ({ style_1, style_2 }) => {
                                                                 backgroundColor: '#f8f9fa',
                                                                 color: '#333',
                                                                 fontSize: '14px',
-                                                                transition: 'all 0.3s ease'
+                                                                transition: 'all 0.3s ease',
+                                                                overflow: 'hidden'
                                                             }}
                                                         >
-                                                            <i className="fa-regular fa-user"></i>
+                                                            {profile?.image ? (
+                                                                <img 
+                                                                    src={profile.image} 
+                                                                    alt="Profile" 
+                                                                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                                                />
+                                                            ) : (
+                                                                <i className="fa-regular fa-user"></i>
+                                                            )}
                                                         </div>
                                                         <span 
                                                             className="fw-500"
@@ -227,27 +236,40 @@ const HeaderTwo: React.FC<HeaderTwoProps> = ({ style_1, style_2 }) => {
                                                         to="/dashboard/profile"
                                                         className="rounded-circle d-flex align-items-center justify-content-center text-decoration-none"
                                                         style={{
-                                                            background: 'linear-gradient(135deg, #fb6547 0%, #e03e22 100%)',
+                                                            background: profile?.image ? 'transparent' : 'linear-gradient(135deg, #fb6547 0%, #e03e22 100%)',
                                                             border: 'none',
                                                             width: '40px',
                                                             height: '40px',
                                                             color: 'white',
                                                             transition: 'all 0.3s ease',
-                                                            boxShadow: '0 2px 8px rgba(245, 74, 44, 0.2)'
+                                                            boxShadow: '0 2px 8px rgba(245, 74, 44, 0.2)',
+                                                            overflow: 'hidden'
                                                         }}
                                                         onMouseEnter={(e) => {
-                                                            e.currentTarget.style.background = 'linear-gradient(135deg, #e03e22 0%, #c73321 100%)';
+                                                            if (!profile?.image) {
+                                                                e.currentTarget.style.background = 'linear-gradient(135deg, #e03e22 0%, #c73321 100%)';
+                                                            }
                                                             e.currentTarget.style.transform = 'translateY(-2px)';
                                                             e.currentTarget.style.boxShadow = '0 4px 15px rgba(245, 74, 44, 0.3)';
                                                         }}
                                                         onMouseLeave={(e) => {
-                                                            e.currentTarget.style.background = 'linear-gradient(135deg, #fb6547 0%, #e03e22 100%)';
+                                                            if (!profile?.image) {
+                                                                e.currentTarget.style.background = 'linear-gradient(135deg, #fb6547 0%, #e03e22 100%)';
+                                                            }
                                                             e.currentTarget.style.transform = 'translateY(0)';
                                                             e.currentTarget.style.boxShadow = '0 2px 8px rgba(245, 74, 44, 0.2)';
                                                         }}
                                                         title={`Go to ${user.name || 'User'}'s profile`}
                                                     >
-                                                        <i className="fa-regular fa-user"></i>
+                                                        {profile?.image ? (
+                                                            <img 
+                                                                src={profile.image} 
+                                                                alt="Profile" 
+                                                                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                                            />
+                                                        ) : (
+                                                            <i className="fa-regular fa-user"></i>
+                                                        )}
                                                     </Link>
                                                 </li>
                                             )}
