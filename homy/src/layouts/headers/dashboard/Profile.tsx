@@ -2,7 +2,7 @@
 import React from 'react'; // Import React
 import { Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from 'react-redux'; // Import Redux hooks
-import DeleteModal from "../../../modals/DeleteModal"; // Keep if using delete modal
+
 import { logoutUser, selectCurrentUser } from '../../../redux/slices/authSlice'; // Import logout action and selector
 import { AppDispatch } from '../../../redux/slices/store.ts'; // Import AppDispatch
 
@@ -56,22 +56,16 @@ const Profile: React.FC = () => { // Use React.FC for type safety
                             onClick={handleLogout}
                             style={{ background: 'none', border: 'none', width: '100%', textAlign: 'left', padding: '0.25rem 1rem' }} // Basic button styling to mimic link
                         >
-                            <img src="/assets/images/dashboard/icon/arrow-left-from-line.svg" alt="" className="lazy-img me-2" /> {/* Logout icon */}
+                            <div className="d-flex align-items-center justify-content-center me-2" style={{ width: '24px', height: '24px', minWidth: '24px' }}>
+                                <img src="/assets/images/dashboard/icon/icon_41.svg" alt="" className="logout-icon" style={{ filter: 'brightness(0)', transition: 'all 0.25s ease-in-out 0s' }} /> {/* Logout icon - black */}
+                            </div>
                             <span>Logout</span>
                         </button>
                     </li>
-                    {/* Delete Account Modal Trigger (Keep if needed) */}
-                    <li><hr className="dropdown-divider" /></li>
-                    <li>
-                        <Link className="dropdown-item d-flex align-items-center text-danger" to="#" data-bs-toggle="modal" data-bs-target="#deleteModal">
-                            <img src="/assets/images/dashboard/icon/icon_trash.svg" alt="" className="lazy-img me-2" /> {/* Delete icon */}
-                            <span>Delete Account</span>
-                        </Link>
-                    </li>
+
                 </ul>
             </div>
-            {/* Delete Modal (Ensure it's rendered, maybe in a layout component) */}
-            <DeleteModal />
+
         </>
     );
 };
