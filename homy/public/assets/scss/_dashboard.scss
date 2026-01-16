@@ -486,6 +486,10 @@
                     &:hover {
                         color: $color-one;
                         background: rgba($color: #000000, $alpha: 0.01);
+
+                        .logout-icon {
+                            filter: brightness(0) saturate(100%) invert(55%) sepia(94%) saturate(2591%) hue-rotate(1deg) brightness(102%) contrast(104%) !important;
+                        }
                     }
 
                     img {

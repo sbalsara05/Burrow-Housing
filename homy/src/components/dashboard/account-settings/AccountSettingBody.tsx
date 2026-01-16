@@ -4,6 +4,7 @@ import DashboardHeaderTwo from "../../../layouts/headers/dashboard/DashboardHead
 import { toast } from "react-toastify";
 import { useDispatch, useSelector } from 'react-redux';
 import { useSidebarCollapse } from '../../../hooks/useSidebarCollapse';
+import DeleteModal from "../../../modals/DeleteModal";
 // Use actions/selectors from authSlice for basic user details
 import { fetchUserProfile, updateUser, selectCurrentUser, selectAuthLoading, selectAuthError, clearAuthError, selectAuthStatus } from '../../../redux/slices/authSlice';
 import { AppDispatch, RootState } from '../../../redux/slices/store.ts';
@@ -226,7 +227,24 @@ const AccountSettingBody = () => {
                         </div>
                     </form>
                 </div>
+
+                {/* Delete Account Section */}
+                <div className="bg-white card-box border-20 mt-40">
+                    <h4 className="dash-title-three">Delete Account</h4>
+                    <p className="text-muted mb-30">Once you delete your account, there is no going back. All your data will be permanently removed.</p>
+                    <button
+                        type="button"
+                        className="btn btn-danger"
+                        data-bs-toggle="modal"
+                        data-bs-target="#deleteModal"
+                    >
+                        Delete My Account
+                    </button>
+                </div>
             </div>
+
+            {/* Delete Modal */}
+            <DeleteModal />
         </div>
     );
 };
