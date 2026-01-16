@@ -44,6 +44,34 @@ const DashboardHeaderOne: React.FC<DashboardHeaderOneProps> = ({ isActive, setIs
     // Track expanding state for smooth text fade-in animation
     const [isExpanding, setIsExpanding] = useState(false);
 
+    // Save and restore sidebar scroll position
+    useEffect(() => {
+        const sidebar = document.querySelector('.dash-aside-navbar');
+        if (!sidebar) return;
+
+        // Restore scroll position on mount
+        try {
+            const savedScrollPosition = localStorage.getItem('homy-dashboard-sidebar-scroll');
+            if (savedScrollPosition) {
+                sidebar.scrollTop = parseInt(savedScrollPosition, 10);
+            }
+        } catch (error) {
+            console.error('Error restoring sidebar scroll position:', error);
+        }
+
+        // Save scroll position on scroll
+        const handleScroll = () => {
+            try {
+                localStorage.setItem('homy-dashboard-sidebar-scroll', sidebar.scrollTop.toString());
+            } catch (error) {
+                console.error('Error saving sidebar scroll position:', error);
+            }
+        };
+
+        sidebar.addEventListener('scroll', handleScroll);
+        return () => sidebar.removeEventListener('scroll', handleScroll);
+    }, []);
+
     // Update pathname when location changes
     useEffect(() => {
         setPathname(location.pathname);
