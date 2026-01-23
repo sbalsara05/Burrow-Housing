@@ -18,9 +18,20 @@ const notificationRoutes = require("./routes/notificationRoutes");
 const ambassadorRequestRoutes = require("./routes/ambassadorRequestRoutes");
 const ambassadorDashboardRoutes = require("./routes/ambassadorDashboardRoutes");
 const contractRoutes = require("./routes/contractRoutes");
+const stripeRoutes = require("./routes/stripeRoutes");
+const { handleWebhook } = require("./controllers/stripeController");
 
 // Initialize Express app
 const app = express();
+
+// Stripe webhook must receive raw body for signature verification – mount before express.json()
+app.post(
+	"/api/stripe/webhook",
+	express.raw({ type: "application/json" }),
+	(req, res, next) => {
+		handleWebhook(req, res).catch(next);
+	}
+);
 
 // Middleware
 app.use(express.json());
@@ -110,6 +121,22 @@ mongoose.connect(uri, { useNewUrlParser: true, useUnifiedTopology: true })
 		} else {
 			console.log("  ✓ Redis URL configured");
 		}
+
+		console.log("\n💳 Stripe Configuration:");
+		if (!process.env.STRIPE_SECRET_KEY) {
+			console.warn(
+				"  ⚠️  STRIPE_SECRET_KEY is not set. Payment intents will fail."
+			);
+		} else {
+			console.log("  ✓ Stripe secret key configured");
+		}
+		if (!process.env.STRIPE_WEBHOOK_SECRET) {
+			console.warn(
+				"  ⚠️  STRIPE_WEBHOOK_SECRET is not set. Webhooks will not be verified."
+			);
+		} else {
+			console.log("  ✓ Stripe webhook secret configured");
+		}
 		console.log(""); // Empty line for readability
 	} catch (error) {
 		console.error("\n✗ Failed to initialize email notification system:");
@@ -130,6 +157,8 @@ app.get("/", (req, res) => {
 		endpoints: {
 			api: "/api/*",
 			health: "/health",
+			stripe: "/api/stripe/create-payment-intent",
+			stripeWebhook: "/api/stripe/webhook",
 		},
 	});
 });
@@ -156,6 +185,7 @@ app.use("/api", notificationRoutes); // Notification management routes
 app.use("/api", ambassadorRequestRoutes); // Ambassador request management routes
 app.use("/api/ambassador", ambassadorDashboardRoutes); // Ambassador dashboard routes
 app.use("/api/contracts", contractRoutes); //Contract management routes
+app.use("/api/stripe", stripeRoutes); // Stripe payment intents (create-payment-intent)
 
 // Start the Server
 const PORT = process.env.PORT || 5001; // Use a different port from React's default

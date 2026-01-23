@@ -68,6 +68,14 @@ const contractSchema = new mongoose.Schema(
 		finalPdfUrl: {
 			type: String, // S3 URL to the immutable PDF
 		},
+
+		// Stripe payment (when both sides have signed)
+		stripePaymentIntentId: { type: String },
+		stripePaymentStatus: {
+			type: String,
+			enum: ["", "pending", "succeeded", "failed"],
+			default: "",
+		},
 	},
 	{ timestamps: true }
 );
