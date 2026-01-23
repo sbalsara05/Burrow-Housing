@@ -35,10 +35,11 @@ const defaultCenter = {
 };
 const API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
-// Libraries array for Google Maps - must include 'places' for Autocomplete to work
-// The useJsApiLoader hook requires this to be passed as an array
-// Without this, Autocomplete component will throw an error about missing libraries prop
+// Libraries array for Google Maps - must include 'places' for Autocomplete to work.
+// Use a unique id so we don't reuse a loader from elsewhere (e.g. listing map) that was
+// loaded without places — that causes "libraries places" errors on first Add Property visit.
 const libraries: ("places" | "drawing" | "geometry" | "localContext" | "visualization")[] = ['places'];
+const LOADER_ID = 'google-map-script-places';
 
 const AddressAndLocation: React.FC<AddressAndLocationProps> = ({
     location,
@@ -60,14 +61,19 @@ const AddressAndLocation: React.FC<AddressAndLocationProps> = ({
     }
 
     const { isLoaded, loadError } = useJsApiLoader({
-        id: 'google-map-script',
+        id: LOADER_ID,
         googleMapsApiKey: API_KEY,
-        libraries: libraries, // 👈 Crucial for Autocomplete to work - must include 'places'
-        preventGoogleFontsLoading: true, // Optional: prevent loading Google Fonts
+        libraries,
+        preventGoogleFontsLoading: true,
     });
 
     const [autocomplete, setAutocomplete] = useState<google.maps.places.Autocomplete | null>(null);
     const mapRef = useRef<google.maps.Map | null>(null);
+
+    // Autocomplete throws if google.maps.places is missing. Only render it when places exists.
+    // This avoids "libraries places" errors on first Add Property visit (e.g. when another
+    // map loaded Maps without places).
+    const hasPlaces = isLoaded && typeof window !== 'undefined' && !!(window as any).google?.maps?.places;
 
     const onMapLoad = useCallback((mapInstance: google.maps.Map) => {
         mapRef.current = mapInstance;
@@ -141,6 +147,27 @@ const AddressAndLocation: React.FC<AddressAndLocationProps> = ({
                         <span className="visually-hidden">Loading Maps Interface...</span>
                     </div>
                     <p className="mt-3">Loading Maps Interface...</p>
+                </div>
+            </div>
+        );
+    }
+
+    // isLoaded but Places API missing — e.g. another map loaded Maps without places.
+    // Avoid rendering Autocomplete (it throws). Ask user to refresh.
+    if (!hasPlaces) {
+        return (
+            <div className="bg-white card-box border-20 mt-40">
+                <h4 className="dash-title-three">Address & Location</h4>
+                <div className="alert alert-warning mt-3">
+                    <strong>Address search couldn&apos;t load.</strong> This sometimes happens the first time you open this page. Please{' '}
+                    <button
+                        type="button"
+                        className="btn btn-link btn-sm p-0 align-baseline"
+                        onClick={() => window.location.reload()}
+                    >
+                        refresh the page
+                    </button>
+                    {' '}and try again.
                 </div>
             </div>
         );
