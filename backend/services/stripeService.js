@@ -8,13 +8,21 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
  * @param {string} currency - ISO currency (default 'usd')
  * @param {Object} metadata - Optional metadata (e.g. contractId, tenantId)
  * @param {string} [receiptEmail] - Optional customer email for receipt
+ * @param {"card"|"ach"} [paymentMethod] - Payment method (defaults to "card")
  * @returns {Promise<{id: string, clientSecret: string}>}
  */
-async function createPaymentIntent(amountCents, currency = "usd", metadata = {}, receiptEmail = null) {
+async function createPaymentIntent(
+	amountCents,
+	currency = "usd",
+	metadata = {},
+	receiptEmail = null,
+	paymentMethod = "card"
+) {
+	const method = paymentMethod === "ach" ? "ach" : "card";
 	const params = {
 		amount: Math.round(amountCents),
 		currency,
-		payment_method_types: ["card"],
+		payment_method_types: [method === "ach" ? "us_bank_account" : "card"],
 		metadata: { ...metadata },
 	};
 	if (receiptEmail) params.receipt_email = receiptEmail;

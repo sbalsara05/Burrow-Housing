@@ -73,8 +73,49 @@ const contractSchema = new mongoose.Schema(
 		stripePaymentIntentId: { type: String },
 		stripePaymentStatus: {
 			type: String,
-			enum: ["", "pending", "succeeded", "failed"],
+			// Kept for backwards compatibility with existing frontend code.
+			enum: ["", "pending", "succeeded", "failed", "canceled", "processing"],
 			default: "",
+		},
+
+		/**
+		 * Payment enforcement state machine (source of truth going forward).
+		 * - Status machine above tracks signing.
+		 * - These fields track money movement + clarity in UI/support.
+		 */
+		paymentStatus: {
+			type: String,
+			enum: [
+				"NOT_STARTED",
+				"PENDING",
+				"PROCESSING",
+				"SUCCEEDED",
+				"FAILED",
+				"CANCELED",
+				"EXPIRED",
+			],
+			default: "NOT_STARTED",
+		},
+		payoutStatus: {
+			type: String,
+			enum: ["NOT_STARTED", "PENDING", "SENT", "FAILED", "REVERSED"],
+			default: "NOT_STARTED",
+		},
+		paymentExpiresAt: { type: Date },
+
+		// Immutable snapshot of what was charged at checkout time.
+		paymentSnapshot: {
+			rentCents: { type: Number, default: 0 }, // Base rent only (no deposit)
+			tenantFeeCents: { type: Number, default: 0 }, // 2.5% (tenant side)
+			listerFeeCents: { type: Number, default: 0 }, // 2.5% (lister side; deducted)
+			cardSurchargeCents: { type: Number, default: 0 }, // +1.0% (tenant side; cards only)
+			paymentMethod: {
+				type: String,
+				enum: ["card", "ach"],
+				default: "card",
+			},
+			amountToChargeCents: { type: Number, default: 0 }, // what tenant pays
+			amountToPayoutCents: { type: Number, default: 0 }, // what lister receives
 		},
 	},
 	{ timestamps: true }

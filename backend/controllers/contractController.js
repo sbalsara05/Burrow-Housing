@@ -97,7 +97,6 @@ exports.createDraft = async (req, res) => {
             <p>The tenant agrees to pay a monthly rent of <strong>{{Rent_Amount}}</strong>.</p>
             <p>Lease Start Date: <strong>{{Start_Date}}</strong></p>
             <p>Lease End Date: <strong>{{End_Date}}</strong></p>
-            <p>Security Deposit: <strong>{{Security_Deposit}}</strong></p>
         `;
 
 		// Pre-fill variables from property details
@@ -107,7 +106,6 @@ exports.createDraft = async (req, res) => {
 				: "",
 			Start_Date: "",
 			End_Date: "",
-			Security_Deposit: "",
 		};
 
 		const contract = await Contract.create({
@@ -518,6 +516,21 @@ exports.signContract = async (req, res) => {
 
 			contract.finalPdfUrl = pdfUrl;
 			contract.status = "COMPLETED";
+
+			// Payment window starts when both parties have signed.
+			// Enforced by Stripe controller when tenant tries to pay.
+			const paymentWindowHours = Number.parseInt(
+				process.env.PAYMENT_WINDOW_HOURS || "48",
+				10
+			);
+			const hours = Number.isFinite(paymentWindowHours)
+				? paymentWindowHours
+				: 48;
+			contract.paymentStatus = "NOT_STARTED";
+			contract.payoutStatus = "NOT_STARTED";
+			contract.paymentExpiresAt = new Date(
+				Date.now() + hours * 60 * 60 * 1000
+			);
 			await contract.save();
 
 			// Update Property Inventory Status

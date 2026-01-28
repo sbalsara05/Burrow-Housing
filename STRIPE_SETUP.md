@@ -15,19 +15,24 @@ Add to your `.env` (or Dotenv Vault):
 ## Backend Endpoints
 
 - **`POST /api/stripe/create-payment-intent`** (authenticated)  
-  - Body: `{ "contractId": "<contract _id>" }`  
+  - Body: `{ "contractId": "<contract _id>", "paymentMethod": "card" | "ach" }`  
   - Use only for **COMPLETED** contracts (both sides signed).  
-  - Returns `{ clientSecret, paymentIntentId, amountCents }`.  
-  - Amount is derived from contract variables `Rent_Amount` and `Security_Deposit` (sum, min 50¢).
+  - Tenant-only: **only the tenant can initiate payment**.
+  - Returns `{ clientSecret, paymentIntentId, amountCents, paymentStatus, paymentSnapshot }`.  
+  - Amount is derived from contract variable `Rent_Amount` only (no deposits), plus:
+    - tenant service fee **2.5%**
+    - optional card processing surcharge **1.0%** (tenant side only, card only)
 
 - **`POST /api/stripe/webhook`** (no auth, raw body)  
   - Configure this URL in Stripe Dashboard → Developers → Webhooks.  
-  - Handles `payment_intent.succeeded` and `payment_intent.payment_failed`; updates `stripePaymentStatus` on the contract.
+  - Handles `payment_intent.succeeded`, `payment_intent.processing`, `payment_intent.canceled`, `payment_intent.payment_failed`; updates `stripePaymentStatus` and `paymentStatus` on the contract.
 
 ## Contract Model Additions
 
 - `stripePaymentIntentId`: set when a PaymentIntent is created for the contract.  
-- `stripePaymentStatus`: `""` | `"pending"` | `"succeeded"` | `"failed"`.
+- `stripePaymentStatus`: `""` | `"pending"` | `"processing"` | `"succeeded"` | `"failed"` | `"canceled"`.
+- `paymentStatus`: `NOT_STARTED` | `PENDING` | `PROCESSING` | `SUCCEEDED` | `FAILED` | `CANCELED` | `EXPIRED`.
+- `paymentExpiresAt`: set when contract becomes `COMPLETED` (default 48h; configurable via `PAYMENT_WINDOW_HOURS`).
 
 ## Webhook Setup (Stripe Dashboard)
 
