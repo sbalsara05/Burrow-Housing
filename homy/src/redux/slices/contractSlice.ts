@@ -38,6 +38,18 @@ export interface Contract {
     finalPdfUrl?: string;
     createdAt: string;
     updatedAt: string;
+    paymentStatus?: string;
+    stripePaymentStatus?: string;
+    listerPaymentStatus?: string;
+    listerStripePaymentStatus?: string;
+    paymentSnapshot?: {
+        rentCents: number;
+        tenantFeeCents: number;
+        amountToChargeCents: number;
+        amountToPayoutCents: number;
+        paymentMethod?: string;
+    };
+    paymentExpiresAt?: string;
 }
 
 interface ContractState {
@@ -193,6 +205,39 @@ export const deleteContract = createAsyncThunk(
             return id;
         } catch (error: any) {
             return rejectWithValue(error.response?.data?.message || 'Failed to delete contract');
+        }
+    }
+);
+
+export interface CreatePaymentIntentResponse {
+    clientSecret: string;
+    paymentIntentId: string;
+    amountCents: number;
+    paymentStatus?: string;
+    paymentSnapshot?: { amountToChargeCents: number; rentCents: number; tenantFeeCents: number };
+}
+
+// Create Stripe PaymentIntent (sublessee only, for COMPLETED contracts)
+export const createPaymentIntent = createAsyncThunk(
+    'contract/createPaymentIntent',
+    async (
+        payload: { contractId: string; paymentMethod?: 'card' | 'ach' },
+        { getState, rejectWithValue }
+    ) => {
+        const token = (getState() as RootState).auth.token;
+        if (!token) return rejectWithValue('Not authenticated');
+
+        try {
+            const response = await axios.post<CreatePaymentIntentResponse>(
+                `${API_URL}/stripe/create-payment-intent`,
+                { contractId: payload.contractId, paymentMethod: payload.paymentMethod || 'card' },
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+            return response.data;
+        } catch (error: any) {
+            return rejectWithValue(
+                error.response?.data?.message || 'Failed to create payment'
+            );
         }
     }
 );

@@ -1,9 +1,11 @@
 const Contract = require("../models/contractModel");
+const Notification = require("../models/notificationModel");
 const {
-	stripe,
+		stripe,
 	createPaymentIntent,
 	constructWebhookEvent,
 } = require("../services/stripeService");
+const { queueNotificationEmail } = require("../utils/notificationEmailHelper");
 
 const TENANT_FEE_BPS = 250; // 2.5%
 const LISTER_FEE_BPS = 250; // 2.5%
@@ -50,8 +52,8 @@ function computePaymentSnapshot(rentCents, paymentMethod) {
 	const cardSurchargeCents =
 		method === "card" ? _roundBps(rentCents, CARD_SURCHARGE_BPS) : 0;
 
-	const amountToChargeCents = rentCents + tenantFeeCents + cardSurchargeCents;
-	const amountToPayoutCents = rentCents - listerFeeCents;
+	// Charge only the service fee (2.5% + 1% if card). Rent is paid through other portals.
+	const amountToChargeCents = Math.max(50, tenantFeeCents + cardSurchargeCents);
 
 	return {
 		rentCents,
@@ -60,19 +62,20 @@ function computePaymentSnapshot(rentCents, paymentMethod) {
 		cardSurchargeCents,
 		paymentMethod: method,
 		amountToChargeCents,
-		amountToPayoutCents,
+		amountToPayoutCents: 0, // Rent not collected by platform
 	};
 }
 
 /**
  * Create a PaymentIntent for a completed contract.
  * Only available when both parties have signed (status COMPLETED).
- * Callable by tenant only. Charges rent + tenant fees (and card surcharge if card).
+ * Callable by tenant only. Charges only the platform service fee (2.5% of rent + 1% if card).
+ * Rent is paid through other portals; Burrow does not collect rent.
  */
 exports.createPaymentIntentForContract = async (req, res) => {
 	try {
 		const { contractId, paymentMethod } = req.body;
-		const userId = req.user.userId;
+		const userId = (req.user?.userId || req.user?.id || "").toString();
 
 		if (!contractId) {
 			return res.status(400).json({ message: "contractId is required" });
@@ -86,16 +89,11 @@ exports.createPaymentIntentForContract = async (req, res) => {
 			return res.status(404).json({ message: "Contract not found" });
 		}
 
-		const isTenant = contract.tenant._id.toString() === userId;
-		const isLister = contract.lister._id.toString() === userId;
+		const isTenant = contract.tenant?._id?.toString() === userId;
+		const isLister = contract.lister?._id?.toString() === userId;
 		if (!isTenant && !isLister) {
 			return res.status(403).json({
 				message: "Only the tenant or lister can create a payment for this contract.",
-			});
-		}
-		if (!isTenant) {
-			return res.status(403).json({
-				message: "Only the tenant can initiate payment for this contract.",
 			});
 		}
 
@@ -105,49 +103,6 @@ exports.createPaymentIntentForContract = async (req, res) => {
 			});
 		}
 
-		// Enforce payment window (default set at completion time)
-		if (
-			contract.paymentExpiresAt &&
-			Date.now() > new Date(contract.paymentExpiresAt).getTime() &&
-			contract.paymentStatus !== "SUCCEEDED" &&
-			contract.stripePaymentStatus !== "succeeded"
-		) {
-			// Best-effort cancel any existing PI
-			if (contract.stripePaymentIntentId) {
-				try {
-					const pi = await stripe.paymentIntents.retrieve(
-						contract.stripePaymentIntentId
-					);
-					if (pi.status !== "succeeded" && pi.status !== "canceled") {
-						await stripe.paymentIntents.cancel(pi.id);
-					}
-				} catch (e) {
-					// ignore cancellation failures; still mark expired
-				}
-			}
-
-			contract.paymentStatus = "EXPIRED";
-			contract.stripePaymentStatus = "canceled";
-			await contract.save();
-
-			return res.status(410).json({
-				message: "Payment window expired for this contract.",
-				paymentStatus: contract.paymentStatus,
-			});
-		}
-
-		if (
-			contract.paymentStatus === "SUCCEEDED" ||
-			contract.stripePaymentStatus === "succeeded"
-		) {
-			return res.status(409).json({
-				message: "This contract has already been paid.",
-				paymentStatus: "SUCCEEDED",
-			});
-		}
-
-		const method = paymentMethod === "ach" ? "ach" : "card";
-
 		const rentCents = getRentCents(contract);
 		if (!rentCents || rentCents <= 0) {
 			return res.status(400).json({
@@ -156,80 +111,158 @@ exports.createPaymentIntentForContract = async (req, res) => {
 			});
 		}
 
+		const method = paymentMethod === "ach" ? "ach" : "card";
 		const snapshot = computePaymentSnapshot(rentCents, method);
-		const amountCents = Math.max(50, snapshot.amountToChargeCents);
 
-		// If an existing PI exists, reuse it only if method matches and it's still payable.
-		if (contract.stripePaymentIntentId && contract.stripePaymentStatus !== "succeeded") {
-			const existingMethod =
-				contract.paymentSnapshot && contract.paymentSnapshot.paymentMethod
-					? contract.paymentSnapshot.paymentMethod
-					: null;
-
-			// If method changed (e.g. card -> ach), cancel and recreate.
-			if (existingMethod && existingMethod !== method) {
-				try {
-					const pi = await stripe.paymentIntents.retrieve(
-						contract.stripePaymentIntentId
-					);
-					if (pi.status !== "succeeded" && pi.status !== "canceled") {
-						await stripe.paymentIntents.cancel(pi.id);
-					}
-				} catch (e) {
-					// ignore
-				}
-				contract.stripePaymentIntentId = undefined;
-				contract.stripePaymentStatus = "";
-			} else {
-				const pi = await stripe.paymentIntents.retrieve(
-					contract.stripePaymentIntentId
-				);
-				if (pi.status !== "succeeded" && pi.status !== "canceled") {
-					// Keep snapshot stable for support/UI
-					if (!contract.paymentSnapshot || contract.paymentSnapshot.rentCents === 0) {
-						contract.paymentSnapshot = snapshot;
-						await contract.save();
-					}
-					return res.status(200).json({
-						clientSecret: pi.client_secret,
-						paymentIntentId: pi.id,
-						amountCents,
-						paymentStatus: contract.paymentStatus || "PENDING",
-					});
-				}
+		// --- TENANT PAYMENT (2.5% + 1% if card) ---
+		if (isTenant) {
+			const tenantPaid = contract.paymentStatus === "SUCCEEDED" || contract.stripePaymentStatus === "succeeded";
+			if (tenantPaid) {
+				return res.status(409).json({
+					message: "You have already paid your service fee.",
+					paymentStatus: "SUCCEEDED",
+				});
 			}
+
+			if (contract.paymentExpiresAt && Date.now() > new Date(contract.paymentExpiresAt).getTime()) {
+				if (contract.stripePaymentIntentId) {
+					try {
+						const pi = await stripe.paymentIntents.retrieve(contract.stripePaymentIntentId);
+						if (pi.status !== "succeeded" && pi.status !== "canceled") {
+							await stripe.paymentIntents.cancel(pi.id);
+						}
+					} catch (e) { /* ignore */ }
+				}
+				contract.paymentStatus = "EXPIRED";
+				contract.stripePaymentStatus = "canceled";
+				await contract.save();
+				return res.status(410).json({ message: "Payment window expired.", paymentStatus: contract.paymentStatus });
+			}
+
+			const amountCents = Math.max(50, snapshot.tenantFeeCents + snapshot.cardSurchargeCents);
+
+			if (contract.stripePaymentIntentId && contract.stripePaymentStatus !== "succeeded") {
+				try {
+					const pi = await stripe.paymentIntents.retrieve(contract.stripePaymentIntentId);
+					const piMethod = pi.payment_method_types?.[0];
+					const wantsAch = method === "ach";
+					const piMatchesMethod =
+						(wantsAch && piMethod === "us_bank_account") || (!wantsAch && piMethod === "card");
+					if (pi.status !== "succeeded" && pi.status !== "canceled" && piMatchesMethod) {
+						if (!contract.paymentSnapshot || contract.paymentSnapshot.rentCents === 0) {
+							contract.paymentSnapshot = snapshot;
+							await contract.save();
+						}
+						return res.status(200).json({
+							clientSecret: pi.client_secret,
+							paymentIntentId: pi.id,
+							amountCents,
+							paymentStatus: contract.paymentStatus || "PENDING",
+							paymentSnapshot: snapshot,
+							payer: "tenant",
+						});
+					}
+					if (pi.status !== "succeeded" && pi.status !== "canceled" && !piMatchesMethod) {
+						await stripe.paymentIntents.cancel(pi.id).catch(() => {});
+						contract.stripePaymentIntentId = undefined;
+						contract.stripePaymentStatus = "";
+					}
+				} catch (e) { /* ignore */ }
+			}
+
+			const { id, clientSecret } = await createPaymentIntent(
+				amountCents,
+				"usd",
+				{
+					contractId: contractId.toString(),
+					tenantId: contract.tenant?._id?.toString(),
+					listerId: contract.lister?._id?.toString(),
+					payer: "tenant",
+				},
+				contract.tenant?.email,
+				method
+			);
+
+			contract.stripePaymentIntentId = id;
+			contract.stripePaymentStatus = "pending";
+			contract.paymentStatus = "PENDING";
+			contract.paymentSnapshot = snapshot;
+			await contract.save();
+
+			return res.status(200).json({
+				clientSecret,
+				paymentIntentId: id,
+				amountCents,
+				paymentStatus: contract.paymentStatus,
+				paymentSnapshot: snapshot,
+				payer: "tenant",
+			});
 		}
 
-		const recipientEmail =
-			contract.lister && contract.lister.email
-				? contract.lister.email
-				: undefined;
+		// --- LISTER PAYMENT (2.5% + 1% if card) ---
+		if (isLister) {
+			const listerPaid = contract.listerPaymentStatus === "SUCCEEDED" || contract.listerStripePaymentStatus === "succeeded";
+			if (listerPaid) {
+				return res.status(409).json({
+					message: "You have already paid your service fee.",
+					listerPaymentStatus: "SUCCEEDED",
+				});
+			}
 
-		const { id, clientSecret } = await createPaymentIntent(
-			amountCents,
-			"usd",
-			{
-				contractId: contractId.toString(),
-				tenantId: (contract.tenant && contract.tenant._id)?.toString(),
-				listerId: (contract.lister && contract.lister._id)?.toString(),
-			},
-			recipientEmail,
-			method
-		);
+			const amountCents = Math.max(50, snapshot.listerFeeCents + snapshot.cardSurchargeCents);
 
-		contract.stripePaymentIntentId = id;
-		contract.stripePaymentStatus = "pending";
-		contract.paymentStatus = "PENDING";
-		contract.paymentSnapshot = snapshot;
-		await contract.save();
+			if (contract.listerStripePaymentIntentId && contract.listerStripePaymentStatus !== "succeeded") {
+				try {
+					const pi = await stripe.paymentIntents.retrieve(contract.listerStripePaymentIntentId);
+					const piMethod = pi.payment_method_types?.[0];
+					const wantsAch = method === "ach";
+					const piMatchesMethod =
+						(wantsAch && piMethod === "us_bank_account") || (!wantsAch && piMethod === "card");
+					if (pi.status !== "succeeded" && pi.status !== "canceled" && piMatchesMethod) {
+						return res.status(200).json({
+							clientSecret: pi.client_secret,
+							paymentIntentId: pi.id,
+							amountCents,
+							paymentStatus: contract.listerPaymentStatus || "PENDING",
+							paymentSnapshot: { ...snapshot, amountToChargeCents: amountCents },
+							payer: "lister",
+						});
+					}
+					if (pi.status !== "succeeded" && pi.status !== "canceled" && !piMatchesMethod) {
+						await stripe.paymentIntents.cancel(pi.id).catch(() => {});
+						contract.listerStripePaymentIntentId = undefined;
+						contract.listerStripePaymentStatus = "";
+					}
+				} catch (e) { /* ignore */ }
+			}
 
-		return res.status(200).json({
-			clientSecret,
-			paymentIntentId: id,
-			amountCents,
-			paymentStatus: contract.paymentStatus,
-			paymentSnapshot: snapshot,
-		});
+			const { id, clientSecret } = await createPaymentIntent(
+				amountCents,
+				"usd",
+				{
+					contractId: contractId.toString(),
+					tenantId: contract.tenant?._id?.toString(),
+					listerId: contract.lister?._id?.toString(),
+					payer: "lister",
+				},
+				contract.lister?.email,
+				method
+			);
+
+			contract.listerStripePaymentIntentId = id;
+			contract.listerStripePaymentStatus = "pending";
+			contract.listerPaymentStatus = "PENDING";
+			await contract.save();
+
+			return res.status(200).json({
+				clientSecret,
+				paymentIntentId: id,
+				amountCents,
+				paymentStatus: contract.listerPaymentStatus,
+				paymentSnapshot: { ...snapshot, amountToChargeCents: amountCents },
+				payer: "lister",
+			});
+		}
 	} catch (err) {
 		console.error("Stripe createPaymentIntent error:", err);
 		res.status(500).json({
@@ -266,59 +299,109 @@ exports.handleWebhook = async (req, res) => {
 			case "payment_intent.succeeded": {
 				const pi = event.data.object;
 				const contractId = pi.metadata && pi.metadata.contractId;
+				const payer = (pi.metadata && pi.metadata.payer) || "tenant";
 				if (!contractId) break;
 
-				await Contract.findOneAndUpdate(
-					{ _id: contractId },
-					{
-						stripePaymentStatus: "succeeded",
-						paymentStatus: "SUCCEEDED",
+				const update =
+					payer === "lister"
+						? { listerStripePaymentStatus: "succeeded", listerPaymentStatus: "SUCCEEDED" }
+						: { stripePaymentStatus: "succeeded", paymentStatus: "SUCCEEDED" };
+
+				await Contract.findOneAndUpdate({ _id: contractId }, update);
+				console.log(`Contract ${contractId} ${payer} payment succeeded`);
+
+				// Notify lister when tenant pays
+				if (payer === "tenant") {
+					try {
+						const contract = await Contract.findById(contractId)
+							.populate("property", "overview.title")
+							.populate("lister", "_id name")
+							.populate("tenant", "name");
+						if (contract?.lister?._id) {
+							const propertyTitle =
+								contract.property?.overview?.title ||
+								`${contract.property?.listingDetails?.bedrooms || ""} Bed ${contract.property?.overview?.category || "Property"}`.trim();
+							const message = `${contract.tenant?.name || "The sublessee"} has paid for the sublease agreement for ${propertyTitle}.`;
+							await Notification.create({
+								userId: contract.lister._id,
+								type: "contract_payment_received",
+								message,
+								link: `/dashboard/my-agreements`,
+								metadata: { contractId: contract._id, propertyId: contract.property?._id, tenantId: contract.tenant?._id },
+							});
+							await queueNotificationEmail(contract.lister._id, "contract_payment_received", {
+								message,
+								link: "/dashboard/my-agreements",
+								metadata: { contractId: contract._id, propertyId: contract.property?._id },
+							});
+						}
+					} catch (notifErr) {
+						console.error("Webhook: payment notification failed", notifErr.message);
 					}
-				);
-				console.log(`Contract ${contractId} payment succeeded`);
+				}
+				// Notify tenant when lister pays
+				if (payer === "lister") {
+					try {
+						const contract = await Contract.findById(contractId)
+							.populate("property", "overview.title")
+							.populate("lister", "name")
+							.populate("tenant", "_id");
+						if (contract?.tenant?._id) {
+							const propertyTitle =
+								contract.property?.overview?.title ||
+								`${contract.property?.listingDetails?.bedrooms || ""} Bed ${contract.property?.overview?.category || "Property"}`.trim();
+							const message = `The sublessor has paid for the agreement for ${propertyTitle}. The agreement is now fully complete.`;
+							await Notification.create({
+								userId: contract.tenant._id,
+								type: "contract_payment_received",
+								message,
+								link: `/dashboard/my-agreements`,
+								metadata: { contractId: contract._id, propertyId: contract.property?._id, listerId: contract.lister?._id },
+							});
+							await queueNotificationEmail(contract.tenant._id, "contract_payment_received", {
+								message,
+								link: "/dashboard/my-agreements",
+								metadata: { contractId: contract._id, propertyId: contract.property?._id },
+							});
+						}
+					} catch (notifErr) {
+						console.error("Webhook: lister payment notification failed", notifErr.message);
+					}
+				}
 				break;
 			}
 			case "payment_intent.processing": {
 				const pi = event.data.object;
-				const contractId = pi.metadata && pi.metadata.contractId;
+				const contractId = pi.metadata?.contractId;
+				const payer = pi.metadata?.payer || "tenant";
 				if (!contractId) break;
-
-				await Contract.findOneAndUpdate(
-					{ _id: contractId },
-					{
-						stripePaymentStatus: "processing",
-						paymentStatus: "PROCESSING",
-					}
-				);
+				const update = payer === "lister"
+					? { listerStripePaymentStatus: "processing", listerPaymentStatus: "PROCESSING" }
+					: { stripePaymentStatus: "processing", paymentStatus: "PROCESSING" };
+				await Contract.findOneAndUpdate({ _id: contractId }, update);
 				break;
 			}
 			case "payment_intent.canceled": {
 				const pi = event.data.object;
-				const contractId = pi.metadata && pi.metadata.contractId;
+				const contractId = pi.metadata?.contractId;
+				const payer = pi.metadata?.payer || "tenant";
 				if (!contractId) break;
-
-				await Contract.findOneAndUpdate(
-					{ _id: contractId },
-					{
-						stripePaymentStatus: "canceled",
-						paymentStatus: "CANCELED",
-					}
-				);
+				const update = payer === "lister"
+					? { listerStripePaymentStatus: "canceled", listerPaymentStatus: "CANCELED" }
+					: { stripePaymentStatus: "canceled", paymentStatus: "CANCELED" };
+				await Contract.findOneAndUpdate({ _id: contractId }, update);
 				break;
 			}
 			case "payment_intent.payment_failed": {
 				const pi = event.data.object;
-				const contractId = pi.metadata && pi.metadata.contractId;
+				const contractId = pi.metadata?.contractId;
+				const payer = pi.metadata?.payer || "tenant";
 				if (!contractId) break;
-
-				await Contract.findOneAndUpdate(
-					{ _id: contractId },
-					{
-						stripePaymentStatus: "failed",
-						paymentStatus: "FAILED",
-					}
-				);
-				console.log(`Contract ${contractId} payment failed`);
+				const update = payer === "lister"
+					? { listerStripePaymentStatus: "failed", listerPaymentStatus: "FAILED" }
+					: { stripePaymentStatus: "failed", paymentStatus: "FAILED" };
+				await Contract.findOneAndUpdate({ _id: contractId }, update);
+				console.log(`Contract ${contractId} ${payer} payment failed`);
 				break;
 			}
 			default:

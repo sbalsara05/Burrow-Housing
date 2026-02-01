@@ -224,6 +224,11 @@ const sendNotificationEmail = async (
 		ambassador_request: process.env.BREVO_NOTIFICATION_TEMPLATE_ID,
 		ambassador_request_update: process.env.BREVO_NOTIFICATION_TEMPLATE_ID,
 		ambassador_request_cancelled: process.env.BREVO_NOTIFICATION_TEMPLATE_ID,
+		contract_pending: process.env.BREVO_NOTIFICATION_TEMPLATE_ID,
+		contract_tenant_signed: process.env.BREVO_NOTIFICATION_TEMPLATE_ID,
+		contract_completed: process.env.BREVO_NOTIFICATION_TEMPLATE_ID,
+		contract_payment_received: process.env.BREVO_NOTIFICATION_TEMPLATE_ID,
+		contract_cancelled: process.env.BREVO_NOTIFICATION_TEMPLATE_ID,
 	};
 
 	const templateId =

@@ -103,6 +103,19 @@ const contractSchema = new mongoose.Schema(
 		},
 		paymentExpiresAt: { type: Date },
 
+		// Lister's 2.5% fee (separate from tenant's fee)
+		listerStripePaymentIntentId: { type: String },
+		listerStripePaymentStatus: {
+			type: String,
+			enum: ["", "pending", "succeeded", "failed", "canceled", "processing"],
+			default: "",
+		},
+		listerPaymentStatus: {
+			type: String,
+			enum: ["NOT_STARTED", "PENDING", "PROCESSING", "SUCCEEDED", "FAILED", "CANCELED", "EXPIRED"],
+			default: "NOT_STARTED",
+		},
+
 		// Immutable snapshot of what was charged at checkout time.
 		paymentSnapshot: {
 			rentCents: { type: Number, default: 0 }, // Base rent only (no deposit)

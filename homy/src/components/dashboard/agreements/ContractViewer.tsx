@@ -1,9 +1,122 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
+import { loadStripe } from '@stripe/stripe-js';
+import { Elements, CardElement, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
+import { toast } from 'react-toastify';
 import { AppDispatch, RootState } from '../../../redux/slices/store';
-import { fetchContractById, signContract } from '../../../redux/slices/contractSlice';
+import {
+    fetchContractById,
+    signContract,
+    createPaymentIntent,
+    type CreatePaymentIntentResponse,
+} from '../../../redux/slices/contractSlice';
 import SignaturePad from '../../common/SignaturePad';
+
+const stripePublishableKey = (import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || '').trim();
+const stripePromise = stripePublishableKey ? loadStripe(stripePublishableKey) : null;
+const isTestMode = stripePublishableKey.startsWith('pk_test_');
+
+const CARD_ELEMENT_OPTIONS = {
+    style: {
+        base: { fontSize: '16px', color: '#32325d', fontFamily: 'sans-serif' },
+        invalid: { color: '#fa755a' },
+    },
+};
+
+function PaymentForm({
+    clientSecret,
+    amountCents,
+    paymentMethod,
+    onSuccess,
+    onCancel,
+    isTestMode = false,
+}: {
+    clientSecret: string;
+    amountCents: number;
+    paymentMethod: 'card' | 'ach';
+    onSuccess: () => void;
+    onCancel: () => void;
+    isTestMode?: boolean;
+}) {
+    const stripe = useStripe();
+    const elements = useElements();
+    const [processing, setProcessing] = useState(false);
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!stripe || !elements) return;
+        setProcessing(true);
+        setErrorMessage(null);
+
+        try {
+            if (paymentMethod === 'ach') {
+                const { error } = await stripe.confirmPayment({
+                    elements,
+                    clientSecret,
+                    confirmParams: {
+                        return_url: `${window.location.origin}/dashboard/agreements/payment-complete`,
+                    },
+                    redirect: 'if_required',
+                });
+                if (error) {
+                    setErrorMessage(error.message || 'Payment failed');
+                    return;
+                }
+            } else {
+                const cardElement = elements.getElement(CardElement);
+                if (!cardElement) {
+                    setErrorMessage('Payment form not ready. Please try again.');
+                    return;
+                }
+                const { error } = await stripe.confirmCardPayment(clientSecret, {
+                    payment_method: { card: cardElement },
+                });
+                if (error) {
+                    setErrorMessage(error.message || 'Payment failed');
+                    return;
+                }
+            }
+
+            toast.success('Payment successful.');
+            onSuccess();
+        } catch (err) {
+            const msg = err instanceof Error ? err.message : 'Payment failed. Please try again.';
+            setErrorMessage(msg);
+            toast.error(msg);
+        } finally {
+            setProcessing(false);
+        }
+    };
+
+    const amountDollars = (amountCents / 100).toFixed(2);
+
+    return (
+        <form onSubmit={handleSubmit} className="border rounded p-4 bg-light">
+            <p className="fw-bold mb-2">Amount due: ${amountDollars}</p>
+            {isTestMode && (
+                <p className="text-info small mb-2">Test mode — no real charges will be made.</p>
+            )}
+            <div className="mb-3 p-3 bg-white border rounded">
+                {paymentMethod === 'ach' ? (
+                    <PaymentElement />
+                ) : (
+                    <CardElement options={CARD_ELEMENT_OPTIONS} />
+                )}
+            </div>
+            {errorMessage && <div className="text-danger small mb-2">{errorMessage}</div>}
+            <div className="d-flex gap-2">
+                <button type="submit" className="btn btn-one" disabled={!stripe || processing}>
+                    {processing ? 'Processing…' : 'Pay now'}
+                </button>
+                <button type="button" className="btn btn-outline-secondary" onClick={onCancel} disabled={processing}>
+                    Cancel
+                </button>
+            </div>
+        </form>
+    );
+}
 
 const ContractViewer = () => {
     const { id } = useParams<{ id: string }>();
@@ -12,6 +125,9 @@ const ContractViewer = () => {
     const { user } = useSelector((state: RootState) => state.auth);
 
     const [showSignatureModal, setShowSignatureModal] = useState(false);
+    const [paymentIntent, setPaymentIntent] = useState<CreatePaymentIntentResponse | null>(null);
+    const [paymentMethodUsed, setPaymentMethodUsed] = useState<'card' | 'ach'>('card');
+    const [paymentLoading, setPaymentLoading] = useState(false);
 
     useEffect(() => {
         if (id) {
@@ -23,9 +139,16 @@ const ContractViewer = () => {
     if (error) return <div className="alert alert-danger m-4">{error}</div>;
     if (!currentContract) return null;
 
-    // 1. Inject Variables into HTML
+    // 1. Inject Variables into HTML (variables may be Map or plain object from API)
+    const getVar = (key: string) => {
+        const v = currentContract.variables as Record<string, string> | undefined;
+        if (!v) return undefined;
+        return typeof (v as { get?: (k: string) => string }).get === 'function'
+            ? (v as { get: (k: string) => string }).get(key)
+            : (v as Record<string, string>)[key];
+    };
     const filledHtml = currentContract.templateHtml.replace(/\{\{(.*?)\}\}/g, (_, key) => {
-        return currentContract.variables[key] || `<span class="text-danger">[Missing: ${key}]</span>`;
+        return getVar(key.trim()) || `<span class="text-danger">[Missing: ${key}]</span>`;
     });
 
     // 2. Determine if User needs to sign
@@ -43,66 +166,288 @@ const ContractViewer = () => {
         }
     };
 
+    const getStatusBadgeClass = () => {
+        if (currentContract.status === 'COMPLETED') return 'agreement-status-badge completed';
+        if (currentContract.status === 'CANCELLED') return 'agreement-status-badge cancelled';
+        return 'agreement-status-badge pending';
+    };
+
+    const formatStatus = (s: string) =>
+        s.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase());
+
+    const tenantPaid = currentContract.paymentStatus === 'SUCCEEDED' || currentContract.stripePaymentStatus === 'succeeded';
+    const listerPaid = currentContract.listerPaymentStatus === 'SUCCEEDED' || currentContract.listerStripePaymentStatus === 'succeeded';
+    const bothPaid = tenantPaid && listerPaid;
+
     return (
-        <div className="row">
-            <div className="col-lg-10 m-auto">
-                <div className="bg-white card-box border-20 p-5">
+        <div className="row mx-0">
+            <div className="col-lg-10 m-auto px-3 px-lg-4" style={{ minWidth: 0 }}>
+                <div className="bg-white card-box border-20 p-5 agreement-review">
 
                     {/* Header */}
-                    <div className="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
-                        <h2 className="dash-title-three">Sublease Agreement</h2>
-                        <span className={`badge ${currentContract.status === 'COMPLETED' ? 'bg-success' : 'bg-warning text-dark'}`}>
-                            {currentContract.status.replace(/_/g, ' ')}
+                    <div className="agreement-review-header d-flex justify-content-between align-items-center mb-4 pb-3">
+                        <h2 className="dash-title-three mb-0">Sublease Agreement</h2>
+                        <span className={getStatusBadgeClass()}>
+                            {formatStatus(currentContract.status)}
                         </span>
                     </div>
 
-                    {successMessage && <div className="alert alert-success">{successMessage}</div>}
+                    {successMessage && <div className="agreement-review-success">{successMessage}</div>}
+
+                    {/* Payment complete banner - only when BOTH have paid */}
+                    {currentContract.status === 'COMPLETED' && bothPaid && (
+                        <div className="agreement-review-success mb-4">
+                            Agreement fully complete. Both parties have paid their service fees.
+                        </div>
+                    )}
 
                     {/* Document Body */}
                     <div
-                        className="contract-content mb-5 p-4 border rounded"
-                        style={{ backgroundColor: '#fdfdfd', minHeight: '400px' }}
+                        className="agreement-review-doc contract-content mb-5 p-4"
                         dangerouslySetInnerHTML={{ __html: filledHtml }}
                     />
 
                     {/* Liability Waiver (Hardcoded) */}
-                    <div className="alert alert-secondary fs-sm mb-5">
+                    <div className="agreement-review-waiver fs-sm mb-5">
                         <strong>Liability Waiver:</strong> By signing this agreement, both parties acknowledge that
                         Burrow Housing is strictly a listing platform. Burrow Housing bears no responsibility for
                         property damage, rent disputes, or lease violations. This contract is solely between the
-                        Landlord and the Tenant.
+                        Sublessor and the Sublessee.
                     </div>
 
+                    {/* Next Steps (Sublessor - COMPLETED, waiting for tenant to pay) */}
+                    {currentContract.status === 'COMPLETED' && isLister && !tenantPaid && (
+                        <div className="agreement-review-blurb mb-5">
+                            <strong>What&apos;s next:</strong> The sublessee will be prompted to pay their 2.5% service fee. Be on the lookout in your email for any updates.
+                        </div>
+                    )}
+
+                    {/* Next Steps (Tenant - COMPLETED, tenant paid but waiting for lister to pay) */}
+                    {currentContract.status === 'COMPLETED' && isTenant && tenantPaid && !listerPaid && (
+                        <div className="agreement-review-blurb mb-5">
+                            <strong>What&apos;s next:</strong> You&apos;ve paid your service fee. Waiting for the sublessor to pay their 2.5% service fee. You&apos;ll be notified when the agreement is fully complete.
+                        </div>
+                    )}
+
+                    {/* Next Steps (Sublessor - COMPLETED, tenant paid, lister needs to pay) */}
+                    {currentContract.status === 'COMPLETED' && isLister && tenantPaid && !listerPaid && (
+                        <div className="agreement-review-blurb mb-5">
+                            <strong>What&apos;s next:</strong> The sublessee has paid. Please pay your 2.5% service fee below to complete the agreement.
+                        </div>
+                    )}
+
+                    {/* Waiting for Sublessor (Tenant has signed) */}
+                    {currentContract.status === 'PENDING_LISTER_SIGNATURE' && isTenant && (
+                        <div className="agreement-review-blurb mb-5">
+                            <strong>What&apos;s next:</strong> Please wait for the sublessor to countersign. You&apos;ll be notified when the agreement is complete.
+                        </div>
+                    )}
+
+                    {/* All complete - both paid */}
+                    {currentContract.status === 'COMPLETED' && bothPaid && (
+                        <div className="agreement-review-blurb agreement-review-blurb-done mb-5">
+                            <strong>What&apos;s next:</strong> This agreement is fully complete. You can download your copy from My Agreements.
+                        </div>
+                    )}
+
                     {/* Signatures Section */}
-                    <div className="row mb-5">
+                    <div className="row mb-5 agreement-review-signatures">
                         <div className="col-md-6">
-                            <p className="fw-bold">Tenant Signature:</p>
+                            <p className="fw-bold mb-2">Sublessee Signature:</p>
                             {currentContract.tenantSignature?.url ? (
-                                <div className="border p-2 d-inline-block">
-                                    <img src={currentContract.tenantSignature.url} alt="Tenant Signature" height="60" />
-                                    <div className="text-muted fs-xs mt-1">
-                                        Signed: {new Date(currentContract.updatedAt).toLocaleDateString()} {/* Fallback if signedAt not available */}
+                                <div className="agreement-review-sig-box signed p-3">
+                                    <img src={currentContract.tenantSignature.url} alt="Sublessee Signature" height="60" />
+                                    <div className="agreement-review-sig-date mt-2">
+                                        Signed: {new Date(currentContract.updatedAt).toLocaleDateString()}
                                     </div>
                                 </div>
                             ) : (
-                                <div className="text-muted fst-italic p-3 border border-dashed rounded bg-light">
+                                <div className="agreement-review-sig-box waiting p-3">
                                     Waiting for signature...
                                 </div>
                             )}
                         </div>
                         <div className="col-md-6">
-                            <p className="fw-bold">Landlord Signature:</p>
+                            <p className="fw-bold mb-2">Sublessor Signature:</p>
                             {currentContract.listerSignature?.url ? (
-                                <div className="border p-2 d-inline-block">
-                                    <img src={currentContract.listerSignature.url} alt="Landlord Signature" height="60" />
+                                <div className="agreement-review-sig-box signed p-3">
+                                    <img src={currentContract.listerSignature.url} alt="Sublessor Signature" height="60" />
                                 </div>
                             ) : (
-                                <div className="text-muted fst-italic p-3 border border-dashed rounded bg-light">
+                                <div className="agreement-review-sig-box waiting p-3">
                                     Waiting for signature...
                                 </div>
                             )}
                         </div>
                     </div>
+
+                    {/* Payment (both parties; each pays their own fee) */}
+                    {currentContract.status === 'COMPLETED' && (
+                        <div className="agreement-review-payment mb-5 p-4">
+                            <h5 className="mb-3">Payment</h5>
+                            {isTenant ? (
+                                tenantPaid ? (
+                                    <div className="agreement-review-payment-done fw-bold">
+                                        Your service fee has been paid.
+                                    </div>
+                                ) :                                 paymentIntent && stripePromise ? (
+                                    <Elements stripe={stripePromise} options={{ clientSecret: paymentIntent.clientSecret }}>
+                                        <PaymentForm
+                                            clientSecret={paymentIntent.clientSecret}
+                                            amountCents={paymentIntent.amountCents}
+                                            paymentMethod={paymentMethodUsed}
+                                            isTestMode={isTestMode}
+                                            onSuccess={() => {
+                                                setPaymentIntent(null);
+                                                if (id) dispatch(fetchContractById(id));
+                                            }}
+                                            onCancel={() => setPaymentIntent(null)}
+                                        />
+                                    </Elements>
+                                ) : (
+                                    <div>
+                                        <p className="text-muted small mb-2">
+                                            Pay your service fee: 2.5% of rent (+ 1% if paying by card). Rent is paid through your own portals.
+                                        </p>
+                                        {isTestMode && (
+                                            <p className="text-info small mb-2">
+                                                <strong>Test mode:</strong> No real charges will be made. Use Stripe test card 4242 4242 4242 4242.
+                                            </p>
+                                        )}
+                                        <div className="d-flex flex-wrap gap-2 mb-2">
+                                            <button
+                                                className="btn-one"
+                                                disabled={paymentLoading || !stripePublishableKey}
+                                                onClick={async () => {
+                                                    if (!id) return;
+                                                    setPaymentLoading(true);
+                                                    try {
+                                                        const result = await dispatch(
+                                                            createPaymentIntent({ contractId: id, paymentMethod: 'card' })
+                                                        ).unwrap();
+                                                        setPaymentMethodUsed('card');
+                                                        setPaymentIntent(result);
+                                                    } catch (err: unknown) {
+                                                        const msg = typeof err === 'string' ? err : (err as { message?: string })?.message;
+                                                        toast.error(msg || 'Could not start payment');
+                                                    } finally {
+                                                        setPaymentLoading(false);
+                                                    }
+                                                }}
+                                            >
+                                                {paymentLoading ? 'Loading…' : 'Pay by card (2.5% + 1% fee)'}
+                                            </button>
+                                            <button
+                                                className="btn btn-outline-secondary"
+                                                disabled={paymentLoading || !stripePublishableKey}
+                                                onClick={async () => {
+                                                    if (!id) return;
+                                                    setPaymentLoading(true);
+                                                    try {
+                                                        const result = await dispatch(
+                                                            createPaymentIntent({ contractId: id, paymentMethod: 'ach' })
+                                                        ).unwrap();
+                                                        setPaymentMethodUsed('ach');
+                                                        setPaymentIntent(result);
+                                                    } catch (err: unknown) {
+                                                        const msg = typeof err === 'string' ? err : (err as { message?: string })?.message;
+                                                        toast.error(msg || 'Could not start payment');
+                                                    } finally {
+                                                        setPaymentLoading(false);
+                                                    }
+                                                }}
+                                            >
+                                                Pay by bank transfer (2.5% only)
+                                            </button>
+                                        </div>
+                                        {!stripePublishableKey && (
+                                            <p className="text-warning small mt-2">Stripe is not configured (missing VITE_STRIPE_PUBLISHABLE_KEY).</p>
+                                        )}
+                                    </div>
+                                )
+                            ) : (
+                                listerPaid ? (
+                                    <div className="agreement-review-payment-done fw-bold">
+                                        Your service fee has been paid.
+                                    </div>
+                                ) : paymentIntent && stripePromise ? (
+                                    <Elements stripe={stripePromise} options={{ clientSecret: paymentIntent.clientSecret }}>
+                                        <PaymentForm
+                                            clientSecret={paymentIntent.clientSecret}
+                                            amountCents={paymentIntent.amountCents}
+                                            paymentMethod={paymentMethodUsed}
+                                            isTestMode={isTestMode}
+                                            onSuccess={() => {
+                                                setPaymentIntent(null);
+                                                if (id) dispatch(fetchContractById(id));
+                                            }}
+                                            onCancel={() => setPaymentIntent(null)}
+                                        />
+                                    </Elements>
+                                ) : (
+                                    <div>
+                                        <p className="text-muted small mb-2">
+                                            Pay your service fee: 2.5% of rent (+ 1% if paying by card). Rent is paid through your own portals.
+                                        </p>
+                                        {isTestMode && (
+                                            <p className="text-info small mb-2">
+                                                <strong>Test mode:</strong> No real charges will be made. Use Stripe test card 4242 4242 4242 4242.
+                                            </p>
+                                        )}
+                                        <div className="d-flex flex-wrap gap-2 mb-2">
+                                            <button
+                                                className="btn-one"
+                                                disabled={paymentLoading || !stripePublishableKey}
+                                                onClick={async () => {
+                                                    if (!id) return;
+                                                    setPaymentLoading(true);
+                                                    try {
+                                                        const result = await dispatch(
+                                                            createPaymentIntent({ contractId: id, paymentMethod: 'card' })
+                                                        ).unwrap();
+                                                        setPaymentMethodUsed('card');
+                                                        setPaymentIntent(result);
+                                                    } catch (err: unknown) {
+                                                        const msg = typeof err === 'string' ? err : (err as { message?: string })?.message;
+                                                        toast.error(msg || 'Could not start payment');
+                                                    } finally {
+                                                        setPaymentLoading(false);
+                                                    }
+                                                }}
+                                            >
+                                                {paymentLoading ? 'Loading…' : 'Pay by card (2.5% + 1% fee)'}
+                                            </button>
+                                            <button
+                                                className="btn btn-outline-secondary"
+                                                disabled={paymentLoading || !stripePublishableKey}
+                                                onClick={async () => {
+                                                    if (!id) return;
+                                                    setPaymentLoading(true);
+                                                    try {
+                                                        const result = await dispatch(
+                                                            createPaymentIntent({ contractId: id, paymentMethod: 'ach' })
+                                                        ).unwrap();
+                                                        setPaymentMethodUsed('ach');
+                                                        setPaymentIntent(result);
+                                                    } catch (err: unknown) {
+                                                        const msg = typeof err === 'string' ? err : (err as { message?: string })?.message;
+                                                        toast.error(msg || 'Could not start payment');
+                                                    } finally {
+                                                        setPaymentLoading(false);
+                                                    }
+                                                }}
+                                            >
+                                                Pay by bank transfer (2.5% only)
+                                            </button>
+                                        </div>
+                                        {!stripePublishableKey && (
+                                            <p className="text-warning small mt-2">Stripe is not configured.</p>
+                                        )}
+                                    </div>
+                                )
+                            )}
+                        </div>
+                    )}
 
                     {/* Action Buttons */}
                     <div className="d-flex justify-content-end">

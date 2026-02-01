@@ -1,12 +1,69 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import ReactQuill from 'react-quill';
-import 'react-quill/dist/quill.snow.css'; // Standard Quill styles
+import { toast } from 'react-toastify';
 
 import { AppDispatch, RootState } from '../../../redux/slices/store';
 import { fetchContractById, updateDraft, lockContract } from '../../../redux/slices/contractSlice';
 import VariableSidebar from './VariableSidebar';
+
+/** Minimal rich-text editor using ref (no findDOMNode). Supports {{variables}}, bold, italic, lists. */
+const SimpleRichEditor = ({
+    value,
+    onChange,
+    placeholder = 'Enter contract text. Use {{Variable_Name}} for placeholders.',
+    style,
+}: {
+    value: string;
+    onChange: (html: string) => void;
+    placeholder?: string;
+    style?: React.CSSProperties;
+}) => {
+    const ref = useRef<HTMLDivElement>(null);
+    const isInternal = useRef(false);
+
+    useEffect(() => {
+        const el = ref.current;
+        if (!el) return;
+        if (el.innerHTML !== value) {
+            isInternal.current = true;
+            el.innerHTML = value;
+            isInternal.current = false;
+        }
+    }, [value]);
+
+    const handleInput = useCallback(() => {
+        if (isInternal.current || !ref.current) return;
+        onChange(ref.current.innerHTML);
+    }, [onChange]);
+
+    const exec = (cmd: string, value?: string) => {
+        document.execCommand(cmd, false, value);
+        ref.current?.focus();
+        if (ref.current) onChange(ref.current.innerHTML);
+    };
+
+    return (
+        <div className="border rounded p-2 bg-white" style={style}>
+            <div className="d-flex gap-1 mb-2 flex-wrap">
+                <button type="button" className="btn btn-sm btn-outline-secondary" onClick={() => exec('bold')} title="Bold"><b>B</b></button>
+                <button type="button" className="btn btn-sm btn-outline-secondary" onClick={() => exec('italic')} title="Italic"><i>I</i></button>
+                <button type="button" className="btn btn-sm btn-outline-secondary" onClick={() => exec('underline')} title="Underline"><u>U</u></button>
+                <button type="button" className="btn btn-sm btn-outline-secondary" onClick={() => exec('insertUnorderedList')} title="Bullet list">• List</button>
+                <button type="button" className="btn btn-sm btn-outline-secondary" onClick={() => exec('insertOrderedList')} title="Numbered list">1. List</button>
+            </div>
+            <div
+                ref={ref}
+                contentEditable
+                className="form-control"
+                data-placeholder={placeholder}
+                onInput={handleInput}
+                style={{ minHeight: '400px', outline: 'none' }}
+                suppressContentEditableWarning
+            />
+        </div>
+    );
+};
 
 const ContractBuilder = () => {
     const { id } = useParams<{ id: string }>();
@@ -26,13 +83,20 @@ const ContractBuilder = () => {
         }
     }, [dispatch, id]);
 
-    // Sync Redux state to Local state
+    // Sync Redux state to Local state; redirect if contract is already locked
     useEffect(() => {
         if (currentContract) {
+            if (currentContract.status !== 'DRAFT') {
+                toast.info('This agreement is already sent. You can view it in My Agreements.');
+                navigate('/dashboard/my-agreements', { replace: true });
+                return;
+            }
             setEditorHtml(currentContract.templateHtml);
-            setVariables(currentContract.variables || {});
+            setVariables(typeof currentContract.variables === 'object' && currentContract.variables !== null
+                ? { ...(currentContract.variables as Record<string, string>) }
+                : {});
         }
-    }, [currentContract]);
+    }, [currentContract, navigate]);
 
     // REGEX: Detect {{Variables}} 
     const extractVariables = useCallback((html: string) => {
@@ -78,10 +142,23 @@ const ContractBuilder = () => {
         if (!id) return;
 
         try {
+            // Save draft first so variables (dates, rent, etc.) are persisted before locking
+            await dispatch(updateDraft({
+                id,
+                data: { templateHtml: editorHtml, variables }
+            })).unwrap();
+
             await dispatch(lockContract(id)).unwrap();
+            toast.success('Contract sent to sublessee.');
             navigate('/dashboard/my-agreements');
-        } catch (error) {
-            console.error("Lock contract error:", error);
+        } catch (error: unknown) {
+            const msg = typeof error === 'string' ? error : (error as { message?: string })?.message;
+            if (msg?.includes('already locked')) {
+                toast.info('This agreement was already sent. Redirecting to My Agreements.');
+                navigate('/dashboard/my-agreements', { replace: true });
+            } else {
+                toast.error(msg || 'Failed to finalize contract.');
+            }
         }
     };
     if (isLoading && !currentContract) return <div className="p-5 text-center">Loading Builder...</div>;
@@ -97,19 +174,10 @@ const ContractBuilder = () => {
                     </div>
 
                     <div className="editor-wrapper" style={{ minHeight: '500px' }}>
-                        <ReactQuill
-                            theme="snow"
+                        <SimpleRichEditor
                             value={editorHtml}
                             onChange={handleEditorChange}
-                            style={{ height: '450px', marginBottom: '50px' }}
-                            modules={{
-                                toolbar: [
-                                    [{ 'header': [1, 2, 3, false] }],
-                                    ['bold', 'italic', 'underline'],
-                                    [{ 'list': 'ordered' }, { 'list': 'bullet' }],
-                                    ['clean']
-                                ],
-                            }}
+                            style={{ marginBottom: '1rem' }}
                         />
                     </div>
 

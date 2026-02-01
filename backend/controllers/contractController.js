@@ -5,6 +5,7 @@ const User = require("../models/userModel");
 const { generateContractPdf } = require("../services/pdfService");
 const Notification = require("../models/notificationModel");
 const { sendTransactionalEmail } = require("../services/emailService");
+const { queueNotificationEmail } = require("../utils/notificationEmailHelper");
 
 // Configure DigitalOcean Spaces client using AWS SDK v3
 // Note: SDK v3 requires the full endpoint URL including the protocol
@@ -91,10 +92,10 @@ exports.createDraft = async (req, res) => {
 			});
 		}
 
-		// Initialize default template
+		// Initialize default template (sublessor = lister, sublessee = tenant)
 		const defaultTemplate = `
             <h3>Sublease Agreement</h3>
-            <p>The tenant agrees to pay a monthly rent of <strong>{{Rent_Amount}}</strong>.</p>
+            <p>The sublessee agrees to pay a monthly rent of <strong>{{Rent_Amount}}</strong>.</p>
             <p>Lease Start Date: <strong>{{Start_Date}}</strong></p>
             <p>Lease End Date: <strong>{{End_Date}}</strong></p>
         `;
@@ -287,59 +288,54 @@ exports.lockContract = async (req, res) => {
 			.populate("lister", "name email")
 			.populate("tenant", "name email");
 
-		// Send notification to tenant
+		// Notification + email: non-fatal so lock always returns success
+		const _getVar = (v, key) => (v && typeof v.get === "function" ? v.get(key) : (v && v[key]));
 		const propertyTitle =
-			populatedContract.property.overview?.title ||
+			populatedContract.property?.overview?.title ||
 			`${
-				populatedContract.property.listingDetails
-					?.bedrooms || ""
+				populatedContract.property?.listingDetails?.bedrooms || ""
 			} Bed ${
-				populatedContract.property.overview?.category ||
-				"Property"
+				populatedContract.property?.overview?.category || "Property"
 			}`.trim();
-
-		await Notification.create({
-			userId: populatedContract.tenant._id,
-			type: "contract_pending",
-			message: `${populatedContract.lister.name} has sent you a sublease agreement for ${propertyTitle}`,
-			link: `/dashboard/agreements/${populatedContract._id}/sign`,
-			metadata: {
-				contractId: populatedContract._id,
-				propertyId: populatedContract.property._id,
-				listerId: populatedContract.lister._id,
-			},
-		});
-
-		// Send email to tenant
 		const reviewUrl = `http://www.burrowhousing.com/dashboard/agreements/${populatedContract._id}/sign`;
 
-		await sendTransactionalEmail(
-			4,
-			populatedContract.tenant.email,
-			populatedContract.tenant.name,
-			{
-				tenant_name: populatedContract.tenant.name,
-				lister_name: populatedContract.lister.name,
-				property_title: propertyTitle,
-				property_address:
-					populatedContract.property
-						.addressAndLocation?.address ||
-					"Address not available",
-				rent_amount:
-					populatedContract.variables.get(
-						"Rent_Amount"
-					) || "TBD",
-				start_date:
-					populatedContract.variables.get(
-						"Start_Date"
-					) || "TBD",
-				end_date:
-					populatedContract.variables.get(
-						"End_Date"
-					) || "TBD",
-				review_url: reviewUrl,
-			}
-		);
+		try {
+			await Notification.create({
+				userId: populatedContract.tenant._id,
+				type: "contract_pending",
+				message: `${populatedContract.lister.name} has sent you a sublease agreement for ${propertyTitle}`,
+				link: `/dashboard/agreements/${populatedContract._id}/sign`,
+				metadata: {
+					contractId: populatedContract._id,
+					propertyId: populatedContract.property?._id,
+					listerId: populatedContract.lister._id,
+				},
+			});
+		} catch (notifErr) {
+			console.error("Lock: notification create failed", notifErr.message);
+		}
+
+		try {
+			await sendTransactionalEmail(
+				4,
+				populatedContract.tenant.email,
+				populatedContract.tenant.name,
+				{
+					tenant_name: populatedContract.tenant.name,
+					lister_name: populatedContract.lister.name,
+					property_title: propertyTitle,
+					property_address:
+						populatedContract.property?.addressAndLocation?.address ||
+						"Address not available",
+					rent_amount: _getVar(populatedContract.variables, "Rent_Amount") || "TBD",
+					start_date: _getVar(populatedContract.variables, "Start_Date") || "TBD",
+					end_date: _getVar(populatedContract.variables, "End_Date") || "TBD",
+					review_url: reviewUrl,
+				}
+			);
+		} catch (emailErr) {
+			console.error("Lock: sendTransactionalEmail failed", emailErr.message);
+		}
 
 		res.json(populatedContract);
 	} catch (error) {
@@ -353,11 +349,20 @@ exports.lockContract = async (req, res) => {
  * - Tenant signature moves status to PENDING_LISTER_SIGNATURE.
  * - Lister signature generates the final PDF, uploads it, and marks property as Rented.
  */
+const _getVar = (v, key) =>
+	v && typeof v.get === "function" ? v.get(key) : v && v[key];
+
 exports.signContract = async (req, res) => {
 	try {
 		const { signatureData } = req.body; // Expects Base64 string
 		const userId = req.user.userId;
 		const contractId = req.params.id;
+
+		if (!signatureData || typeof signatureData !== "string") {
+			return res.status(400).json({
+				message: "Signature data is required (Base64 image string).",
+			});
+		}
 
 		const contract = await Contract.findById(contractId);
 		if (!contract)
@@ -383,10 +388,14 @@ exports.signContract = async (req, res) => {
 			}
 
 			// Decode Base64 and Upload
-			const base64Image = signatureData
-				.split(";base64,")
-				.pop();
+			const base64Image = signatureData.split(";base64,").pop() || signatureData.trim();
+			if (!base64Image) {
+				return res.status(400).json({ message: "Invalid signature data: expected Base64 image." });
+			}
 			const buffer = Buffer.from(base64Image, "base64");
+			if (buffer.length === 0) {
+				return res.status(400).json({ message: "Invalid signature data: could not decode Base64." });
+			}
 			const sigUrl = await uploadToSpaces(
 				buffer,
 				`signatures/tenant_${contractId}_${Date.now()}.png`,
@@ -412,55 +421,51 @@ exports.signContract = async (req, res) => {
 				.populate("lister", "name email")
 				.populate("tenant", "name email");
 
-			// Send notification to lister
+			// Notification + email: non-fatal
 			const propertyTitle =
-				populatedContract.property.overview?.title ||
+				populatedContract.property?.overview?.title ||
 				`${
-					populatedContract.property
-						.listingDetails?.bedrooms || ""
+					populatedContract.property?.listingDetails?.bedrooms || ""
 				} Bed ${
-					populatedContract.property.overview
-						?.category || "Property"
+					populatedContract.property?.overview?.category || "Property"
 				}`.trim();
-
-			await Notification.create({
-				userId: populatedContract.lister._id,
-				type: "contract_tenant_signed",
-				message: `${populatedContract.tenant.name} has signed the sublease agreement for ${propertyTitle}`,
-				link: `/dashboard/agreements/${populatedContract._id}/sign`,
-				metadata: {
-					contractId: populatedContract._id,
-					propertyId: populatedContract.property
-						._id,
-					tenantId: populatedContract.tenant._id,
-				},
-			});
-
-			// Send email to lister
 			const countersignUrl = `http://www.burrowhousing.com/dashboard/agreements/${contractId}/sign`;
 
-			await sendTransactionalEmail(
-				5,
-				populatedContract.lister.email,
-				populatedContract.lister.name,
-				{
-					lister_name:
-						populatedContract.lister.name,
-					tenant_name:
-						populatedContract.tenant.name,
-					property_title: propertyTitle,
-					signed_date:
-						new Date().toLocaleDateString(
-							"en-US",
-							{
-								month: "long",
-								day: "numeric",
-								year: "numeric",
-							}
-						),
-					countersign_url: countersignUrl,
-				}
-			);
+			try {
+				await Notification.create({
+					userId: populatedContract.lister._id,
+					type: "contract_tenant_signed",
+					message: `${populatedContract.tenant.name} has signed the sublease agreement for ${propertyTitle}. Countersign to finalize.`,
+					link: `/dashboard/agreements/${populatedContract._id}/sign`,
+					metadata: {
+						contractId: populatedContract._id,
+						propertyId: populatedContract.property?._id,
+						tenantId: populatedContract.tenant._id,
+					},
+				});
+			} catch (notifErr) {
+				console.error("Sign (tenant): notification create failed", notifErr.message);
+			}
+			try {
+				await sendTransactionalEmail(
+					5,
+					populatedContract.lister.email,
+					populatedContract.lister.name,
+					{
+						lister_name: populatedContract.lister.name,
+						tenant_name: populatedContract.tenant.name,
+						property_title: propertyTitle,
+						signed_date: new Date().toLocaleDateString("en-US", {
+							month: "long",
+							day: "numeric",
+							year: "numeric",
+						}),
+						countersign_url: countersignUrl,
+					}
+				);
+			} catch (emailErr) {
+				console.error("Sign (tenant): sendTransactionalEmail failed", emailErr.message);
+			}
 
 			return res.json(populatedContract);
 		}
@@ -474,12 +479,16 @@ exports.signContract = async (req, res) => {
 			}
 
 			// Upload Lister Signature
-			const base64Image = signatureData
-				.split(";base64,")
-				.pop();
-			const buffer = Buffer.from(base64Image, "base64");
+			const base64ImageLister = signatureData.split(";base64,").pop() || signatureData.trim();
+			if (!base64ImageLister) {
+				return res.status(400).json({ message: "Invalid signature data: expected Base64 image." });
+			}
+			const bufferLister = Buffer.from(base64ImageLister, "base64");
+			if (bufferLister.length === 0) {
+				return res.status(400).json({ message: "Invalid signature data: could not decode Base64." });
+			}
 			const sigUrl = await uploadToSpaces(
-				buffer,
+				bufferLister,
 				`signatures/lister_${contractId}_${Date.now()}.png`,
 				"image/png"
 			);
@@ -490,13 +499,16 @@ exports.signContract = async (req, res) => {
 				ipAddress: req.ip,
 			};
 
-			// Prepare HTML for PDF Generation (Inject variables)
+			// Prepare HTML for PDF Generation (Inject variables). Support Map or plain object.
 			let finalHtml = contract.templateHtml;
-			if (contract.variables && contract.variables.size > 0) {
-				contract.variables.forEach((value, key) => {
-					finalHtml = finalHtml
-						.split(`{{${key}}}`)
-						.join(value);
+			const vars = contract.variables;
+			if (vars) {
+				const entries =
+					typeof vars.forEach === "function"
+						? [...vars.entries()]
+						: Object.entries(vars);
+				entries.forEach(([key, value]) => {
+					finalHtml = finalHtml.split(`{{${key}}}`).join(value ?? "");
 				});
 			}
 
@@ -548,94 +560,85 @@ exports.signContract = async (req, res) => {
 				.populate("lister", "name email")
 				.populate("tenant", "name email");
 
-			// Send notifications to both parties
+			// Notifications + emails: non-fatal so sign always returns success
 			const propertyTitle =
-				populatedContract.property.overview?.title ||
+				populatedContract.property?.overview?.title ||
 				`${
-					populatedContract.property
-						.listingDetails?.bedrooms || ""
+					populatedContract.property?.listingDetails?.bedrooms || ""
 				} Bed ${
-					populatedContract.property.overview
-						?.category || "Property"
+					populatedContract.property?.overview?.category || "Property"
 				}`.trim();
-
-			// Notification for tenant
-			await Notification.create({
-				userId: populatedContract.tenant._id,
-				type: "contract_completed",
-				message: `Your sublease agreement for ${propertyTitle} is now complete!`,
-				link: `/dashboard/my-agreements`,
-				metadata: {
-					contractId: populatedContract._id,
-					propertyId: populatedContract.property
-						._id,
-				},
-			});
-
-			// Notification for lister
-			await Notification.create({
-				userId: populatedContract.lister._id,
-				type: "contract_completed",
-				message: `The sublease agreement for ${propertyTitle} is now complete!`,
-				link: `/dashboard/my-agreements`,
-				metadata: {
-					contractId: populatedContract._id,
-					propertyId: populatedContract.property
-						._id,
-				},
-			});
-
-			// Email to both parties
+			const v = populatedContract.variables;
 			const emailParams = {
 				property_title: propertyTitle,
 				lister_name: populatedContract.lister.name,
 				tenant_name: populatedContract.tenant.name,
-				start_date:
-					populatedContract.variables.get(
-						"Start_Date"
-					) || "TBD",
-				end_date:
-					populatedContract.variables.get(
-						"End_Date"
-					) || "TBD",
-				rent_amount:
-					populatedContract.variables.get(
-						"Rent_Amount"
-					) || "TBD",
+				start_date: _getVar(v, "Start_Date") || "TBD",
+				end_date: _getVar(v, "End_Date") || "TBD",
+				rent_amount: _getVar(v, "Rent_Amount") || "TBD",
 				pdf_url: populatedContract.finalPdfUrl,
 			};
 
-			// Email to tenant
-			await sendTransactionalEmail(
-				6,
-				populatedContract.tenant.email,
-				populatedContract.tenant.name,
-				{
-					...emailParams,
-					user_name: populatedContract.tenant
-						.name,
-				}
-			);
-
-			// Email to lister
-			await sendTransactionalEmail(
-				6,
-				populatedContract.lister.email,
-				populatedContract.lister.name,
-				{
-					...emailParams,
-					user_name: populatedContract.lister
-						.name,
-				}
-			);
+			try {
+				await Notification.create({
+					userId: populatedContract.tenant._id,
+					type: "contract_completed",
+					message: `Your sublease agreement for ${propertyTitle} is now complete! You can pay rent when ready.`,
+					link: `/dashboard/agreements/${populatedContract._id}/sign`,
+					metadata: {
+						contractId: populatedContract._id,
+						propertyId: populatedContract.property?._id,
+					},
+				});
+			} catch (notifErr) {
+				console.error("Sign (lister): tenant notification failed", notifErr.message);
+			}
+			try {
+				await Notification.create({
+					userId: populatedContract.lister._id,
+					type: "contract_completed",
+					message: `The sublease agreement for ${propertyTitle} is now complete! The sublessee will be prompted to pay.`,
+					link: `/dashboard/my-agreements`,
+					metadata: {
+						contractId: populatedContract._id,
+						propertyId: populatedContract.property?._id,
+					},
+				});
+			} catch (notifErr) {
+				console.error("Sign (lister): lister notification failed", notifErr.message);
+			}
+			try {
+				await sendTransactionalEmail(
+					6,
+					populatedContract.tenant.email,
+					populatedContract.tenant.name,
+					{ ...emailParams, user_name: populatedContract.tenant.name }
+				);
+			} catch (emailErr) {
+				console.error("Sign (lister): email to tenant failed", emailErr.message);
+			}
+			try {
+				await sendTransactionalEmail(
+					6,
+					populatedContract.lister.email,
+					populatedContract.lister.name,
+					{ ...emailParams, user_name: populatedContract.lister.name }
+				);
+			} catch (emailErr) {
+				console.error("Sign (lister): email to lister failed", emailErr.message);
+			}
 
 			return res.json(populatedContract);
 		}
 	} catch (error) {
 		console.error("Signing Error:", error);
+		const message =
+			error.code === "CredentialsError" || error.message?.includes("upload")
+				? "Storage upload failed. Check Spaces/S3 configuration."
+				: error.message || "Error processing signature";
 		res.status(500).json({
 			message: "Error processing signature",
-			error: error.message,
+			error: process.env.NODE_ENV === "development" ? message : "Error processing signature",
 		});
 	}
 };
@@ -667,6 +670,41 @@ exports.deleteContract = async (req, res) => {
 			return res.status(400).json({
 				message: "Cannot delete completed contracts. Both parties have signed.",
 			});
+		}
+
+		// Notify tenant if contract was cancelled (not draft - they were expecting to sign)
+		if (contract.status !== "DRAFT") {
+			try {
+				const populated = await Contract.findById(contract._id)
+					.populate("property", "overview.title")
+					.populate("lister", "name")
+					.populate("tenant", "_id");
+				if (populated?.tenant?._id) {
+					const propertyTitle =
+						populated.property?.overview?.title ||
+						`${
+							populated.property?.listingDetails?.bedrooms || ""
+						} Bed ${populated.property?.overview?.category || "Property"}`.trim();
+					await Notification.create({
+						userId: populated.tenant._id,
+						type: "contract_cancelled",
+						message: `The sublease agreement for ${propertyTitle} was cancelled by the sublessor.`,
+						link: "/dashboard/my-agreements",
+						metadata: {
+							contractId: contract._id,
+							propertyId: contract.property,
+							listerId: contract.lister,
+						},
+					});
+					await queueNotificationEmail(populated.tenant._id, "contract_cancelled", {
+						message: `The sublease agreement for ${propertyTitle} was cancelled by the sublessor.`,
+						link: "/dashboard/my-agreements",
+						metadata: { contractId: contract._id, propertyId: contract.property },
+					});
+				}
+			} catch (notifErr) {
+				console.error("Delete: tenant notification failed", notifErr.message);
+			}
 		}
 
 		// For DRAFT, PENDING_TENANT_SIGNATURE, PENDING_LISTER_SIGNATURE, CANCELLED - allow deletion

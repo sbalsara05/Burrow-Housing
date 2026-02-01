@@ -17,11 +17,12 @@ Add to your `.env` (or Dotenv Vault):
 - **`POST /api/stripe/create-payment-intent`** (authenticated)  
   - Body: `{ "contractId": "<contract _id>", "paymentMethod": "card" | "ach" }`  
   - Use only for **COMPLETED** contracts (both sides signed).  
-  - Tenant-only: **only the tenant can initiate payment**.
-  - Returns `{ clientSecret, paymentIntentId, amountCents, paymentStatus, paymentSnapshot }`.  
-  - Amount is derived from contract variable `Rent_Amount` only (no deposits), plus:
-    - tenant service fee **2.5%**
-    - optional card processing surcharge **1.0%** (tenant side only, card only)
+  - Callable by **tenant** (sublessee) or **lister** (sublessor). Each pays their own fee.
+  - Returns `{ clientSecret, paymentIntentId, amountCents, paymentStatus, paymentSnapshot, payer }`.  
+  - Amount charged is **only the platform service fee** (rent is paid through other portals):
+    - **Tenant:** 2.5% of rent + optional 1.0% card surcharge (card only)
+    - **Lister:** 2.5% of rent + optional 1.0% card surcharge (card only)
+  - Supports **card** and **ACH bank transfer**; bank transfer avoids the 1% card fee.
 
 - **`POST /api/stripe/webhook`** (no auth, raw body)  
   - Configure this URL in Stripe Dashboard → Developers → Webhooks.  
@@ -51,15 +52,24 @@ Use the printed `whsec_...` as `STRIPE_WEBHOOK_SECRET` locally.
 
 ## Frontend (Stripe.js)
 
-1. Load Stripe.js and create a Stripe instance with `STRIPE_PUBLISHABLE_KEY`.  
-2. After both parties sign, call `POST /api/stripe/create-payment-intent` with the `contractId`.  
-3. Use `stripe.confirmCardPayment(clientSecret, { payment_method: { card: element } })` (or Elements) to collect payment.  
-4. Poll or refetch the contract to check `stripePaymentStatus === "succeeded"` or handle success in your UI.
+1. In the **homy** app, set `VITE_STRIPE_PUBLISHABLE_KEY` (e.g. in `homy/.env`): same value as backend `STRIPE_PUBLISHABLE_KEY` (e.g. `pk_test_...`).  
+2. After both parties sign, each party sees a **Pay now** section on the agreement review page (`/dashboard/agreements/:id/sign`).  
+3. Each party chooses **Pay by card** (2.5% + 1% fee) or **Pay by bank transfer** (2.5% only).  
+4. Clicking an option calls `POST /api/stripe/create-payment-intent` with `contractId` and `paymentMethod: "card" | "ach"`, then shows the Stripe form and confirms payment.  
+5. On success, the contract is refetched and the UI shows **Payment complete**.  
+
+**Note:** Enable **ACH Direct Debit** in [Stripe Dashboard → Settings → Payment methods](https://dashboard.stripe.com/settings/payment_methods) for bank transfer to work.
 
 ## Install
 
+**Backend:**
 ```bash
 cd backend && npm install
 ```
 
-The `stripe` package is already in `package.json`.
+**Frontend (homy):**
+```bash
+cd homy && npm install
+```
+
+The frontend uses `@stripe/stripe-js` and `@stripe/react-stripe-js` for the payment form.

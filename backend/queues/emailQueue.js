@@ -98,6 +98,11 @@ emailQueue.process("notification-email", async (job) => {
 			ambassador_request: "ambassadorRequest",
 			ambassador_request_update: "ambassadorRequestUpdate",
 			ambassador_request_cancelled: "ambassadorRequestCancelled",
+			contract_pending: "contractPending",
+			contract_tenant_signed: "contractTenantSigned",
+			contract_completed: "contractCompleted",
+			contract_payment_received: "contractPaymentReceived",
+			contract_cancelled: "contractCancelled",
 		};
 
 		const preferenceKey = preferenceMap[notificationType];

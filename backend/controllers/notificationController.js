@@ -105,6 +105,11 @@ exports.testEmailNotification = async (req, res) => {
 		"ambassador_request",
 		"ambassador_request_update",
 		"ambassador_request_cancelled",
+		"contract_pending",
+		"contract_tenant_signed",
+		"contract_completed",
+		"contract_payment_received",
+		"contract_cancelled",
 	];
 
 	const type = notificationType || "new_interest";
