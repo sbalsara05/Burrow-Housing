@@ -7,7 +7,7 @@ const Faq = () => {
    return (
       <>
          <HeaderOne style={true} />
-         <Breadcrumb title="Terms and Conditions" link="#" link_title="Pages" sub_title="Terms and Conditions" style={true} />
+         <Breadcrumb title="Terms of Service" link="#" link_title="Pages" sub_title="Terms of Service" style={true} />
          <FaqArea/>
          <Footer />
       </>

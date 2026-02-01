@@ -6,6 +6,7 @@ import Notification from "./Notification";
 import Profile from "./Profile";
 import DashboardHeaderOne from "./DashboardHeaderOne";
 import { selectProfile } from '../../../redux/slices/profileSlice';
+import { selectCurrentUser } from '../../../redux/slices/authSlice';
 import {
     fetchNotifications,
     markNotificationsAsRead,
@@ -26,6 +27,7 @@ interface HeaderAction {
 const DashboardHeaderTwo: React.FC<DashboardHeaderTwoProps> = ({ title }) => {
     const [isActive, setIsActive] = useState<boolean>(false);
     const profile = useSelector(selectProfile);
+    const user = useSelector(selectCurrentUser);
     const dispatch = useDispatch<AppDispatch>();
     const unreadCount = useSelector(selectUnreadNotificationCount);
     const location = useLocation();
@@ -146,23 +148,59 @@ const DashboardHeaderTwo: React.FC<DashboardHeaderTwoProps> = ({ title }) => {
             component: (
                 <>
                     <button
-                        className="user-avatar online position-relative rounded-circle dropdown-toggle"
+                        className="d-flex align-items-center text-decoration-none dropdown-toggle"
                         type="button"
                         id="profile-dropdown"
                         data-bs-toggle="dropdown"
                         data-bs-auto-close="outside"
                         aria-expanded="false"
+                        style={{
+                            border: '1px solid #e9ecef',
+                            borderRadius: '25px',
+                            padding: '8px 16px',
+                            transition: 'all 0.3s ease',
+                            color: 'inherit',
+                            background: 'white',
+                            cursor: 'pointer'
+                        }}
+                        onMouseEnter={(e) => {
+                            e.currentTarget.style.color = '#fb6547';
+                            e.currentTarget.style.borderColor = '#fb6547';
+                        }}
+                        onMouseLeave={(e) => {
+                            e.currentTarget.style.color = 'inherit';
+                            e.currentTarget.style.borderColor = '#e9ecef';
+                        }}
                     >
-                        <img
-                            src={avatarSrc}
-                            alt="User Avatar"
-                            className="lazy-img"
+                        <div 
+                            className="d-flex align-items-center justify-content-center me-2"
                             style={{
-                                width: '100%',
-                                height: '100%',
-                                objectFit: 'cover'
+                                width: '32px',
+                                height: '32px',
+                                borderRadius: '50%',
+                                backgroundColor: '#f8f9fa',
+                                color: '#333',
+                                fontSize: '14px',
+                                transition: 'all 0.3s ease',
+                                overflow: 'hidden'
                             }}
-                        />
+                        >
+                            <img 
+                                src={avatarSrc} 
+                                alt="Profile"
+                                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                            />
+                        </div>
+                        <span 
+                            className="fw-500"
+                            style={{
+                                fontSize: '14px',
+                                color: 'inherit',
+                                transition: 'color 0.3s ease'
+                            }}
+                        >
+                            {user?.name || 'Profile'}
+                        </span>
                     </button>
                     <Profile />
                 </>

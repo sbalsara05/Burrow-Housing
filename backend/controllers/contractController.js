@@ -86,10 +86,14 @@ exports.createDraft = async (req, res) => {
 		});
 
 		if (existingContract) {
-			return res.status(200).json({
-				message: "Active contract found",
-				contract: existingContract,
-			});
+			const populated = await Contract.findById(existingContract._id)
+				.populate(
+					"property",
+					"overview addressAndLocation.address images listingDetails.bedrooms"
+				)
+				.populate("lister", "name email")
+				.populate("tenant", "name email");
+			return res.status(200).json(populated);
 		}
 
 		// Initialize default template (sublessor = lister, sublessee = tenant)
@@ -639,6 +643,54 @@ exports.signContract = async (req, res) => {
 		res.status(500).json({
 			message: "Error processing signature",
 			error: process.env.NODE_ENV === "development" ? message : "Error processing signature",
+		});
+	}
+};
+
+/**
+ * Recalls a contract from PENDING_TENANT_SIGNATURE back to DRAFT.
+ * Allows the lister to edit terms before the tenant signs (for negotiations).
+ * Only the lister can recall; only when status is PENDING_TENANT_SIGNATURE.
+ */
+exports.recallContract = async (req, res) => {
+	try {
+		const contract = await Contract.findById(req.params.id);
+
+		if (!contract) {
+			return res
+				.status(404)
+				.json({ message: "Contract not found" });
+		}
+
+		if (contract.lister.toString() !== req.user.userId) {
+			return res.status(403).json({
+				message: "Only the lister can recall this contract.",
+			});
+		}
+
+		if (contract.status !== "PENDING_TENANT_SIGNATURE") {
+			return res.status(400).json({
+				message: "Contract can only be recalled when it is pending tenant signature.",
+			});
+		}
+
+		contract.status = "DRAFT";
+		await contract.save();
+
+		const populatedContract = await Contract.findById(contract._id)
+			.populate(
+				"property",
+				"overview addressAndLocation.address images listingDetails.bedrooms"
+			)
+			.populate("lister", "name email")
+			.populate("tenant", "name email");
+
+		res.json(populatedContract);
+	} catch (error) {
+		console.error("Error recalling contract:", error);
+		res.status(500).json({
+			message: "Server Error",
+			error: error.message,
 		});
 	}
 };

@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
+import { toast } from 'react-toastify';
 import { AppDispatch, RootState } from '../../../redux/slices/store';
-import { fetchMyAgreements, deleteContract } from '../../../redux/slices/contractSlice';
+import { fetchMyAgreements, deleteContract, recallContract } from '../../../redux/slices/contractSlice';
 
 // Format status for display: "PENDING_TENANT_SIGNATURE" → "Pending tenant signature"
 const formatStatus = (status: string) =>
@@ -22,6 +23,7 @@ const AgreementsBody = () => {
 
     // State for simple tab switching
     const [activeTab, setActiveTab] = useState<'active' | 'payment_pending' | 'archive'>('active');
+    const [recallingId, setRecallingId] = useState<string | null>(null);
 
     useEffect(() => {
         dispatch(fetchMyAgreements());
@@ -97,7 +99,26 @@ const AgreementsBody = () => {
                         </Link>
                     )}
                     {contract.status === 'PENDING_TENANT_SIGNATURE' && (
-                        <span className="badge badge-waiting">Waiting for Sublessee</span>
+                        <button
+                            type="button"
+                            className="btn-two btn-sm"
+                            disabled={recallingId === contract._id}
+                            onClick={async (e) => {
+                                e.stopPropagation();
+                                setRecallingId(contract._id);
+                                try {
+                                    await dispatch(recallContract(contract._id)).unwrap();
+                                    toast.success('Contract recalled. You can now edit.');
+                                    navigate(`/dashboard/agreements/${contract._id}/edit`);
+                                } catch (err) {
+                                    toast.error(typeof err === 'string' ? err : (err as { message?: string })?.message || 'Failed to recall');
+                                } finally {
+                                    setRecallingId(null);
+                                }
+                            }}
+                        >
+                            {recallingId === contract._id ? 'Recalling…' : 'Edit'}
+                        </button>
                     )}
                 </>
             );

@@ -148,6 +148,26 @@ export const updateDraft = createAsyncThunk(
     }
 );
 
+// Recall Contract (revert PENDING_TENANT_SIGNATURE to DRAFT for editing)
+export const recallContract = createAsyncThunk(
+    'contract/recallContract',
+    async (id: string, { getState, rejectWithValue }) => {
+        const token = (getState() as RootState).auth.token;
+        if (!token) return rejectWithValue('Not authenticated');
+
+        try {
+            const response = await axios.post(
+                `${API_URL}/contracts/${id}/recall`,
+                {},
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+            return response.data as Contract;
+        } catch (error: any) {
+            return rejectWithValue(error.response?.data?.message || 'Failed to recall contract');
+        }
+    }
+);
+
 // Lock Contract
 export const lockContract = createAsyncThunk(
     'contract/lockContract',
@@ -303,6 +323,21 @@ const contractSlice = createSlice({
         builder.addCase(updateDraft.fulfilled, (state, action: PayloadAction<Contract>) => {
             state.currentContract = action.payload;
             state.successMessage = "Draft saved";
+        });
+
+        // Recall Contract
+        builder.addCase(recallContract.pending, (state) => {
+            state.isLoading = true;
+            state.error = null;
+        });
+        builder.addCase(recallContract.fulfilled, (state, action: PayloadAction<Contract>) => {
+            state.isLoading = false;
+            state.currentContract = action.payload;
+            state.successMessage = "Contract recalled. You can now edit.";
+        });
+        builder.addCase(recallContract.rejected, (state, action) => {
+            state.isLoading = false;
+            state.error = action.payload as string;
         });
 
         // Lock Contract

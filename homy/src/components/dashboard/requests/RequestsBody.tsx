@@ -107,14 +107,26 @@ const RequestsBody = () => {
     /**
      * Dispatches action to create a new contract draft and redirects to the editor.
      * Triggered when the user clicks "Draft Contract".
+     * If an active contract already exists: open the draft if still DRAFT, otherwise show one toast and go to My Agreements.
      */
     const handleDraftContract = async (propertyId: string, tenantId: string) => {
         try {
             const result = await dispatch(createDraft({ propertyId, tenantId })).unwrap()
-            navigate(`/dashboard/agreements/${result._id}/edit`)
+            const contract = (result as any).contract ?? result
+            const contractId = contract._id
+            if (!contractId) {
+                toast.error("Failed to open contract")
+                return
+            }
+            if (contract.status !== 'DRAFT') {
+                toast.info('This agreement is already sent. You can view it in My Agreements.')
+                navigate('/dashboard/my-agreements')
+                return
+            }
+            navigate(`/dashboard/agreements/${contractId}/edit`)
         } catch (error) {
             console.error("Draft creation error:", error)
-            toast.error("Failed to initialize contract")
+            toast.error(typeof error === 'string' ? error : (error as { message?: string })?.message || "Failed to initialize contract")
         }
     }
 
@@ -283,13 +295,47 @@ const RequestsBody = () => {
                                                         <div className="d-flex gap-2">
                                                             <button
                                                                 onClick={() => handleUpdateAmbassadorStatus(req._id, 'declined')}
-                                                                className="btn btn-outline-danger flex-fill"
+                                                                className="btn flex-fill"
+                                                                style={{
+                                                                    border: '1px solid #dc3545',
+                                                                    color: '#dc3545',
+                                                                    backgroundColor: 'transparent',
+                                                                    borderRadius: '8px',
+                                                                    padding: '10px 20px',
+                                                                    fontWeight: 500,
+                                                                    transition: 'all 0.3s ease'
+                                                                }}
+                                                                onMouseEnter={(e) => {
+                                                                    e.currentTarget.style.backgroundColor = '#dc3545';
+                                                                    e.currentTarget.style.color = '#fff';
+                                                                }}
+                                                                onMouseLeave={(e) => {
+                                                                    e.currentTarget.style.backgroundColor = 'transparent';
+                                                                    e.currentTarget.style.color = '#dc3545';
+                                                                }}
                                                             >
                                                                 Decline
                                                             </button>
                                                             <button
                                                                 onClick={() => handleUpdateAmbassadorStatus(req._id, 'approved')}
-                                                                className="btn btn-success flex-fill"
+                                                                className="btn flex-fill"
+                                                                style={{
+                                                                    border: '1px solid #198754',
+                                                                    color: '#fff',
+                                                                    backgroundColor: '#198754',
+                                                                    borderRadius: '8px',
+                                                                    padding: '10px 20px',
+                                                                    fontWeight: 500,
+                                                                    transition: 'all 0.3s ease'
+                                                                }}
+                                                                onMouseEnter={(e) => {
+                                                                    e.currentTarget.style.backgroundColor = '#157347';
+                                                                    e.currentTarget.style.borderColor = '#157347';
+                                                                }}
+                                                                onMouseLeave={(e) => {
+                                                                    e.currentTarget.style.backgroundColor = '#198754';
+                                                                    e.currentTarget.style.borderColor = '#198754';
+                                                                }}
                                                             >
                                                                 Approve
                                                             </button>
@@ -334,10 +380,13 @@ const RequestsBody = () => {
                                                     <p className="mb-1"><strong>Interested In:</strong></p>
                                                     <h6 className="color-dark">
                                                         <Link
-                                                            to={`/listing_details_01/${req.propertyId?._id ?? ''}`}
+                                                            to={`/listing_details/${req.propertyId?._id ?? ''}`}
                                                             className="text-decoration-underline"
                                                         >
-                                                            {req.propertyId?.overview?.title || 'Property'}
+                                                            {req.propertyId?.overview?.title ||
+                                                                (req.propertyId?.overview?.category && req.propertyId?.overview?.neighborhood
+                                                                    ? `${req.propertyId.overview.category} in ${req.propertyId.overview.neighborhood}`
+                                                                    : 'View property')}
                                                         </Link>
                                                     </h6>
                                                 </div>
@@ -352,10 +401,50 @@ const RequestsBody = () => {
                                                 <div className="mt-auto pt-4">
                                                     {req.status === 'pending' ? (
                                                         <div className="d-flex gap-2">
-                                                            <button onClick={() => handleDecline(req._id)} className="btn btn-outline-danger flex-fill">
+                                                            <button 
+                                                                onClick={() => handleDecline(req._id)} 
+                                                                className="btn flex-fill"
+                                                                style={{
+                                                                    border: '1px solid #dc3545',
+                                                                    color: '#dc3545',
+                                                                    backgroundColor: 'transparent',
+                                                                    borderRadius: '8px',
+                                                                    padding: '10px 20px',
+                                                                    fontWeight: 500,
+                                                                    transition: 'all 0.3s ease'
+                                                                }}
+                                                                onMouseEnter={(e) => {
+                                                                    e.currentTarget.style.backgroundColor = '#dc3545';
+                                                                    e.currentTarget.style.color = '#fff';
+                                                                }}
+                                                                onMouseLeave={(e) => {
+                                                                    e.currentTarget.style.backgroundColor = 'transparent';
+                                                                    e.currentTarget.style.color = '#dc3545';
+                                                                }}
+                                                            >
                                                                 Decline
                                                             </button>
-                                                            <button onClick={() => handleApprove(req._id)} className="btn btn-success flex-fill">
+                                                            <button 
+                                                                onClick={() => handleApprove(req._id)} 
+                                                                className="btn flex-fill"
+                                                                style={{
+                                                                    border: '1px solid #198754',
+                                                                    color: '#fff',
+                                                                    backgroundColor: '#198754',
+                                                                    borderRadius: '8px',
+                                                                    padding: '10px 20px',
+                                                                    fontWeight: 500,
+                                                                    transition: 'all 0.3s ease'
+                                                                }}
+                                                                onMouseEnter={(e) => {
+                                                                    e.currentTarget.style.backgroundColor = '#157347';
+                                                                    e.currentTarget.style.borderColor = '#157347';
+                                                                }}
+                                                                onMouseLeave={(e) => {
+                                                                    e.currentTarget.style.backgroundColor = '#198754';
+                                                                    e.currentTarget.style.borderColor = '#198754';
+                                                                }}
+                                                            >
                                                                 Approve
                                                             </button>
                                                         </div>
@@ -366,15 +455,36 @@ const RequestsBody = () => {
                                                                     const channelId = `interest-${req._id}`;
                                                                     navigate(`/dashboard/chat?channel=${channelId}`);
                                                                 }}
-                                                                className="btn btn-primary w-100"
+                                                                className="btn-two w-100"
+                                                                style={{ 
+                                                                    textAlign: 'center',
+                                                                    display: 'block',
+                                                                    padding: '12px 20px'
+                                                                }}
                                                             >
                                                                 Go to Chat
                                                             </button>
 
                                                             <button
                                                                 onClick={() => handleDraftContract(req.propertyId?._id, req.renterId?._id)}
-                                                                className="btn btn-dark w-100"
-                                                                style={{ backgroundColor: '#2c3e50', borderColor: '#2c3e50' }}
+                                                                className="btn w-100"
+                                                                style={{ 
+                                                                    backgroundColor: '#1a1a1a', 
+                                                                    borderColor: '#1a1a1a',
+                                                                    color: '#fff',
+                                                                    borderRadius: '8px',
+                                                                    padding: '12px 20px',
+                                                                    fontWeight: 500,
+                                                                    transition: 'all 0.3s ease'
+                                                                }}
+                                                                onMouseEnter={(e) => {
+                                                                    e.currentTarget.style.backgroundColor = '#333';
+                                                                    e.currentTarget.style.borderColor = '#333';
+                                                                }}
+                                                                onMouseLeave={(e) => {
+                                                                    e.currentTarget.style.backgroundColor = '#1a1a1a';
+                                                                    e.currentTarget.style.borderColor = '#1a1a1a';
+                                                                }}
                                                             >
                                                                 Draft Contract
                                                             </button>

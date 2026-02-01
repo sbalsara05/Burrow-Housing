@@ -73,41 +73,58 @@ const HeaderOne = ({style}: any) => {
 
                                             {/* User Profile - only show when logged in */}
                                             {user && (
-                                                <li className="d-none d-md-inline-block tw-pl-5 tw-pt-2">
-                                                    <Link to="/dashboard/profile" className="text-decoration-none">
-                                                        <div className="user-profile d-flex align-items-center"
-                                                             style={{cursor: 'pointer'}}>
-                                                            <div className="user-avatar me-2">
-                                                                <img
-                                                                    src={getProfileImageUrl()}
-                                                                    alt={user.name || 'User'}
-                                                                    className="rounded-circle"
-                                                                    style={{
-                                                                        width: '58px',
-                                                                        height: '58px',
-                                                                        objectFit: 'cover',
-                                                                        border: '2px solid #f8f9fa',
-                                                                        transition: 'border-color 0.2s ease'
-                                                                    }}
-                                                                    onError={(e) => {
-                                                                        // Fallback to default image if profile image fails to load
-                                                                        e.currentTarget.src = "/assets/images/dashboard/no-profile-pic.png";
-                                                                    }}
-                                                                    onMouseEnter={(e) => {
-                                                                        e.currentTarget.style.borderColor = '#f54a2c';
-                                                                    }}
-                                                                    onMouseLeave={(e) => {
-                                                                        e.currentTarget.style.borderColor = '#f8f9fa';
-                                                                    }}
-                                                                />
-                                                            </div>
-                                                            <div className="user-info">
-                                                                {/*<div className="user-name fw-500 text-dark"*/}
-                                                                {/*     style={{fontSize: '14px', lineHeight: '1.2'}}>*/}
-                                                                {/*    {user.name || 'User'}*/}
-                                                                {/*</div>*/}
-                                                            </div>
+                                                <li className="d-none d-md-inline-block ms-3">
+                                                    <Link 
+                                                        to="/dashboard/profile" 
+                                                        className="d-flex align-items-center text-decoration-none"
+                                                        style={{
+                                                            border: '1px solid #e9ecef',
+                                                            borderRadius: '25px',
+                                                            padding: '8px 16px',
+                                                            transition: 'all 0.3s ease',
+                                                            color: 'inherit'
+                                                        }}
+                                                        onMouseEnter={(e) => {
+                                                            e.currentTarget.style.color = '#fb6547';
+                                                            e.currentTarget.style.borderColor = '#fb6547';
+                                                        }}
+                                                        onMouseLeave={(e) => {
+                                                            e.currentTarget.style.color = 'inherit';
+                                                            e.currentTarget.style.borderColor = '#e9ecef';
+                                                        }}
+                                                    >
+                                                        <div 
+                                                            className="d-flex align-items-center justify-content-center me-2"
+                                                            style={{
+                                                                width: '32px',
+                                                                height: '32px',
+                                                                borderRadius: '50%',
+                                                                backgroundColor: '#f8f9fa',
+                                                                color: '#333',
+                                                                fontSize: '14px',
+                                                                transition: 'all 0.3s ease',
+                                                                overflow: 'hidden'
+                                                            }}
+                                                        >
+                                                            <img 
+                                                                src={getProfileImageUrl()} 
+                                                                alt={user.name || 'User'}
+                                                                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                                                onError={(e) => {
+                                                                    e.currentTarget.src = "/assets/images/dashboard/no-profile-pic.png";
+                                                                }}
+                                                            />
                                                         </div>
+                                                        <span 
+                                                            className="fw-500"
+                                                            style={{
+                                                                fontSize: '14px',
+                                                                color: 'inherit',
+                                                                transition: 'color 0.3s ease'
+                                                            }}
+                                                        >
+                                                            {user.name || 'Profile'}
+                                                        </span>
                                                     </Link>
                                                 </li>
                                             )}

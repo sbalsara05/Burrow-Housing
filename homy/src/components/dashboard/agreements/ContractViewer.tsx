@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements, CardElement, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
@@ -8,6 +8,7 @@ import { AppDispatch, RootState } from '../../../redux/slices/store';
 import {
     fetchContractById,
     signContract,
+    recallContract,
     createPaymentIntent,
     type CreatePaymentIntentResponse,
 } from '../../../redux/slices/contractSlice';
@@ -52,6 +53,11 @@ function PaymentForm({
 
         try {
             if (paymentMethod === 'ach') {
+                const { error: submitError } = await elements.submit();
+                if (submitError) {
+                    setErrorMessage(submitError.message || 'Payment validation failed');
+                    return;
+                }
                 const { error } = await stripe.confirmPayment({
                     elements,
                     clientSecret,
@@ -120,11 +126,13 @@ function PaymentForm({
 
 const ContractViewer = () => {
     const { id } = useParams<{ id: string }>();
+    const navigate = useNavigate();
     const dispatch = useDispatch<AppDispatch>();
     const { currentContract, isLoading, error, successMessage } = useSelector((state: RootState) => state.contract);
     const { user } = useSelector((state: RootState) => state.auth);
 
     const [showSignatureModal, setShowSignatureModal] = useState(false);
+    const [isRecalling, setIsRecalling] = useState(false);
     const [paymentIntent, setPaymentIntent] = useState<CreatePaymentIntentResponse | null>(null);
     const [paymentMethodUsed, setPaymentMethodUsed] = useState<'card' | 'ach'>('card');
     const [paymentLoading, setPaymentLoading] = useState(false);
@@ -287,8 +295,15 @@ const ContractViewer = () => {
                             <h5 className="mb-3">Payment</h5>
                             {isTenant ? (
                                 tenantPaid ? (
-                                    <div className="agreement-review-payment-done fw-bold">
-                                        Your service fee has been paid.
+                                    <div>
+                                        <div className="agreement-review-payment-done fw-bold mb-3">
+                                            ✓ Your service fee has been paid.
+                                        </div>
+                                        {!listerPaid && (
+                                            <div className="alert alert-info mb-0">
+                                                <strong>What's next:</strong> Waiting for the sublessor to pay their 2.5% service fee. You'll be notified when the agreement is fully complete.
+                                            </div>
+                                        )}
                                     </div>
                                 ) :                                 paymentIntent && stripePromise ? (
                                     <Elements stripe={stripePromise} options={{ clientSecret: paymentIntent.clientSecret }}>
@@ -297,9 +312,11 @@ const ContractViewer = () => {
                                             amountCents={paymentIntent.amountCents}
                                             paymentMethod={paymentMethodUsed}
                                             isTestMode={isTestMode}
-                                            onSuccess={() => {
+                                            onSuccess={async () => {
                                                 setPaymentIntent(null);
-                                                if (id) dispatch(fetchContractById(id));
+                                                if (id) {
+                                                    await dispatch(fetchContractById(id));
+                                                }
                                             }}
                                             onCancel={() => setPaymentIntent(null)}
                                         />
@@ -367,8 +384,15 @@ const ContractViewer = () => {
                                 )
                             ) : (
                                 listerPaid ? (
-                                    <div className="agreement-review-payment-done fw-bold">
-                                        Your service fee has been paid.
+                                    <div>
+                                        <div className="agreement-review-payment-done fw-bold mb-3">
+                                            ✓ Your service fee has been paid.
+                                        </div>
+                                        {!tenantPaid && (
+                                            <div className="alert alert-info mb-0">
+                                                <strong>What's next:</strong> Waiting for the sublessee to pay their 2.5% service fee. You'll be notified when they complete payment.
+                                            </div>
+                                        )}
                                     </div>
                                 ) : paymentIntent && stripePromise ? (
                                     <Elements stripe={stripePromise} options={{ clientSecret: paymentIntent.clientSecret }}>
@@ -377,9 +401,11 @@ const ContractViewer = () => {
                                             amountCents={paymentIntent.amountCents}
                                             paymentMethod={paymentMethodUsed}
                                             isTestMode={isTestMode}
-                                            onSuccess={() => {
+                                            onSuccess={async () => {
                                                 setPaymentIntent(null);
-                                                if (id) dispatch(fetchContractById(id));
+                                                if (id) {
+                                                    await dispatch(fetchContractById(id));
+                                                }
                                             }}
                                             onCancel={() => setPaymentIntent(null)}
                                         />
@@ -450,7 +476,29 @@ const ContractViewer = () => {
                     )}
 
                     {/* Action Buttons */}
-                    <div className="d-flex justify-content-end">
+                    <div className="d-flex justify-content-end gap-2 flex-wrap">
+                        {/* Lister: Edit button when pending tenant signature (recall & edit for negotiations) */}
+                        {isLister && currentContract.status === 'PENDING_TENANT_SIGNATURE' && (
+                            <button
+                                className="btn-two"
+                                onClick={async () => {
+                                    if (!id) return;
+                                    setIsRecalling(true);
+                                    try {
+                                        await dispatch(recallContract(id)).unwrap();
+                                        toast.success('Contract recalled. You can now edit.');
+                                        navigate(`/dashboard/agreements/${id}/edit`);
+                                    } catch (err) {
+                                        toast.error(typeof err === 'string' ? err : (err as { message?: string })?.message || 'Failed to recall');
+                                    } finally {
+                                        setIsRecalling(false);
+                                    }
+                                }}
+                                disabled={isRecalling}
+                            >
+                                {isRecalling ? 'Recalling…' : 'Edit Agreement'}
+                            </button>
+                        )}
                         {canSign && !showSignatureModal && (
                             <button
                                 className="btn-one"

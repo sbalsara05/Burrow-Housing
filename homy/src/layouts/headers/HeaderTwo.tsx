@@ -118,7 +118,7 @@ const HeaderTwo: React.FC<HeaderTwoProps> = ({ style_1, style_2 }) => {
                                                 <li className="d-none d-md-inline-block ms-3 ms-xl-4 me-xl-4">
                                                     <Link 
                                                         to="/dashboard/add-property" 
-                                                        className={style_1 ? "btn-ten" : "btn-two rounded-0"} 
+                                                        className="btn-two" 
                                                         target="_blank"
                                                     >
                                                         <span>Add Listing</span> 
