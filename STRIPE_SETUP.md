@@ -15,19 +15,25 @@ Add to your `.env` (or Dotenv Vault):
 ## Backend Endpoints
 
 - **`POST /api/stripe/create-payment-intent`** (authenticated)  
-  - Body: `{ "contractId": "<contract _id>" }`  
+  - Body: `{ "contractId": "<contract _id>", "paymentMethod": "card" | "ach" }`  
   - Use only for **COMPLETED** contracts (both sides signed).  
-  - Returns `{ clientSecret, paymentIntentId, amountCents }`.  
-  - Amount is derived from contract variables `Rent_Amount` and `Security_Deposit` (sum, min 50¢).
+  - Callable by **tenant** (sublessee) or **lister** (sublessor). Each pays their own fee.
+  - Returns `{ clientSecret, paymentIntentId, amountCents, paymentStatus, paymentSnapshot, payer }`.  
+  - Amount charged is **only the platform service fee** (rent is paid through other portals):
+    - **Tenant:** 2.5% of rent + optional 1.0% card surcharge (card only)
+    - **Lister:** 2.5% of rent + optional 1.0% card surcharge (card only)
+  - Supports **card** and **ACH bank transfer**; bank transfer avoids the 1% card fee.
 
 - **`POST /api/stripe/webhook`** (no auth, raw body)  
   - Configure this URL in Stripe Dashboard → Developers → Webhooks.  
-  - Handles `payment_intent.succeeded` and `payment_intent.payment_failed`; updates `stripePaymentStatus` on the contract.
+  - Handles `payment_intent.succeeded`, `payment_intent.processing`, `payment_intent.canceled`, `payment_intent.payment_failed`; updates `stripePaymentStatus` and `paymentStatus` on the contract.
 
 ## Contract Model Additions
 
 - `stripePaymentIntentId`: set when a PaymentIntent is created for the contract.  
-- `stripePaymentStatus`: `""` | `"pending"` | `"succeeded"` | `"failed"`.
+- `stripePaymentStatus`: `""` | `"pending"` | `"processing"` | `"succeeded"` | `"failed"` | `"canceled"`.
+- `paymentStatus`: `NOT_STARTED` | `PENDING` | `PROCESSING` | `SUCCEEDED` | `FAILED` | `CANCELED` | `EXPIRED`.
+- `paymentExpiresAt`: set when contract becomes `COMPLETED` (default 48h; configurable via `PAYMENT_WINDOW_HOURS`).
 
 ## Webhook Setup (Stripe Dashboard)
 
@@ -46,15 +52,24 @@ Use the printed `whsec_...` as `STRIPE_WEBHOOK_SECRET` locally.
 
 ## Frontend (Stripe.js)
 
-1. Load Stripe.js and create a Stripe instance with `STRIPE_PUBLISHABLE_KEY`.  
-2. After both parties sign, call `POST /api/stripe/create-payment-intent` with the `contractId`.  
-3. Use `stripe.confirmCardPayment(clientSecret, { payment_method: { card: element } })` (or Elements) to collect payment.  
-4. Poll or refetch the contract to check `stripePaymentStatus === "succeeded"` or handle success in your UI.
+1. In the **homy** app, set `VITE_STRIPE_PUBLISHABLE_KEY` (e.g. in `homy/.env`): same value as backend `STRIPE_PUBLISHABLE_KEY` (e.g. `pk_test_...`).  
+2. After both parties sign, each party sees a **Pay now** section on the agreement review page (`/dashboard/agreements/:id/sign`).  
+3. Each party chooses **Pay by card** (2.5% + 1% fee) or **Pay by bank transfer** (2.5% only).  
+4. Clicking an option calls `POST /api/stripe/create-payment-intent` with `contractId` and `paymentMethod: "card" | "ach"`, then shows the Stripe form and confirms payment.  
+5. On success, the contract is refetched and the UI shows **Payment complete**.  
+
+**Note:** Enable **ACH Direct Debit** in [Stripe Dashboard → Settings → Payment methods](https://dashboard.stripe.com/settings/payment_methods) for bank transfer to work.
 
 ## Install
 
+**Backend:**
 ```bash
 cd backend && npm install
 ```
 
-The `stripe` package is already in `package.json`.
+**Frontend (homy):**
+```bash
+cd homy && npm install
+```
+
+The frontend uses `@stripe/stripe-js` and `@stripe/react-stripe-js` for the payment form.

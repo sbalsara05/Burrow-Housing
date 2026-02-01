@@ -22,6 +22,11 @@ const NotificationSchema = new mongoose.Schema(
 				"ambassador_request",
 				"ambassador_request_update",
 				"ambassador_request_cancelled",
+				"contract_pending",
+				"contract_tenant_signed",
+				"contract_completed",
+				"contract_payment_received",
+				"contract_cancelled",
 			],
 			required: true,
 		},
@@ -51,6 +56,14 @@ const NotificationSchema = new mongoose.Schema(
 				ref: "User",
 			},
 			listerId: {
+				type: mongoose.Schema.Types.ObjectId,
+				ref: "User",
+			},
+			contractId: {
+				type: mongoose.Schema.Types.ObjectId,
+				ref: "Contract",
+			},
+			tenantId: {
 				type: mongoose.Schema.Types.ObjectId,
 				ref: "User",
 			},

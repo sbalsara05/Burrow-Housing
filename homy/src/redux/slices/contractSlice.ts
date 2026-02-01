@@ -38,6 +38,18 @@ export interface Contract {
     finalPdfUrl?: string;
     createdAt: string;
     updatedAt: string;
+    paymentStatus?: string;
+    stripePaymentStatus?: string;
+    listerPaymentStatus?: string;
+    listerStripePaymentStatus?: string;
+    paymentSnapshot?: {
+        rentCents: number;
+        tenantFeeCents: number;
+        amountToChargeCents: number;
+        amountToPayoutCents: number;
+        paymentMethod?: string;
+    };
+    paymentExpiresAt?: string;
 }
 
 interface ContractState {
@@ -136,6 +148,26 @@ export const updateDraft = createAsyncThunk(
     }
 );
 
+// Recall Contract (revert PENDING_TENANT_SIGNATURE to DRAFT for editing)
+export const recallContract = createAsyncThunk(
+    'contract/recallContract',
+    async (id: string, { getState, rejectWithValue }) => {
+        const token = (getState() as RootState).auth.token;
+        if (!token) return rejectWithValue('Not authenticated');
+
+        try {
+            const response = await axios.post(
+                `${API_URL}/contracts/${id}/recall`,
+                {},
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+            return response.data as Contract;
+        } catch (error: any) {
+            return rejectWithValue(error.response?.data?.message || 'Failed to recall contract');
+        }
+    }
+);
+
 // Lock Contract
 export const lockContract = createAsyncThunk(
     'contract/lockContract',
@@ -193,6 +225,39 @@ export const deleteContract = createAsyncThunk(
             return id;
         } catch (error: any) {
             return rejectWithValue(error.response?.data?.message || 'Failed to delete contract');
+        }
+    }
+);
+
+export interface CreatePaymentIntentResponse {
+    clientSecret: string;
+    paymentIntentId: string;
+    amountCents: number;
+    paymentStatus?: string;
+    paymentSnapshot?: { amountToChargeCents: number; rentCents: number; tenantFeeCents: number };
+}
+
+// Create Stripe PaymentIntent (sublessee only, for COMPLETED contracts)
+export const createPaymentIntent = createAsyncThunk(
+    'contract/createPaymentIntent',
+    async (
+        payload: { contractId: string; paymentMethod?: 'card' | 'ach' },
+        { getState, rejectWithValue }
+    ) => {
+        const token = (getState() as RootState).auth.token;
+        if (!token) return rejectWithValue('Not authenticated');
+
+        try {
+            const response = await axios.post<CreatePaymentIntentResponse>(
+                `${API_URL}/stripe/create-payment-intent`,
+                { contractId: payload.contractId, paymentMethod: payload.paymentMethod || 'card' },
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+            return response.data;
+        } catch (error: any) {
+            return rejectWithValue(
+                error.response?.data?.message || 'Failed to create payment'
+            );
         }
     }
 );
@@ -258,6 +323,21 @@ const contractSlice = createSlice({
         builder.addCase(updateDraft.fulfilled, (state, action: PayloadAction<Contract>) => {
             state.currentContract = action.payload;
             state.successMessage = "Draft saved";
+        });
+
+        // Recall Contract
+        builder.addCase(recallContract.pending, (state) => {
+            state.isLoading = true;
+            state.error = null;
+        });
+        builder.addCase(recallContract.fulfilled, (state, action: PayloadAction<Contract>) => {
+            state.isLoading = false;
+            state.currentContract = action.payload;
+            state.successMessage = "Contract recalled. You can now edit.";
+        });
+        builder.addCase(recallContract.rejected, (state, action) => {
+            state.isLoading = false;
+            state.error = action.payload as string;
         });
 
         // Lock Contract

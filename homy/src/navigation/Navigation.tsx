@@ -34,6 +34,7 @@ import ResetPasswordPage from '../pages/ResetPasswordPage';
 import DashboardMyAgreements from '../pages/DashboardMyAgreements';
 import DashboardContractBuilder from '../pages/DashboardContractBuilder';
 import DashboardContractViewer from '../pages/DashboardContractViewer';
+import PaymentComplete from '../pages/PaymentComplete';
 
 const AppNavigation = () => {
     return (
@@ -96,6 +97,7 @@ const AppNavigation = () => {
 					<Route path="/dashboard/ambassador-requests" element={<DashboardAmbassadorRequests />} />
                     <Route path="/dashboard/ambassador/request/:requestId" element={<DashboardAmbassadorRequestDetails />} />
                     <Route path="/dashboard/my-agreements" element={<DashboardMyAgreements />} />
+                    <Route path="/dashboard/agreements/payment-complete" element={<PaymentComplete />} />
                     <Route path="/dashboard/agreements/:id/edit" element={<DashboardContractBuilder />} />
                     <Route path="/dashboard/agreements/:id/sign" element={<DashboardContractViewer />} />
                     {/* Add any other future protected routes inside this wrapper */}

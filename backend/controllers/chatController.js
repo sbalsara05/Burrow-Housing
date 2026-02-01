@@ -174,6 +174,7 @@ exports.approveInterestAndCreateChannel = async (req, res) => {
 			members: [listerId.toString(), renterId.toString()],
 			created_by_id: listerId.toString(),
 			propertyId: propertyId.toString(),
+			listerId: listerId.toString(),
 			interestId: interestId.toString(),
 		});
 

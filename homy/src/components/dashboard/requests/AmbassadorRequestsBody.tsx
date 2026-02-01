@@ -239,13 +239,47 @@ const AmbassadorRequestsBody = () => {
                       <div className="d-flex gap-2">
                         <button 
                           onClick={() => handleUpdateAmbassadorStatus(req._id, 'declined')} 
-                          className="btn btn-outline-danger flex-fill"
+                          className="btn flex-fill"
+                          style={{
+                            border: '1px solid #dc3545',
+                            color: '#dc3545',
+                            backgroundColor: 'transparent',
+                            borderRadius: '8px',
+                            padding: '10px 20px',
+                            fontWeight: 500,
+                            transition: 'all 0.3s ease'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = '#dc3545';
+                            e.currentTarget.style.color = '#fff';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = 'transparent';
+                            e.currentTarget.style.color = '#dc3545';
+                          }}
                         >
                           Decline
                         </button>
                         <button 
                           onClick={() => handleUpdateAmbassadorStatus(req._id, 'approved')} 
-                          className="btn btn-success flex-fill"
+                          className="btn flex-fill"
+                          style={{
+                            border: '1px solid #198754',
+                            color: '#fff',
+                            backgroundColor: '#198754',
+                            borderRadius: '8px',
+                            padding: '10px 20px',
+                            fontWeight: 500,
+                            transition: 'all 0.3s ease'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = '#157347';
+                            e.currentTarget.style.borderColor = '#157347';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = '#198754';
+                            e.currentTarget.style.borderColor = '#198754';
+                          }}
                         >
                           Approve
                         </button>

@@ -216,8 +216,25 @@ const MyAmbassadorRequestsBody = () => {
                                         {req.status === 'pending' && (
                                             <button
                                                 onClick={() => handleCancelAmbassadorRequest(req._id)}
-                                                className="btn btn-outline-danger w-100"
+                                                className="btn w-100"
                                                 disabled={loadingAmbassador}
+                                                style={{
+                                                    border: '1px solid #dc3545',
+                                                    color: '#dc3545',
+                                                    backgroundColor: 'transparent',
+                                                    borderRadius: '8px',
+                                                    padding: '10px 20px',
+                                                    fontWeight: 500,
+                                                    transition: 'all 0.3s ease'
+                                                }}
+                                                onMouseEnter={(e) => {
+                                                    e.currentTarget.style.backgroundColor = '#dc3545';
+                                                    e.currentTarget.style.color = '#fff';
+                                                }}
+                                                onMouseLeave={(e) => {
+                                                    e.currentTarget.style.backgroundColor = 'transparent';
+                                                    e.currentTarget.style.color = '#dc3545';
+                                                }}
                                             >
                                                 Cancel Request
                                             </button>

@@ -30,7 +30,8 @@ const InterestedModal: React.FC<InterestedModalProps> = ({
                                                          }) => {
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const defaultMessage = `Hello, I am interested in ${propertyName}. I would like to know more about the rental terms and availability. Thank you!`;
+    const displayName = propertyName && propertyName !== 'undefined' ? propertyName : 'this property';
+    const defaultMessage = `Hello, I am interested in ${displayName}. I would like to know more about the rental terms and availability. Thank you!`;
 
     const {
         register,
@@ -82,7 +83,6 @@ const InterestedModal: React.FC<InterestedModalProps> = ({
 
                 <div className="modal-body">
                     <div className="property-info">
-                        <h4 className="property-name">{propertyName}</h4>
                         <p className="property-subtitle">Let the property owner know you're interested!</p>
                     </div>
 
@@ -219,15 +219,8 @@ const InterestedModal: React.FC<InterestedModalProps> = ({
                 }
 
                 .property-info {
-                    margin-bottom: 2rem;
-                    text-align: center;
-                }
-
-                .property-name {
-                    color: #2c3e50;
-                    font-size: 1.3rem;
-                    font-weight: 600;
-                    margin-bottom: 0.5rem;
+                    margin-bottom: 1.5rem;
+                    text-align: left;
                 }
 
                 .property-subtitle {

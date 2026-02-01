@@ -45,8 +45,9 @@ const CustomChannelHeader: React.FC<CustomChannelHeaderProps> = ({ toggleSidebar
     const displayImage = otherUserProfile?.image || otherUserFromStream?.image || '/assets/images/dashboard/no-profile-pic.png';
 
     // --- CONTRACT LOGIC START ---
-    // Check if current user is the Lister (Landlord)
-    const isLister = currentUser?._id === listerId;
+    // Check if current user is the Lister (Landlord). Use channel.listerId or fall back to property.userId (older channels may not have listerId).
+    const effectiveListerId = listerId || (property?.userId as string) || null;
+    const isLister = Boolean(effectiveListerId && currentUser?._id && String(currentUser._id) === String(effectiveListerId));
     const tenantId = otherUserFromStream?.id;
 
     const handleCreateDraft = async () => {

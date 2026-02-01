@@ -6,6 +6,7 @@ const {
 	getContractById,
 	updateDraft,
 	lockContract,
+	recallContract,
 	signContract,
 	deleteContract,
 } = require("../controllers/contractController");
@@ -28,6 +29,9 @@ router.post("/:id/sign", authenticateToken, signContract);
 
 // Lock/finalize a contract (Lister only)
 router.post("/:id/lock", authenticateToken, lockContract);
+
+// Recall contract to draft (Lister only, PENDING_TENANT_SIGNATURE only)
+router.post("/:id/recall", authenticateToken, recallContract);
 
 // Delete a contract (Lister only, DRAFT or CANCELLED only)
 router.delete("/:id", authenticateToken, deleteContract);
