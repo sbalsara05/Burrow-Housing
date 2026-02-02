@@ -2,6 +2,36 @@
 
 A **502 Bad Gateway** means the reverse proxy (e.g. Nginx) in front of your site is running, but the **backend API** it proxies to is not responding. The frontend calls `/api/properties/all` (and other `/api/*` routes); when that proxy target is down or unreachable, you get 502.
 
+---
+
+## After merging the Redis/Mongo fix
+
+If you just merged and the pipeline ran but prod still returns 502:
+
+1. **SSH to the droplet** and confirm the backend is actually running with the new config:
+   ```bash
+   ssh YOUR_DROPLET_USER@YOUR_DROPLET_IP
+   cd ~/app
+   docker ps -a
+   docker logs burrow-backend --tail 100
+   ```
+2. **Backend must have `MONGODB_URI` and `REDIS_URL`.** The repo’s `docker-compose.yml` now sets them in the backend service. After `git pull`, `docker compose up -d --build` uses that file. If you use a custom compose or `.env` on the droplet, ensure the backend container gets:
+   - `MONGODB_URI=mongodb://admin:password123@mongo:27017/?authSource=admin` (or your prod Mongo URL)
+   - `REDIS_URL=redis://redis:6379` (or your prod Redis URL)
+3. **Force-recreate the backend** so it uses the new image and env:
+   ```bash
+   cd ~/app
+   git pull origin main
+   docker compose up -d --build --force-recreate backend
+   docker logs burrow-backend --tail 50
+   ```
+4. **Check health and properties endpoint on the server:**
+   ```bash
+   curl -s http://localhost:5001/health
+   curl -s -o /dev/null -w "%{http_code}" "http://localhost:5001/api/properties/all?page=1&limit=9"
+   ```
+   Both should return 200. If not, fix backend/env first; then check Nginx (step 6).
+
 ## 1. SSH into your Digital Ocean droplet
 
 ```bash
