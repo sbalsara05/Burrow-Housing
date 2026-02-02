@@ -1,6 +1,9 @@
 services:
   # Backend service
   backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
     image: burrow-housing-backend:latest
     container_name: burrow-backend
     ports:
@@ -8,6 +11,10 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=5000
+      # Use Docker Redis service (not Redis Cloud) so backend stays connected
+      - REDIS_URL=redis://redis:6379
+      # MongoDB (matches mongo service credentials)
+      - MONGODB_URI=mongodb://admin:password123@mongo:27017/?authSource=admin
     depends_on:
       - mongo
       - redis

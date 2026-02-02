@@ -1,23 +1,47 @@
 // backend/queues/emailQueue.js
 const Bull = require("bull");
-const { getRedisClient } = require("../redis");
 const { sendNotificationEmail } = require("../services/emailService");
 const User = require("../models/userModel");
 
-// Validate Redis URL
+// Build Redis config for Bull. Use host/port object (not URL string) to avoid connection churn.
+// Do not set enableReadyCheck or maxRetriesPerRequest - Bull forbids them for bclient/subscriber (see bull#1873).
+function getBullRedisOptions() {
+	const redisUrl = process.env.REDIS_URL;
+	if (!redisUrl) {
+		return { host: "127.0.0.1", port: 6379 };
+	}
+	try {
+		const u = new URL(redisUrl);
+		const options = {
+			host: u.hostname,
+			port: parseInt(u.port || "6379", 10),
+			retryStrategy(times) {
+				const delay = Math.min(times * 100, 3000);
+				console.log(`[Email Queue] Redis reconnect in ${delay}ms (attempt ${times})`);
+				return delay;
+			},
+			keepAlive: 30000,
+		};
+		if (u.password) options.password = u.password;
+		if (u.pathname && u.pathname.length > 1) {
+			const db = parseInt(u.pathname.slice(1), 10);
+			if (!Number.isNaN(db)) options.db = db;
+		}
+		return options;
+	} catch (e) {
+		console.warn("[Email Queue] Invalid REDIS_URL, using default:", e.message);
+		return { host: "127.0.0.1", port: 6379 };
+	}
+}
+
 if (!process.env.REDIS_URL) {
 	console.error(
 		"[Email Queue] ERROR: REDIS_URL is not set in environment variables. Email notifications will not work."
 	);
 }
 
-// Create the email queue
-// Bull will use the Redis connection from REDIS_URL
 const emailQueue = new Bull("email-notifications", {
-	redis: process.env.REDIS_URL || {
-		host: "127.0.0.1",
-		port: 6379,
-	},
+	redis: getBullRedisOptions(),
 	settings: {
 		retryProcessDelay: 5000, // Wait 5 seconds before retrying failed jobs
 	},
