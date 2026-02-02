@@ -20,6 +20,9 @@ function createRedisClient() {
 		socket: {
 			tls: useTls,
 			rejectUnauthorized: false,
+			connectTimeout: 10000,
+			// Keep connection alive to prevent SocketClosedUnexpectedlyError from idle disconnect
+			keepAlive: 30000,
 			reconnectStrategy(retries) {
 				if (retries > 20) {
 					console.error("Redis: gave up reconnecting after 20 attempts");

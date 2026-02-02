@@ -163,14 +163,14 @@ app.get("/", (req, res) => {
 	});
 });
 
-// Optional: health check endpoint
-app.get("/health", (req, res) => {
-	res.json({
-		status: "healthy",
-		uptime: process.uptime(),
-		timestamp: new Date().toISOString(),
-	});
+// Health check (also at /api/health for load balancers / Docker)
+const healthPayload = () => ({
+	status: "healthy",
+	uptime: process.uptime(),
+	timestamp: new Date().toISOString(),
 });
+app.get("/health", (req, res) => res.json(healthPayload()));
+app.get("/api/health", (req, res) => res.json(healthPayload()));
 
 // Routes
 app.use("/api", authRoutes); // Authentication routes (register, login)
