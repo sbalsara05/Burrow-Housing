@@ -1,7 +1,7 @@
 const Contract = require("../models/contractModel");
 const Notification = require("../models/notificationModel");
 const {
-		stripe,
+	getStripe,
 	createPaymentIntent,
 	constructWebhookEvent,
 } = require("../services/stripeService");
@@ -127,9 +127,9 @@ exports.createPaymentIntentForContract = async (req, res) => {
 			if (contract.paymentExpiresAt && Date.now() > new Date(contract.paymentExpiresAt).getTime()) {
 				if (contract.stripePaymentIntentId) {
 					try {
-						const pi = await stripe.paymentIntents.retrieve(contract.stripePaymentIntentId);
+						const pi = await getStripe().paymentIntents.retrieve(contract.stripePaymentIntentId);
 						if (pi.status !== "succeeded" && pi.status !== "canceled") {
-							await stripe.paymentIntents.cancel(pi.id);
+							await getStripe().paymentIntents.cancel(pi.id);
 						}
 					} catch (e) { /* ignore */ }
 				}
@@ -143,7 +143,7 @@ exports.createPaymentIntentForContract = async (req, res) => {
 
 			if (contract.stripePaymentIntentId && contract.stripePaymentStatus !== "succeeded") {
 				try {
-					const pi = await stripe.paymentIntents.retrieve(contract.stripePaymentIntentId);
+					const pi = await getStripe().paymentIntents.retrieve(contract.stripePaymentIntentId);
 					const piMethod = pi.payment_method_types?.[0];
 					const wantsAch = method === "ach";
 					const piMatchesMethod =
@@ -163,7 +163,7 @@ exports.createPaymentIntentForContract = async (req, res) => {
 						});
 					}
 					if (pi.status !== "succeeded" && pi.status !== "canceled" && !piMatchesMethod) {
-						await stripe.paymentIntents.cancel(pi.id).catch(() => {});
+						await getStripe().paymentIntents.cancel(pi.id).catch(() => {});
 						contract.stripePaymentIntentId = undefined;
 						contract.stripePaymentStatus = "";
 					}
@@ -213,7 +213,7 @@ exports.createPaymentIntentForContract = async (req, res) => {
 
 			if (contract.listerStripePaymentIntentId && contract.listerStripePaymentStatus !== "succeeded") {
 				try {
-					const pi = await stripe.paymentIntents.retrieve(contract.listerStripePaymentIntentId);
+					const pi = await getStripe().paymentIntents.retrieve(contract.listerStripePaymentIntentId);
 					const piMethod = pi.payment_method_types?.[0];
 					const wantsAch = method === "ach";
 					const piMatchesMethod =
@@ -229,7 +229,7 @@ exports.createPaymentIntentForContract = async (req, res) => {
 						});
 					}
 					if (pi.status !== "succeeded" && pi.status !== "canceled" && !piMatchesMethod) {
-						await stripe.paymentIntents.cancel(pi.id).catch(() => {});
+						await getStripe().paymentIntents.cancel(pi.id).catch(() => {});
 						contract.listerStripePaymentIntentId = undefined;
 						contract.listerStripePaymentStatus = "";
 					}

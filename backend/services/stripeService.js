@@ -1,6 +1,17 @@
 const Stripe = require("stripe");
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+let stripeInstance = null;
+
+/** Lazy Stripe client so app can start without STRIPE_SECRET_KEY (payments will error until set). */
+function getStripe() {
+	if (!process.env.STRIPE_SECRET_KEY || process.env.STRIPE_SECRET_KEY.trim() === "") {
+		throw new Error("Stripe is not configured (STRIPE_SECRET_KEY missing or empty)");
+	}
+	if (!stripeInstance) {
+		stripeInstance = new Stripe(process.env.STRIPE_SECRET_KEY);
+	}
+	return stripeInstance;
+}
 
 /**
  * Create a PaymentIntent for a given amount.
@@ -27,6 +38,7 @@ async function createPaymentIntent(
 	};
 	if (receiptEmail) params.receipt_email = receiptEmail;
 
+	const stripe = getStripe();
 	const intent = await stripe.paymentIntents.create(params);
 	return {
 		id: intent.id,
@@ -46,7 +58,7 @@ function constructWebhookEvent(payload, signature, webhookSecret) {
 }
 
 module.exports = {
-	stripe,
+	getStripe,
 	createPaymentIntent,
 	constructWebhookEvent,
 };
