@@ -20,8 +20,11 @@ jobs:
         key: ${{ secrets.SSH_PRIVATE_KEY }}
         script: |
           cd ~/app
+          git fetch origin
+          git checkout main
           git pull origin main
-          docker compose down
-          docker compose up -d --build
+          touch backend/.env
+          docker compose -p burrow-housing down --remove-orphans
+          docker compose -p burrow-housing up -d --build
           docker ps
 

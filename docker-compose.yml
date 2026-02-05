@@ -8,16 +8,21 @@ services:
     container_name: burrow-backend
     ports:
       - "5001:5000" # External port 5001, internal port 5000
+    env_file:
+      - ./backend/.env
     environment:
       - NODE_ENV=production
       - PORT=5000
-      # Use Docker Redis service (not Redis Cloud) so backend stays connected
+      # Use Docker Redis service so backend stays connected
       - REDIS_URL=redis://redis:6379
-      # MongoDB (matches mongo service credentials)
-      - MONGODB_URI=mongodb://admin:password123@mongo:27017/?authSource=admin
+      # Pass through from project .env or backend/.env so prod gets Atlas + CORS (Compose substitutes from host)
+      - MONGODB_URI=${MONGODB_URI}
+      - CORS_ORIGIN=${CORS_ORIGIN}
     depends_on:
-      - mongo
-      - redis
+      mongo:
+        condition: service_healthy
+      redis:
+        condition: service_started
     networks:
       - burrow-network
 
@@ -41,9 +46,10 @@ services:
     networks:
       - burrow-network
 
-  # MongoDB service
+  # MongoDB service (platform ensures amd64 on droplet; avoids arm64/amd64 mismatch)
   mongo:
     image: mongo:6.0
+    platform: linux/amd64
     container_name: burrow-mongo
     ports:
       - "27017:27017"
@@ -52,12 +58,19 @@ services:
     environment:
       - MONGO_INITDB_ROOT_USERNAME=admin
       - MONGO_INITDB_ROOT_PASSWORD=password123
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
     networks:
       - burrow-network
 
-  # Redis service
+  # Redis service (platform ensures amd64 on droplet; avoids arm64/amd64 mismatch)
   redis:
     image: redis:7-alpine
+    platform: linux/amd64
     container_name: burrow-redis
     ports:
       - "6379:6379"

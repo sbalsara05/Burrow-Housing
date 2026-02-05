@@ -70,7 +70,7 @@ Look for:
 
 | Log message | Likely cause |
 |-------------|--------------|
-| `MongoDB connected` missing, or `Connection error:` | **MONGODB_URI** wrong or MongoDB container not reachable |
+| `MongoDB connected` missing, or `MongoDB connection attempt X/10 failed` / `Connection error:` | **MONGODB_URI** wrong or MongoDB container not ready; backend now retries and only starts when DB is connected |
 | Redis connection errors | **REDIS_URL** wrong or Redis not reachable |
 | `Error: Cannot find module ...` | Build/dependency issue |
 | `EADDRINUSE` | Port 5000 already in use |
@@ -78,46 +78,83 @@ Look for:
 
 ---
 
-## 4. Confirm backend env vars on the droplet
+## 4. Prod secrets: `~/app/backend/.env`
+
+The backend service loads **`backend/.env`** (via `env_file: ./backend/.env` in docker-compose). Put all secrets there so the backend can start and payments work.
+
+**Create or edit the file on the droplet:**
+
+```bash
+ssh YOUR_DROPLET_USER@YOUR_DROPLET_IP
+cd ~/app
+nano backend/.env   # or vim backend/.env
+```
+
+**Add at least these (no quotes around values):**
+
+```env
+MONGODB_URI=mongodb+srv://YOUR_ATLAS_URI_HERE
+JWT_SECRET=your-jwt-secret-here
+CORS_ORIGIN=https://burrowhousing.com,https://www.burrowhousing.com
+STRIPE_SECRET_KEY=sk_live_xxxx
+STRIPE_WEBHOOK_SECRET=whsec_xxxx
+```
+
+- **MONGODB_URI** – Use your **MongoDB Atlas** URI here so prod uses the same DB as your dev (same users and properties). If you omit it, the backend falls back to the local Docker mongo (empty). In Atlas, add your **droplet’s IP** (or `0.0.0.0/0` for testing) under Network Access.
+- REDIS_URL is set in docker-compose; override in `.env` only if you use Redis Cloud in prod.
+
+**After editing `.env`, restart the backend so it picks up the vars:**
+
+```bash
+cd ~/app
+docker compose up -d --force-recreate backend
+docker logs burrow-backend --tail 30
+```
+
+---
+
+## 5. Confirm backend env vars (reference)
 
 The backend needs at least:
 
-- **MONGODB_URI** – e.g. `mongodb://admin:password123@mongo:27017` (for Docker) or your Atlas URL
-- **REDIS_URL** – e.g. `redis://redis:6379` (for Docker)
-- **JWT_SECRET**
-- **CORS_ORIGIN** – should include `https://burrowhousing.com` (and http if you use it)
+- **MONGODB_URI** – set in docker-compose; override in `.env` if needed
+- **REDIS_URL** – set in docker-compose; override in `.env` if needed
+- **JWT_SECRET** – put in `backend/.env`
+- **CORS_ORIGIN** – put in `backend/.env`, e.g. `https://burrowhousing.com`
+- **STRIPE_SECRET_KEY** – put in `backend/.env` (app starts without it; payments fail until set)
+- **STRIPE_WEBHOOK_SECRET** – put in `backend/.env` if you use Stripe webhooks
 
-On the droplet, env vars can come from:
+On the droplet, the backend gets vars from:
 
-1. **`~/app/.env`** – if `docker-compose` is set up to load it (e.g. `env_file: .env`).
-2. **Secrets in GitHub Actions** – your workflow only runs `docker compose up -d --build`; it does **not** create a `.env` on the server. So either:
-   - You have a `.env` file on the droplet at `~/app/.env` that you created manually, or
-   - You pass env vars another way (e.g. Docker Compose `environment` section or a separate env file).
+1. **`~/app/backend/.env`** – loaded via `env_file: ./backend/.env` in docker-compose (create this file and add your secrets).
+2. **`environment:` in docker-compose** – MONGODB_URI, REDIS_URL, etc. (from the repo).
 
 Check:
 
 ```bash
 cd ~/app
-ls -la .env
+ls -la backend/.env
 # If it exists:
-grep -E '^[A-Z]' .env | sed 's/=.*/=***/'   # names only, hide values
+grep -E '^[A-Z]' backend/.env | sed 's/=.*/=***/'   # names only, hide values
 ```
 
-If there is **no `.env`** or **MONGODB_URI/REDIS_URL** are missing, the backend will fail to connect to DB/Redis and can crash or hang, leading to 502.
+If **`backend/.env`** is missing, create it (`touch backend/.env`) and add at least **JWT_SECRET** and **CORS_ORIGIN** so auth and CORS work. MONGODB_URI and REDIS_URL are set in docker-compose.
 
 ---
 
-## 5. Test the backend directly on the server
+## 6. Test the backend directly on the server
 
-From the droplet:
+From the droplet (or from your machine if the API is exposed):
 
 ```bash
 curl -s -o /dev/null -w "%{http_code}" http://localhost:5001/health
 # Expect: 200
 
 curl -s http://localhost:5001/health
-# Expect: {"status":"healthy", ...}
+# Expect: {"status":"healthy","mongodb":"connected","redis":"configured", ...}
 ```
+
+If you see **`"mongodb": "disconnected"`** or **`"status": "degraded"`**, the database is not connected. Check backend logs and that the `mongo` container is healthy (`docker ps` and `docker logs burrow-mongo --tail 20`).
 
 If this fails (connection refused, timeout, or non-200), the backend is not healthy. Fix backend/containers first.
 
@@ -130,7 +167,7 @@ curl -s -o /dev/null -w "%{http_code}" "http://localhost:5001/api/properties/all
 
 ---
 
-## 6. Check your reverse proxy config (Nginx/Caddy)
+## 7. Check your reverse proxy config (Nginx/Caddy)
 
 If you use Nginx (or Caddy) to serve burrowhousing.com and proxy `/api` to the backend:
 
@@ -147,7 +184,7 @@ sudo nginx -t && sudo systemctl reload nginx
 
 ---
 
-## 7. Restart stack and re-check
+## 8. Restart stack and re-check
 
 ```bash
 cd ~/app
@@ -165,11 +202,11 @@ Then:
 
 ---
 
-## 8. Quick checklist
+## 9. Quick checklist
 
 - [ ] `docker ps` shows `burrow-backend` as **Up**
 - [ ] `docker logs burrow-backend` shows **MongoDB connected** and no fatal errors
-- [ ] `~/app/.env` exists on droplet and has **MONGODB_URI**, **REDIS_URL**, **JWT_SECRET**, **CORS_ORIGIN**
+- [ ] `~/app/backend/.env` exists on droplet and has **JWT_SECRET**, **CORS_ORIGIN** (MONGODB_URI/REDIS_URL set in compose or override in .env)
 - [ ] `curl http://localhost:5001/health` returns 200
 - [ ] Reverse proxy proxies `/api` to the same host/port (e.g. 5001) where the backend is listening
 

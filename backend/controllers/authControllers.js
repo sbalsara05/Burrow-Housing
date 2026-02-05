@@ -93,38 +93,30 @@ exports.register = async (req, res) => {
 	} catch (error) {
 		console.error("Error during registration:", error);
 
+		// Ensure we always respond with JSON (prevents HTML error pages from proxy)
+		const sendJson = (status, body) => {
+			res.setHeader("Content-Type", "application/json");
+			res.status(status).json(body);
+		};
+
 		// Handle duplicate key errors more gracefully
 		if (
 			error.name === "MongoError" ||
 			error.name === "MongoServerError"
 		) {
 			if (error.code === 11000) {
-				// Check which field caused the duplicate key error
-				const keyPattern = error.keyPattern;
+				const keyPattern = error.keyPattern || {};
 				if (keyPattern.email) {
-					return res
-						.status(400)
-						.json({
-							message: "Email is already registered.",
-						});
+					return sendJson(400, { message: "Email is already registered." });
 				}
 				if (keyPattern.phone) {
-					return res
-						.status(400)
-						.json({
-							message: "Phone number is already registered.",
-						});
+					return sendJson(400, { message: "Phone number is already registered." });
 				}
-
-				return res
-					.status(400)
-					.json({
-						message: "A user with this information already exists.",
-					});
+				return sendJson(400, { message: "A user with this information already exists." });
 			}
 		}
 
-		res.status(500).json({ message: "Internal server error." });
+		sendJson(500, { message: "Internal server error." });
 	}
 };
 
@@ -202,8 +194,11 @@ exports.login = async (req, res) => {
 			token: token,
 		});
 	} catch (error) {
-		console.error("Error during login:", error);
-		res.status(500).json({ message: "Internal server error." });
+		console.error("Error during login:", error?.message || error);
+		if (!res.headersSent) {
+			res.setHeader("Content-Type", "application/json");
+			res.status(500).json({ message: "Internal server error." });
+		}
 	}
 };
 
