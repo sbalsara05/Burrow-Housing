@@ -569,11 +569,14 @@ exports.deleteProperty = async (req, res) => {
 				);
 			}
 
+			const propertyDisplay =
+				property.overview?.title ||
+				`${property.listingDetails?.bedrooms || ""} Bed ${property.overview?.category || "Property"}`.trim();
 			// 2. Create notifications for affected renters
 			const notifications = renterIds.map((renterId) => ({
 				userId: renterId,
 				type: "property_deleted",
-				message: `The property "${property.overview.title}" you were interested in is no longer available.`,
+				message: `The property "${propertyDisplay}" you were interested in is no longer available.`,
 				link: "/all_listings",
 				metadata: { propertyId },
 			}));
@@ -583,7 +586,7 @@ exports.deleteProperty = async (req, res) => {
 
 			// Queue email notifications for affected renters
 			const notificationData = {
-				message: `The property "${property.overview.title}" you were interested in is no longer available.`,
+				message: `The property "${propertyDisplay}" you were interested in is no longer available.`,
 				link: "/all_listings",
 				metadata: { propertyId },
 			};

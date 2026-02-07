@@ -5,7 +5,7 @@ import RequestsBody from '../components/dashboard/requests/RequestsBody';
 const DashboardReceivedRequests = () => {
     return (
         <Wrapper>
-            <SEO pageTitle={'Received Requests'} />
+            <SEO pageTitle="Received Requests | Burrow Housing" noIndex />
             <RequestsBody />
         </Wrapper>
     );

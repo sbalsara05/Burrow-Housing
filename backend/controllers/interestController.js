@@ -6,6 +6,19 @@ const Profile = require("../models/profileModel");
 const mongoose = require("mongoose");
 const { queueNotificationEmail } = require("../utils/notificationEmailHelper");
 
+/** Get a display name for a property (title, or "X Bed Category", never empty). */
+function getPropertyDisplayName(property) {
+	if (!property) return "your property";
+	// Handle Mongoose subdocs: use .get?.(path) if present so we get plain values
+	const getVal = (obj, key) => (obj && typeof obj.get === "function" ? obj.get(key) : obj?.[key]);
+	const title = getVal(property.overview, "title");
+	if (title != null && String(title).trim() !== "") return String(title).trim();
+	const bedrooms = getVal(property.listingDetails, "bedrooms");
+	const category = getVal(property.overview, "category") || "Property";
+	const fallback = `${bedrooms != null ? bedrooms + " Bed " : ""}${category}`.trim();
+	return fallback || "your property";
+}
+
 // POST /api/interests
 exports.submitInterest = async (req, res) => {
 	const { propertyId, message, moveInDate } = req.body;
@@ -18,7 +31,7 @@ exports.submitInterest = async (req, res) => {
 				.json({ message: "Invalid property ID." });
 		}
 
-		const property = await Property.findById(propertyId);
+		const property = await Property.findById(propertyId).lean();
 		if (!property) {
 			return res
 				.status(404)
@@ -57,7 +70,8 @@ exports.submitInterest = async (req, res) => {
 
 		// --- Create Notification for the Lister ---
 		const renter = await User.findById(renterId).select("name");
-		const notificationMessage = `${renter.name} sent an inquiry for "${property.overview.title}".`;
+		const propertyDisplay = getPropertyDisplayName(property);
+		const notificationMessage = `${renter.name} sent an inquiry for "${propertyDisplay}".`;
 
 		const newNotification = new Notification({
 			userId: listerId,
@@ -233,10 +247,11 @@ exports.withdrawInterest = async (req, res) => {
 
 		// --- Create Notification for the Lister ---
 		const renter = await User.findById(renterId).select("name");
-		const property = await Property.findById(
-			interest.propertyId
-		).select("overview.title");
-		const notificationMessage = `${renter.name} withdrew their request for "${property.overview.title}".`;
+		const property = await Property.findById(interest.propertyId)
+			.select("overview.title overview.category listingDetails.bedrooms")
+			.lean();
+		const propertyDisplay = getPropertyDisplayName(property);
+		const notificationMessage = `${renter.name} withdrew their request for "${propertyDisplay}".`;
 
 		const newNotification = new Notification({
 			userId: interest.listerId,

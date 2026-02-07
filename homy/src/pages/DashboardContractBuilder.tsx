@@ -9,7 +9,7 @@ const DashboardContractBuilder = () => {
 
     return (
         <Wrapper>
-            <SEO pageTitle={'Edit Contract - Burrow Housing'} />
+            <SEO pageTitle="Edit Contract | Burrow Housing" noIndex />
             <div className={`dashboard-body ${isCollapsed ? 'sidebar-collapsed' : ''}`}>
                 <div className="position-relative">
                     <DashboardHeaderTwo title="Edit Agreement" />

@@ -10,7 +10,7 @@ const DashboardMyAgreements = () => {
 
     return (
         <Wrapper>
-            <SEO pageTitle={'My Agreements - Burrow Housing'} />
+            <SEO pageTitle="My Agreements | Burrow Housing" noIndex />
             <div className={`dashboard-body ${isCollapsed ? 'sidebar-collapsed' : ''}`}>
                 <div className="position-relative">
                     {/* Top Header */}

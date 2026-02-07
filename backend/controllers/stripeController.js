@@ -1,4 +1,5 @@
 const Contract = require("../models/contractModel");
+const Property = require("../models/propertyModel");
 const Notification = require("../models/notificationModel");
 const {
 	getStripe,
@@ -6,6 +7,25 @@ const {
 	constructWebhookEvent,
 } = require("../services/stripeService");
 const { queueNotificationEmail } = require("../utils/notificationEmailHelper");
+
+/** If contract is COMPLETED and both parties have paid, mark the property as lease taken over. */
+async function markPropertyLeaseTakenOverIfBothPaid(contractId) {
+	try {
+		const contract = await Contract.findById(contractId).select("status property paymentStatus stripePaymentStatus listerPaymentStatus listerStripePaymentStatus");
+		if (!contract || contract.status !== "COMPLETED" || !contract.property) return;
+		const tenantPaid = contract.paymentStatus === "SUCCEEDED" || contract.stripePaymentStatus === "succeeded";
+		const listerPaid = contract.listerPaymentStatus === "SUCCEEDED" || contract.listerStripePaymentStatus === "succeeded";
+		if (tenantPaid && listerPaid) {
+			await Property.findByIdAndUpdate(contract.property, {
+				leaseTakenOver: true,
+				status: "Inactive",
+			});
+			console.log(`Property ${contract.property} marked as lease taken over and deactivated (contract ${contractId})`);
+		}
+	} catch (e) {
+		console.warn("markPropertyLeaseTakenOverIfBothPaid:", e.message);
+	}
+}
 
 const TENANT_FEE_BPS = 250; // 2.5%
 const LISTER_FEE_BPS = 250; // 2.5%
@@ -309,6 +329,8 @@ exports.handleWebhook = async (req, res) => {
 
 				await Contract.findOneAndUpdate({ _id: contractId }, update);
 				console.log(`Contract ${contractId} ${payer} payment succeeded`);
+
+				await markPropertyLeaseTakenOverIfBothPaid(contractId);
 
 				// Notify counterparty and payer when payment succeeds
 				try {

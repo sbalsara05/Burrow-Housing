@@ -299,6 +299,16 @@ const ContractViewer = () => {
                     {currentContract.status === 'COMPLETED' && (
                         <div className="agreement-review-payment mb-5 p-4">
                             <h5 className="mb-3">Payment</h5>
+                            {isTenant && !tenantPaid && listerPaid && (
+                                <div className="agreement-review-blurb mb-3">
+                                    <strong>What&apos;s next:</strong> The sublessor has already paid. Now it&apos;s your turn to complete your service fee.
+                                </div>
+                            )}
+                            {!isTenant && !listerPaid && tenantPaid && (
+                                <div className="agreement-review-blurb mb-3">
+                                    <strong>What&apos;s next:</strong> The sublessee has already paid. Now it&apos;s your turn to complete your service fee.
+                                </div>
+                            )}
                             {isTenant ? (
                                 tenantPaid ? (
                                     <div>

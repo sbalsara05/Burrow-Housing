@@ -75,7 +75,7 @@ const PublicProfilePage = () => {
 
     return (
         <Wrapper>
-            <SEO pageTitle={profile?.username || 'User Profile'} />
+            <SEO pageTitle={profile?.username ? `${profile.username} | Burrow Housing` : 'User Profile | Burrow Housing'} noIndex />
             <HeaderOne style={true} />
             <div className="public-profile-page-container">
                 <div className="content-wrapper pt-60 xl-pt-90">

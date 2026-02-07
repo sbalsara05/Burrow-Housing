@@ -5,7 +5,7 @@ import PContactMain from '../components/inner-pages/contact'
 const Contact = () => {
    return (
       <Wrapper>
-         <SEO pageTitle={'Contact Burrow'} />
+         <SEO pageTitle="Contact Burrow Housing" canonical="/contact" />
          <PContactMain />
       </Wrapper>
    );

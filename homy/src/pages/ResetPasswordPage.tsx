@@ -83,7 +83,7 @@ const ResetPasswordPage = () => {
 
     return (
         <Wrapper>
-            <SEO pageTitle={'Reset Password'} />
+            <SEO pageTitle="Reset Password | Burrow Housing" noIndex />
             <HeaderOne style={true} />
             <div className="user-data-page pt-150 pb-150 xl-pt-120 md-pt-100 xl-pb-120 md-pb-80">
                 <div className="container">

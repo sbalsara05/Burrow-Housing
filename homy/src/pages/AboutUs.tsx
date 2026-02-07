@@ -5,7 +5,7 @@ import AboutUsMain from '../components/inner-pages/about-us/about-us';
 const AboutUs = () => {
    return (
       <Wrapper>
-         <SEO pageTitle={'About Us'} />
+         <SEO pageTitle="About Burrow Housing | Northeastern Student Subleases" canonical="/about_us" />
          <AboutUsMain />
       </Wrapper>
    );

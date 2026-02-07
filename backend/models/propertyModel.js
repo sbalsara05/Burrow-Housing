@@ -90,6 +90,11 @@ const PropertySchema = new mongoose.Schema({
 		enum: ["Active", "Pending", "Inactive"],
 		default: "Active",
 	},
+	/** Set when a completed agreement has both parties paid; shows "Lease taken over" tag. */
+	leaseTakenOver: {
+		type: Boolean,
+		default: false,
+	},
 	viewCount: {
 		type: Number,
 		default: 0,

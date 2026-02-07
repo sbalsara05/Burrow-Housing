@@ -5,7 +5,7 @@ import HomeMain from '../components/homes/home';
 const Home = () => {
   return (
     <Wrapper>
-      <SEO pageTitle={'Burrow Housing'} />
+      <SEO pageTitle="Burrow Housing | Northeastern Student Subleases" canonical="/home" />
       <HomeMain />
     </Wrapper>
   );

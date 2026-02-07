@@ -5,7 +5,7 @@ import DashboardProfileMain from '../components/dashboard/profile'
 const DashboardProfile = () => {
    return (
       <Wrapper>
-         <SEO pageTitle={'Dashboard Profil  Burrow'} />
+         <SEO pageTitle="Profile | Burrow Housing" noIndex />
          <DashboardProfileMain />
       </Wrapper>
    );

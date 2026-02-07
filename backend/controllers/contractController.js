@@ -293,11 +293,52 @@ async function syncPaymentStatusFromStripe(contract) {
 				updated = true;
 			}
 		}
-		if (updated) await contract.save();
+		if (updated) {
+			try {
+				await contract.save();
+				await markPropertyLeaseTakenOverIfBothPaid(contract);
+			} catch (saveErr) {
+				console.warn("syncPaymentStatusFromStripe: save failed, returning DB state", saveErr.message);
+				// Re-fetch from DB so we never return unsaved modifications
+				const fresh = await Contract.findById(contract._id)
+					.populate("property", "overview addressAndLocation.address images listingDetails.bedrooms")
+					.populate("lister", "name email")
+					.populate("tenant", "name email");
+				return fresh || contract;
+			}
+		}
 	} catch (e) {
 		console.warn("syncPaymentStatusFromStripe:", e.message);
+		// On any error after in-place modifications, re-fetch to avoid returning unsaved state
+		try {
+			const fresh = await Contract.findById(contract._id)
+				.populate("property", "overview addressAndLocation.address images listingDetails.bedrooms")
+				.populate("lister", "name email")
+				.populate("tenant", "name email");
+			return fresh || contract;
+		} catch (rethrow) {
+			return contract;
+		}
 	}
 	return contract;
+}
+
+/** If contract is COMPLETED and both parties have paid, mark the property as lease taken over. */
+async function markPropertyLeaseTakenOverIfBothPaid(contract) {
+	try {
+		if (!contract || contract.status !== "COMPLETED" || !contract.property) return;
+		const tenantPaid = contract.paymentStatus === "SUCCEEDED" || contract.stripePaymentStatus === "succeeded";
+		const listerPaid = contract.listerPaymentStatus === "SUCCEEDED" || contract.listerStripePaymentStatus === "succeeded";
+		if (tenantPaid && listerPaid) {
+			await Property.findByIdAndUpdate(contract.property, {
+				leaseTakenOver: true,
+				status: "Inactive",
+			});
+			console.log(`Property ${contract.property} marked as lease taken over and deactivated`);
+		}
+	} catch (e) {
+		console.warn("markPropertyLeaseTakenOverIfBothPaid:", e.message);
+	}
 }
 
 /**
