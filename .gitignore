@@ -16,3 +16,5 @@ themeforest-*/
 #notes
 /notes
 *.xml
+# Exception: sitemap.xml is needed for SEO
+!homy/public/sitemap.xml
