@@ -727,9 +727,9 @@ exports.signContract = async (req, res) => {
 			);
 			await contract.save();
 
-			// Update Property Inventory Status
+			// Update Property Inventory Status (Inactive = off market; leaseTakenOver + "Rented" display set when both pay)
 			await Property.findByIdAndUpdate(contract.property, {
-				status: "Rented",
+				status: "Inactive",
 			});
 
 			const populatedContract = await Contract.findById(
