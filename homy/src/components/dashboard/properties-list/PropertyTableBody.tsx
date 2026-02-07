@@ -62,7 +62,7 @@ const PropertyTableBody: React.FC<PropertyTableBodyProps> = ({ properties, onDel
                     <td>{formatDate(item.createdAt)}</td>
                     <td>{item.viewCount ?? 0}</td>
                     <td>
-                        <div className="property-status">{item.status || 'Active'}</div>
+                        <div className="property-status">{item.leaseTakenOver ? 'Rented' : (item.status || 'Active')}</div>
                     </td>
                     <td>
                         <div className="action-dots float-end">
