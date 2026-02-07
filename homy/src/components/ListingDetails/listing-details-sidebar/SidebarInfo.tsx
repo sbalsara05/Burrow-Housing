@@ -5,8 +5,9 @@ import {Profile} from '../../../redux/slices/profileSlice';
 import axios from 'axios';
 import { useSelector } from 'react-redux';
 import { selectAuthToken } from '../../../redux/slices/authSlice';
+import AmbassadorComingSoonModal from '../../../modals/AmbassadorComingSoonModal';
 
-// --- Ambassador Modal Component ---
+// --- Ambassador Modal Component (Coming Soon - replaced with AmbassadorComingSoonModal) ---
 interface InspectionPoint {
   id: string;
   text: string;
@@ -504,12 +505,10 @@ const SidebarInfo: React.FC<SidebarInfoProps> = ({
                 </div>
             </div>
 
-            {/* Ambassador Request Modal */}
-            <AmbassadorRequestModal
+            {/* Ambassador Coming Soon Modal */}
+            <AmbassadorComingSoonModal
                 isOpen={showAmbassadorModal}
                 onClose={() => setShowAmbassadorModal(false)}
-                propertyTitle={propertyTitle}
-                propertyId={propertyId}
             />
         </>
     );

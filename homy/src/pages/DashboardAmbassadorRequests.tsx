@@ -1,12 +1,12 @@
 import Wrapper from '../layouts/Wrapper';
 import SEO from '../components/SEO';
-import AmbassadorRequestsBody from '../components/dashboard/requests/AmbassadorRequestsBody';
+import AmbassadorComingSoonPage from '../components/dashboard/ambassador/AmbassadorComingSoonPage';
 
 const DashboardAmbassadorRequests = () => {
     return (
         <Wrapper>
-            <SEO pageTitle={'Ambassador Responses - Burrow'} />
-            <AmbassadorRequestsBody />
+            <SEO pageTitle="Ambassador Responses | Burrow Housing" noIndex />
+            <AmbassadorComingSoonPage />
         </Wrapper>
     );
 };

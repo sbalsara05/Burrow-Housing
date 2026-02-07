@@ -36,6 +36,7 @@ export interface Property {
     description: string;
     images: string[]; // Array of image URLs
     status?: "Active" | "Pending" | "Inactive"; // Optional status field
+    leaseTakenOver?: boolean; // True when agreement is complete and both parties have paid
     hasBeenViewedByAmbassador?: boolean; // Whether property has been viewed by an ambassador
     viewCount?: number; // Number of times the property has been viewed
     createdAt: string; // Store as ISO string date from MongoDB

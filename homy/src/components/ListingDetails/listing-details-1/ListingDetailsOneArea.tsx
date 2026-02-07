@@ -15,6 +15,7 @@ import { selectIsAuthenticated, selectCurrentUser } from '../../../redux/slices/
 import { fetchFavorites } from '../../../redux/slices/favoritesSlice';
 
 // Component & Hook Imports
+import SEO from "../../../components/SEO";
 import Sidebar from "./Sidebar";
 import MediaGallery from "./MediaGallery";
 import CommonBanner from "../listing-details-common/CommonBanner";
@@ -91,6 +92,14 @@ const ListingDetailsOneArea = () => {
         }
     }, [isAuthenticated, propertyId, property, currentUser]);
 
+    const propertyDisplay =
+        property?.overview?.title ||
+        (property ? `${property.listingDetails?.bedrooms || ""} Bed ${property.overview?.category || "Property"} in ${property.overview?.neighborhood || ""}`.trim() : "Property");
+    const listingTitle = property ? `${propertyDisplay} | Burrow Housing` : "Property Details | Burrow Housing";
+    const listingDescription = property
+        ? `${propertyDisplay} – $${property.overview?.rent}/mo. Sublease in ${property.overview?.neighborhood || "Boston"} for Northeastern students. Burrow Housing.`
+        : undefined;
+
     const handleInterestedClick = () => {
         if (isAuthenticated) {
             // If the user is logged in, open the interest form
@@ -147,6 +156,12 @@ const ListingDetailsOneArea = () => {
 
     return (
         <>
+            <SEO
+                pageTitle={listingTitle}
+                description={listingDescription}
+                canonical={propertyId ? `/listing_details/${propertyId}` : undefined}
+                ogImage={property?.images?.[0]}
+            />
             <div className="listing-details-one theme-details-one bg-pink pt-180 lg-pt-150 pb-150 xl-pb-120">
                 <div className="container">
                     <CommonBanner property={property} />

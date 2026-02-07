@@ -9,7 +9,7 @@ const DashboardContractViewer = () => {
 
     return (
         <Wrapper>
-            <SEO pageTitle={'Review Agreement - Burrow Housing'} />
+            <SEO pageTitle="Review Agreement | Burrow Housing" noIndex />
             <div className={`dashboard-body ${isCollapsed ? 'sidebar-collapsed' : ''}`}>
                 <div className="position-relative">
                     <DashboardHeaderTwo title="Review Agreement" />

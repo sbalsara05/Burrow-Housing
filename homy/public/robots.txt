@@ -1,0 +1,12 @@
+User-agent: *
+Allow: /
+Allow: /home
+Allow: /all_listings
+Allow: /listing_details/
+Allow: /about_us
+Allow: /contact
+Allow: /faq
+Disallow: /dashboard/
+Disallow: /reset-password
+
+Sitemap: https://www.burrowhousing.com/sitemap.xml

@@ -65,9 +65,9 @@ const HeaderOne = ({style}: any) => {
                                         <>
                                             {/* Add Listing Button */}
                                             <li className="d-none d-md-inline-block">
-                                                <Link to="/dashboard/add-property" className="btn-two" target="_blank">
-                                                    <span>Add Listing</span> <i
-                                                    className="fa-thin fa-arrow-up-right"></i>
+                                                <Link to="/dashboard/add-property" className="btn-add-listing" target="_blank">
+                                                    <span>Add Listing</span>
+                                                    <i className="fa-thin fa-arrow-up-right"></i>
                                                 </Link>
                                             </li>
 
@@ -78,7 +78,7 @@ const HeaderOne = ({style}: any) => {
                                                         to="/dashboard/profile" 
                                                         className="d-flex align-items-center text-decoration-none"
                                                         style={{
-                                                            border: '1px solid #e9ecef',
+                                                            border: '1px solid #9ca3af',
                                                             borderRadius: '25px',
                                                             padding: '8px 16px',
                                                             transition: 'all 0.3s ease',
@@ -90,7 +90,7 @@ const HeaderOne = ({style}: any) => {
                                                         }}
                                                         onMouseLeave={(e) => {
                                                             e.currentTarget.style.color = 'inherit';
-                                                            e.currentTarget.style.borderColor = '#e9ecef';
+                                                            e.currentTarget.style.borderColor = '#9ca3af';
                                                         }}
                                                     >
                                                         <div 

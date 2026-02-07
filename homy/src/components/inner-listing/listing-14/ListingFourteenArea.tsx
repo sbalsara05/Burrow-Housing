@@ -606,6 +606,21 @@ const ListingFourteenArea = () => {
                                                                 style={{ fontSize: '8pt', paddingTop: "1pt"}}>
                                                                 {item.overview.category}
                                                             </div>
+                                                            {item.leaseTakenOver && (
+                                                                <div
+                                                                    className="tag border-20 position-absolute top-3 left-3 z-10 fs-7"
+                                                                    style={{
+                                                                        fontSize: '8pt',
+                                                                        paddingTop: '1pt',
+                                                                        marginTop: '22px',
+                                                                        background: 'rgba(34, 197, 94, 0.9)',
+                                                                        color: 'white',
+                                                                        fontWeight: 500,
+                                                                    }}
+                                                                >
+                                                                    Lease taken over
+                                                                </div>
+                                                            )}
                                                             <PropertyCarousel item={item}/>
                                                             <Link
                                                                 to={`/listing_details/${item._id}`}

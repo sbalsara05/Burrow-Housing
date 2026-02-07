@@ -130,6 +130,17 @@ const CommonBanner: React.FC<CommonBannerProps> = ({ property, style_3 }) => {
                                 {displayTag}
                             </div>
                         </div>
+                        {property.leaseTakenOver && (
+                            <div className="tw-rounded-full tw-size-fit tw-font-medium">
+                                <div
+                                    className="d-flex align-items-center justify-content-center text-uppercase mt-15 tw-pl-4 tw-pr-4 tw-pb-2 tw-gap-2 tw-rounded-full"
+                                    style={{ background: 'rgb(22, 163, 74)', color: 'white' }}
+                                >
+                                    <i className="bi bi-check2-circle"></i>
+                                    <span className="tw-font-semibold tw-text-sm">Lease taken over</span>
+                                </div>
+                            </div>
+                        )}
                         {property.hasBeenViewedByAmbassador && (
                             <div className="tw-rounded-full tw-size-fit tw-bg-primary tw-text-black tw-font-medium">
                                 <div className="d-flex align-items-center justify-content-center text-uppercase mt-15 tw-pl-4 tw-pr-4 tw-pb-2 tw-gap-2">

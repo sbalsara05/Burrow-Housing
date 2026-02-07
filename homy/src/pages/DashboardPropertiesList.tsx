@@ -5,7 +5,7 @@ import DashboardPropertiesListMain from '../components/dashboard/properties-list
 const DashboardPropertiesList = () => {
    return (
       <Wrapper>
-         <SEO pageTitle={'Dashboard Properties List  Burrow'} />
+         <SEO pageTitle="My Properties | Burrow Housing" noIndex />
          <DashboardPropertiesListMain />
       </Wrapper>
    );

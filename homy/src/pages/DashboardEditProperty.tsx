@@ -25,7 +25,7 @@ const DashboardEditProperty = () => {
     if (isLoading && !propertyToEdit) {
         return (
             <Wrapper>
-                <SEO pageTitle={'Edit Property'} />
+                <SEO pageTitle="Edit Property | Burrow Housing" noIndex />
                 <DashboardHeaderOne />
                 <div className="dashboard-body"><p>Loading property details...</p></div>
             </Wrapper>
@@ -34,7 +34,7 @@ const DashboardEditProperty = () => {
 
     return (
         <Wrapper>
-            <SEO pageTitle={'Edit Property'} />
+            <SEO pageTitle="Edit Property | Burrow Housing" noIndex />
             <DashboardHeaderOne />
             {/* Pass the isEditMode and propertyToEdit props to the shared form body */}
             <AddPropertyBody isEditMode={true} propertyToEdit={propertyToEdit} />
