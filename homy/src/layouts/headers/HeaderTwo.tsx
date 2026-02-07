@@ -118,10 +118,10 @@ const HeaderTwo: React.FC<HeaderTwoProps> = ({ style_1, style_2 }) => {
                                                 <li className="d-none d-md-inline-block ms-3 ms-xl-4 me-xl-4">
                                                     <Link 
                                                         to="/dashboard/add-property" 
-                                                        className="btn-two" 
+                                                        className="btn-add-listing" 
                                                         target="_blank"
                                                     >
-                                                        <span>Add Listing</span> 
+                                                        <span>Add Listing</span>
                                                         <i className="fa-thin fa-arrow-up-right"></i>
                                                     </Link>
                                                 </li>
@@ -134,7 +134,7 @@ const HeaderTwo: React.FC<HeaderTwoProps> = ({ style_1, style_2 }) => {
                                                         to="/dashboard/profile" 
                                                         className="d-flex align-items-center text-decoration-none"
                                                         style={{
-                                                            border: '1px solid #e9ecef',
+                                                            border: '1px solid #9ca3af',
                                                             borderRadius: '25px',
                                                             padding: '8px 16px',
                                                             marginLeft: '15px',
@@ -147,7 +147,7 @@ const HeaderTwo: React.FC<HeaderTwoProps> = ({ style_1, style_2 }) => {
                                                         }}
                                                         onMouseLeave={(e) => {
                                                             e.currentTarget.style.color = 'inherit';
-                                                            e.currentTarget.style.borderColor = '#e9ecef';
+                                                            e.currentTarget.style.borderColor = '#9ca3af';
                                                         }}
                                                     >
                                                         <div 

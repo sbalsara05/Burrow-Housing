@@ -135,7 +135,7 @@ const DashboardHeaderTwo: React.FC<DashboardHeaderTwoProps> = ({ title }) => {
             type: 'button',
             className: 'd-none d-md-block me-3',
             component: (
-                <Link to="/dashboard/add-property" className="btn-two">
+                <Link to="/dashboard/add-property" className="btn-add-listing">
                     <span>Add Listing</span>
                     <i className="fa-thin fa-arrow-up-right"></i>
                 </Link>
@@ -155,7 +155,7 @@ const DashboardHeaderTwo: React.FC<DashboardHeaderTwoProps> = ({ title }) => {
                         data-bs-auto-close="outside"
                         aria-expanded="false"
                         style={{
-                            border: '1px solid #e9ecef',
+                            border: '1px solid #9ca3af',
                             borderRadius: '25px',
                             padding: '8px 16px',
                             transition: 'all 0.3s ease',
@@ -169,7 +169,7 @@ const DashboardHeaderTwo: React.FC<DashboardHeaderTwoProps> = ({ title }) => {
                         }}
                         onMouseLeave={(e) => {
                             e.currentTarget.style.color = 'inherit';
-                            e.currentTarget.style.borderColor = '#e9ecef';
+                            e.currentTarget.style.borderColor = '#9ca3af';
                         }}
                     >
                         <div 

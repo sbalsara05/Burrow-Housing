@@ -310,63 +310,58 @@ exports.handleWebhook = async (req, res) => {
 				await Contract.findOneAndUpdate({ _id: contractId }, update);
 				console.log(`Contract ${contractId} ${payer} payment succeeded`);
 
-				// Notify lister when tenant pays
-				if (payer === "tenant") {
-					try {
-						const contract = await Contract.findById(contractId)
-							.populate("property", "overview.title")
-							.populate("lister", "_id name")
-							.populate("tenant", "name");
-						if (contract?.lister?._id) {
-							const propertyTitle =
-								contract.property?.overview?.title ||
-								`${contract.property?.listingDetails?.bedrooms || ""} Bed ${contract.property?.overview?.category || "Property"}`.trim();
+				// Notify counterparty and payer when payment succeeds
+				try {
+					const contract = await Contract.findById(contractId)
+						.populate("property", "overview.title")
+						.populate("lister", "_id name")
+						.populate("tenant", "_id name");
+					if (contract) {
+						const propertyTitle =
+							contract.property?.overview?.title ||
+							`${contract.property?.listingDetails?.bedrooms || ""} Bed ${contract.property?.overview?.category || "Property"}`.trim();
+						const link = "/dashboard/my-agreements";
+						const metadata = { contractId: contract._id, propertyId: contract.property?._id };
+
+						// Notify counterparty (lister when tenant pays, tenant when lister pays)
+						if (payer === "tenant" && contract?.lister?._id) {
 							const message = `${contract.tenant?.name || "The sublessee"} has paid for the sublease agreement for ${propertyTitle}.`;
 							await Notification.create({
 								userId: contract.lister._id,
 								type: "contract_payment_received",
 								message,
-								link: `/dashboard/my-agreements`,
-								metadata: { contractId: contract._id, propertyId: contract.property?._id, tenantId: contract.tenant?._id },
+								link,
+								metadata: { ...metadata, tenantId: contract.tenant?._id },
 							});
-							await queueNotificationEmail(contract.lister._id, "contract_payment_received", {
-								message,
-								link: "/dashboard/my-agreements",
-								metadata: { contractId: contract._id, propertyId: contract.property?._id },
-							});
-						}
-					} catch (notifErr) {
-						console.error("Webhook: payment notification failed", notifErr.message);
-					}
-				}
-				// Notify tenant when lister pays
-				if (payer === "lister") {
-					try {
-						const contract = await Contract.findById(contractId)
-							.populate("property", "overview.title")
-							.populate("lister", "name")
-							.populate("tenant", "_id");
-						if (contract?.tenant?._id) {
-							const propertyTitle =
-								contract.property?.overview?.title ||
-								`${contract.property?.listingDetails?.bedrooms || ""} Bed ${contract.property?.overview?.category || "Property"}`.trim();
+							await queueNotificationEmail(contract.lister._id, "contract_payment_received", { message, link, metadata });
+						} else if (payer === "lister" && contract?.tenant?._id) {
 							const message = `The sublessor has paid for the agreement for ${propertyTitle}. The agreement is now fully complete.`;
 							await Notification.create({
 								userId: contract.tenant._id,
 								type: "contract_payment_received",
 								message,
-								link: `/dashboard/my-agreements`,
-								metadata: { contractId: contract._id, propertyId: contract.property?._id, listerId: contract.lister?._id },
+								link,
+								metadata: { ...metadata, listerId: contract.lister?._id },
 							});
-							await queueNotificationEmail(contract.tenant._id, "contract_payment_received", {
-								message,
-								link: "/dashboard/my-agreements",
-								metadata: { contractId: contract._id, propertyId: contract.property?._id },
-							});
+							await queueNotificationEmail(contract.tenant._id, "contract_payment_received", { message, link, metadata });
 						}
-					} catch (notifErr) {
-						console.error("Webhook: lister payment notification failed", notifErr.message);
+
+						// Notify payer that their payment completed
+						const payerId = payer === "lister" ? contract.lister?._id : contract.tenant?._id;
+						if (payerId) {
+							const payerMessage = "Your service fee payment has been completed.";
+							await Notification.create({
+								userId: payerId,
+								type: "contract_payment_received",
+								message: payerMessage,
+								link,
+								metadata,
+							});
+							await queueNotificationEmail(payerId, "contract_payment_received", { message: payerMessage, link, metadata });
+						}
 					}
+				} catch (notifErr) {
+					console.error("Webhook: payment notification failed", notifErr.message);
 				}
 				break;
 			}
@@ -379,6 +374,30 @@ exports.handleWebhook = async (req, res) => {
 					? { listerStripePaymentStatus: "processing", listerPaymentStatus: "PROCESSING" }
 					: { stripePaymentStatus: "processing", paymentStatus: "PROCESSING" };
 				await Contract.findOneAndUpdate({ _id: contractId }, update);
+				// Notify payer that bank transfer is processing
+				try {
+					const contract = await Contract.findById(contractId)
+						.populate("lister", "_id")
+						.populate("tenant", "_id");
+					if (contract) {
+						const recipientId = payer === "lister" ? contract.lister?._id : contract.tenant?._id;
+						if (recipientId) {
+							const message = "Your bank transfer has been received and is being processed. You'll be notified when it completes.";
+							const link = "/dashboard/my-agreements";
+							const metadata = { contractId: contract._id, propertyId: contract.property };
+							await Notification.create({
+								userId: recipientId,
+								type: "contract_payment_received",
+								message,
+								link,
+								metadata,
+							});
+							await queueNotificationEmail(recipientId, "contract_payment_received", { message, link, metadata });
+						}
+					}
+				} catch (notifErr) {
+					console.error("Webhook: payment processing notification failed", notifErr.message);
+				}
 				break;
 			}
 			case "payment_intent.canceled": {

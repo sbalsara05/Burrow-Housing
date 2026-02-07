@@ -30,7 +30,7 @@ const AgreementsBody = () => {
     }, [dispatch]);
 
     const handleDelete = async (contractId: string) => {
-        if (!window.confirm('Are you sure you want to delete this contract? This cannot be undone.')) {
+        if (!window.confirm('Are you sure you want to cancel this agreement? This cannot be undone.')) {
             return;
         }
 
@@ -143,26 +143,43 @@ const AgreementsBody = () => {
         return null;
     };
 
-    // Helper for Cancel/Delete button (lister only, not for COMPLETED)
+    // Helper for Cancel/Delete button: lister can cancel any non-completed; tenant can decline when pending their signature
     const getCancelAction = (contract: any) => {
         const isLister = contract.lister?._id === user?._id;
-        if (!isLister || contract.status === 'COMPLETED') return null;
-        return (
-            <button
-                onClick={() => handleDelete(contract._id)}
-                className="btn btn-sm btn-cancel"
-                title={contract.status === 'DRAFT' ? 'Delete draft' : 'Cancel and recall contract'}
-            >
-                {contract.status === 'DRAFT' ? 'Delete' : 'Cancel'}
-            </button>
-        );
+        const isTenant = contract.tenant?._id === user?._id;
+        if (contract.status === 'COMPLETED') return null;
+        // Lister: can cancel DRAFT, PENDING_TENANT_SIGNATURE, PENDING_LISTER_SIGNATURE
+        if (isLister) {
+            return (
+                <button
+                    onClick={(e) => { e.stopPropagation(); handleDelete(contract._id); }}
+                    className="btn btn-sm btn-cancel"
+                    title={contract.status === 'DRAFT' ? 'Delete draft' : 'Cancel agreement'}
+                >
+                    {contract.status === 'DRAFT' ? 'Delete' : 'Cancel'}
+                </button>
+            );
+        }
+        // Tenant: can decline when pending their signature
+        if (isTenant && contract.status === 'PENDING_TENANT_SIGNATURE') {
+            return (
+                <button
+                    onClick={(e) => { e.stopPropagation(); handleDelete(contract._id); }}
+                    className="btn btn-sm btn-cancel"
+                    title="Decline agreement"
+                >
+                    Decline
+                </button>
+            );
+        }
+        return null;
     };
 
     if (isLoading) return <div className="p-5 text-center">Loading agreements...</div>;
     if (error) return <div className="alert alert-danger">{error}</div>;
 
     return (
-        <div className="bg-white card-box p-0 border-20">
+        <div className="agreements-section">
             {/* Header / Tabs */}
             <div className="d-flex justify-content-between align-items-center pt-4 pb-2 px-4 border-bottom">
                 <h4 className="dash-title-three">Agreements</h4>

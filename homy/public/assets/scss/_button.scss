@@ -45,6 +45,33 @@
     letter-spacing: 1px;
   }
 }
+
+// Add Listing button - orange, pill-shaped, pops (used in header/dashboard)
+.btn-add-listing {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 500;
+  font-size: 16px;
+  color: #fff;
+  padding: 0 25px;
+  min-width: 140px;
+  line-height: 48px;
+  border-radius: 25px;
+  background: $color-one;
+  border: none;
+  text-decoration: none;
+  @include transition (0.3s);
+  i {
+    font-size: 14px;
+    margin-left: 8px;
+  }
+  &:hover, &:focus {
+    background: #000;
+    color: #fff;
+  }
+}
+
 .btn-three {
   display: flex;
   align-items: center;

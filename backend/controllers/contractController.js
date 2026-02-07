@@ -6,6 +6,7 @@ const { generateContractPdf } = require("../services/pdfService");
 const Notification = require("../models/notificationModel");
 const { sendTransactionalEmail } = require("../services/emailService");
 const { queueNotificationEmail } = require("../utils/notificationEmailHelper");
+const { getStripe } = require("../services/stripeService");
 
 // Configure DigitalOcean Spaces client using AWS SDK v3
 // Note: SDK v3 requires the full endpoint URL including the protocol
@@ -170,6 +171,136 @@ exports.getMyAgreements = async (req, res) => {
 };
 
 /**
+ * Create payment notification for counterparty when payer has completed payment.
+ */
+async function createPaymentNotification(contract, payer) {
+	try {
+		const propertyTitle =
+			contract.property?.overview?.title ||
+			`${contract.property?.listingDetails?.bedrooms || ""} Bed ${contract.property?.overview?.category || "Property"}`.trim();
+		const link = `/dashboard/my-agreements`;
+		const metadata = { contractId: contract._id, propertyId: contract.property?._id };
+
+		if (payer === "tenant") {
+			const recipientId = contract.lister?._id || contract.lister;
+			if (!recipientId) return;
+			const message = `${contract.tenant?.name || "The sublessee"} has paid for the sublease agreement for ${propertyTitle}.`;
+			await Notification.create({
+				userId: recipientId,
+				type: "contract_payment_received",
+				message,
+				link,
+				metadata: { ...metadata, tenantId: contract.tenant?._id || contract.tenant },
+			});
+			await queueNotificationEmail(recipientId, "contract_payment_received", { message, link, metadata });
+		} else if (payer === "lister") {
+			const recipientId = contract.tenant?._id || contract.tenant;
+			if (!recipientId) return;
+			const message = `The sublessor has paid for the agreement for ${propertyTitle}. The agreement is now fully complete.`;
+			await Notification.create({
+				userId: recipientId,
+				type: "contract_payment_received",
+				message,
+				link,
+				metadata: { ...metadata, listerId: contract.lister?._id || contract.lister },
+			});
+			await queueNotificationEmail(recipientId, "contract_payment_received", { message, link, metadata });
+		}
+	} catch (e) {
+		console.warn("createPaymentNotification:", e.message);
+	}
+}
+
+/**
+ * Create payment notification for the payer (processing or completed).
+ */
+async function createPaymentPayerNotification(contract, payer, status) {
+	try {
+		const link = `/dashboard/my-agreements`;
+		const metadata = { contractId: contract._id, propertyId: contract.property?._id };
+		const recipientId = payer === "tenant" ? (contract.tenant?._id || contract.tenant) : (contract.lister?._id || contract.lister);
+		if (!recipientId) return;
+
+		const message = status === "processing"
+			? "Your bank transfer has been received and is being processed. You'll be notified when it completes."
+			: "Your service fee payment has been completed.";
+
+		await Notification.create({
+			userId: recipientId,
+			type: "contract_payment_received",
+			message,
+			link,
+			metadata,
+		});
+		await queueNotificationEmail(recipientId, "contract_payment_received", { message, link, metadata });
+	} catch (e) {
+		console.warn("createPaymentPayerNotification:", e.message);
+	}
+}
+
+/**
+ * Syncs payment status from Stripe when webhook hasn't fired (e.g. local dev).
+ * Creates notifications using same template as webhook.
+ */
+async function syncPaymentStatusFromStripe(contract) {
+	let updated = false;
+	try {
+		if (contract.stripePaymentIntentId && contract.stripePaymentStatus !== "succeeded") {
+			const pi = await getStripe().paymentIntents.retrieve(contract.stripePaymentIntentId);
+			if (pi.status === "succeeded") {
+				contract.stripePaymentStatus = "succeeded";
+				contract.paymentStatus = "SUCCEEDED";
+				updated = true;
+				await createPaymentNotification(contract, "tenant");
+				await createPaymentPayerNotification(contract, "tenant", "succeeded");
+			} else if (pi.status === "processing") {
+				const wasAlreadyProcessing = contract.stripePaymentStatus === "processing";
+				contract.stripePaymentStatus = "processing";
+				contract.paymentStatus = "PROCESSING";
+				updated = true;
+				if (!wasAlreadyProcessing) await createPaymentPayerNotification(contract, "tenant", "processing");
+			} else if (pi.status === "canceled" || pi.status === "cancelled") {
+				contract.stripePaymentStatus = "canceled";
+				contract.paymentStatus = "CANCELED";
+				updated = true;
+			} else if (pi.status === "requires_payment_method") {
+				contract.stripePaymentStatus = "failed";
+				contract.paymentStatus = "FAILED";
+				updated = true;
+			}
+		}
+		if (contract.listerStripePaymentIntentId && contract.listerStripePaymentStatus !== "succeeded") {
+			const pi = await getStripe().paymentIntents.retrieve(contract.listerStripePaymentIntentId);
+			if (pi.status === "succeeded") {
+				contract.listerStripePaymentStatus = "succeeded";
+				contract.listerPaymentStatus = "SUCCEEDED";
+				updated = true;
+				await createPaymentNotification(contract, "lister");
+				await createPaymentPayerNotification(contract, "lister", "succeeded");
+			} else if (pi.status === "processing") {
+				const wasAlreadyProcessing = contract.listerStripePaymentStatus === "processing";
+				contract.listerStripePaymentStatus = "processing";
+				contract.listerPaymentStatus = "PROCESSING";
+				updated = true;
+				if (!wasAlreadyProcessing) await createPaymentPayerNotification(contract, "lister", "processing");
+			} else if (pi.status === "canceled" || pi.status === "cancelled") {
+				contract.listerStripePaymentStatus = "canceled";
+				contract.listerPaymentStatus = "CANCELED";
+				updated = true;
+			} else if (pi.status === "requires_payment_method") {
+				contract.listerStripePaymentStatus = "failed";
+				contract.listerPaymentStatus = "FAILED";
+				updated = true;
+			}
+		}
+		if (updated) await contract.save();
+	} catch (e) {
+		console.warn("syncPaymentStatusFromStripe:", e.message);
+	}
+	return contract;
+}
+
+/**
  * Retrieves a single contract by ID.
  * Enforces security to ensure only participants can view the details.
  */
@@ -199,7 +330,13 @@ exports.getContractById = async (req, res) => {
 			});
 		}
 
-		res.json(contract);
+		// Sync payment status from Stripe (works when webhook hasn't fired, e.g. local dev)
+		let syncedContract = contract;
+		if (process.env.STRIPE_SECRET_KEY) {
+			syncedContract = await syncPaymentStatusFromStripe(contract);
+		}
+
+		res.json(syncedContract);
 	} catch (error) {
 		console.error("Error fetching contract:", error);
 		res.status(500).json({ message: "Server Error" });
@@ -698,6 +835,7 @@ exports.recallContract = async (req, res) => {
 /**
  * Deletes or cancels a contract.
  * Lister can delete DRAFT contracts or cancel contracts waiting for signatures.
+ * Tenant can decline/cancel when status is PENDING_TENANT_SIGNATURE.
  * Cannot delete/cancel contracts that have been signed by both parties.
  */
 exports.deleteContract = async (req, res) => {
@@ -710,60 +848,91 @@ exports.deleteContract = async (req, res) => {
 				.json({ message: "Contract not found" });
 		}
 
-		// Security: Only lister can delete
-		if (contract.lister.toString() !== req.user.userId) {
-			return res.status(403).json({
-				message: "Only the lister can delete this contract.",
-			});
-		}
-
-		// Determine action based on status
 		if (contract.status === "COMPLETED") {
 			return res.status(400).json({
 				message: "Cannot delete completed contracts. Both parties have signed.",
 			});
 		}
 
-		// Notify tenant if contract was cancelled (not draft - they were expecting to sign)
-		if (contract.status !== "DRAFT") {
+		const userId = req.user.userId.toString();
+		const isLister = contract.lister.toString() === userId;
+		const isTenant = contract.tenant.toString() === userId;
+
+		// Lister can delete/cancel any non-completed contract
+		// Tenant can cancel only when pending their signature (they are declining)
+		if (isLister) {
+			// Lister cancelling – notify tenant if not draft
+			if (contract.status !== "DRAFT") {
+				try {
+					const populated = await Contract.findById(contract._id)
+						.populate("property", "overview.title")
+						.populate("lister", "name")
+						.populate("tenant", "_id");
+					if (populated?.tenant?._id) {
+						const propertyTitle =
+							populated.property?.overview?.title ||
+							`${populated.property?.listingDetails?.bedrooms || ""} Bed ${populated.property?.overview?.category || "Property"}`.trim();
+						await Notification.create({
+							userId: populated.tenant._id,
+							type: "contract_cancelled",
+							message: `The sublease agreement for ${propertyTitle} was cancelled by the sublessor.`,
+							link: "/dashboard/my-agreements",
+							metadata: {
+								contractId: contract._id,
+								propertyId: contract.property,
+								listerId: contract.lister,
+							},
+						});
+						await queueNotificationEmail(populated.tenant._id, "contract_cancelled", {
+							message: `The sublease agreement for ${propertyTitle} was cancelled by the sublessor.`,
+							link: "/dashboard/my-agreements",
+							metadata: { contractId: contract._id, propertyId: contract.property },
+						});
+					}
+				} catch (notifErr) {
+					console.error("Delete: tenant notification failed", notifErr.message);
+				}
+			}
+		} else if (isTenant && contract.status === "PENDING_TENANT_SIGNATURE") {
+			// Tenant declining – notify lister
 			try {
 				const populated = await Contract.findById(contract._id)
 					.populate("property", "overview.title")
-					.populate("lister", "name")
-					.populate("tenant", "_id");
-				if (populated?.tenant?._id) {
+					.populate("lister", "_id")
+					.populate("tenant", "name");
+				if (populated?.lister?._id) {
 					const propertyTitle =
 						populated.property?.overview?.title ||
-						`${
-							populated.property?.listingDetails?.bedrooms || ""
-						} Bed ${populated.property?.overview?.category || "Property"}`.trim();
+						`${populated.property?.listingDetails?.bedrooms || ""} Bed ${populated.property?.overview?.category || "Property"}`.trim();
 					await Notification.create({
-						userId: populated.tenant._id,
+						userId: populated.lister._id,
 						type: "contract_cancelled",
-						message: `The sublease agreement for ${propertyTitle} was cancelled by the sublessor.`,
+						message: `${populated.tenant?.name || "The sublessee"} declined the sublease agreement for ${propertyTitle}.`,
 						link: "/dashboard/my-agreements",
 						metadata: {
 							contractId: contract._id,
 							propertyId: contract.property,
-							listerId: contract.lister,
+							tenantId: contract.tenant,
 						},
 					});
-					await queueNotificationEmail(populated.tenant._id, "contract_cancelled", {
-						message: `The sublease agreement for ${propertyTitle} was cancelled by the sublessor.`,
+					await queueNotificationEmail(populated.lister._id, "contract_cancelled", {
+						message: `${populated.tenant?.name || "The sublessee"} declined the sublease agreement for ${propertyTitle}.`,
 						link: "/dashboard/my-agreements",
 						metadata: { contractId: contract._id, propertyId: contract.property },
 					});
 				}
 			} catch (notifErr) {
-				console.error("Delete: tenant notification failed", notifErr.message);
+				console.error("Delete: lister notification failed", notifErr.message);
 			}
+		} else {
+			return res.status(403).json({
+				message: "You cannot cancel this contract.",
+			});
 		}
 
-		// For DRAFT, PENDING_TENANT_SIGNATURE, PENDING_LISTER_SIGNATURE, CANCELLED - allow deletion
 		await Contract.findByIdAndDelete(req.params.id);
 
-		const action =
-			contract.status === "DRAFT" ? "deleted" : "cancelled";
+		const action = contract.status === "DRAFT" ? "deleted" : "cancelled";
 		res.json({ message: `Contract ${action} successfully` });
 	} catch (error) {
 		console.error("Error deleting contract:", error);

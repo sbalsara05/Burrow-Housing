@@ -29,6 +29,7 @@ function PaymentForm({
     clientSecret,
     amountCents,
     paymentMethod,
+    contractId,
     onSuccess,
     onCancel,
     isTestMode = false,
@@ -36,6 +37,7 @@ function PaymentForm({
     clientSecret: string;
     amountCents: number;
     paymentMethod: 'card' | 'ach';
+    contractId?: string;
     onSuccess: () => void;
     onCancel: () => void;
     isTestMode?: boolean;
@@ -58,11 +60,13 @@ function PaymentForm({
                     setErrorMessage(submitError.message || 'Payment validation failed');
                     return;
                 }
+                const returnUrl = new URL('/dashboard/agreements/payment-complete', window.location.origin);
+                if (contractId) returnUrl.searchParams.set('contract', contractId);
                 const { error } = await stripe.confirmPayment({
                     elements,
                     clientSecret,
                     confirmParams: {
-                        return_url: `${window.location.origin}/dashboard/agreements/payment-complete`,
+                        return_url: returnUrl.toString(),
                     },
                     redirect: 'if_required',
                 });
@@ -185,6 +189,8 @@ const ContractViewer = () => {
 
     const tenantPaid = currentContract.paymentStatus === 'SUCCEEDED' || currentContract.stripePaymentStatus === 'succeeded';
     const listerPaid = currentContract.listerPaymentStatus === 'SUCCEEDED' || currentContract.listerStripePaymentStatus === 'succeeded';
+    const tenantProcessing = currentContract.paymentStatus === 'PROCESSING' || currentContract.stripePaymentStatus === 'processing';
+    const listerProcessing = currentContract.listerPaymentStatus === 'PROCESSING' || currentContract.listerStripePaymentStatus === 'processing';
     const bothPaid = tenantPaid && listerPaid;
 
     return (
@@ -305,12 +311,17 @@ const ContractViewer = () => {
                                             </div>
                                         )}
                                     </div>
-                                ) :                                 paymentIntent && stripePromise ? (
+                                ) : tenantProcessing ? (
+                                    <div className="alert alert-info mb-0">
+                                        <strong>Your bank transfer is processing.</strong> You will be notified when the payment completes. This usually takes 1–3 business days for ACH transfers.
+                                    </div>
+                                ) : paymentIntent && stripePromise ? (
                                     <Elements stripe={stripePromise} options={{ clientSecret: paymentIntent.clientSecret }}>
                                         <PaymentForm
                                             clientSecret={paymentIntent.clientSecret}
                                             amountCents={paymentIntent.amountCents}
                                             paymentMethod={paymentMethodUsed}
+                                            contractId={id}
                                             isTestMode={isTestMode}
                                             onSuccess={async () => {
                                                 setPaymentIntent(null);
@@ -394,12 +405,17 @@ const ContractViewer = () => {
                                             </div>
                                         )}
                                     </div>
+                                ) : listerProcessing ? (
+                                    <div className="alert alert-info mb-0">
+                                        <strong>Your bank transfer is processing.</strong> You will be notified when the payment completes. This usually takes 1–3 business days for ACH transfers.
+                                    </div>
                                 ) : paymentIntent && stripePromise ? (
                                     <Elements stripe={stripePromise} options={{ clientSecret: paymentIntent.clientSecret }}>
                                         <PaymentForm
                                             clientSecret={paymentIntent.clientSecret}
                                             amountCents={paymentIntent.amountCents}
                                             paymentMethod={paymentMethodUsed}
+                                            contractId={id}
                                             isTestMode={isTestMode}
                                             onSuccess={async () => {
                                                 setPaymentIntent(null);

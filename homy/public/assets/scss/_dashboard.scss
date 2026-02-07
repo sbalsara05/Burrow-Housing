@@ -1159,6 +1159,14 @@
         }
     }
 
+    // Agreements section - inline with dashboard-body container (#F9F3EF), subtle definition
+    .agreements-section {
+        background: #F9F3EF;
+        border-radius: 20px;
+        border: 1px solid rgba($color: #000000, $alpha: 0.08);
+        overflow: hidden;
+    }
+
     // Agreements table - no uppercase, brand colors, clickable rows
     .agreements-table {
         margin: 0;
