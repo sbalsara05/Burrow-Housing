@@ -6,10 +6,19 @@ exports.generateContractPdf = async (
 	listerSignatureUrl
 ) => {
 	try {
-		const browser = await puppeteer.launch({
+		const launchOptions = {
 			headless: "new",
-			args: ["--no-sandbox", "--disable-setuid-sandbox"], // Required for some cloud environments
-		});
+			args: [
+				"--no-sandbox",
+				"--disable-setuid-sandbox",
+				"--disable-dev-shm-usage",
+				"--disable-gpu",
+			],
+		};
+		if (process.env.PUPPETEER_EXECUTABLE_PATH) {
+			launchOptions.executablePath = process.env.PUPPETEER_EXECUTABLE_PATH;
+		}
+		const browser = await puppeteer.launch(launchOptions);
 		const page = await browser.newPage();
 
 		// Construct the Final HTML

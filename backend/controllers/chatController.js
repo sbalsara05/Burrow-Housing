@@ -166,6 +166,25 @@ exports.approveInterestAndCreateChannel = async (req, res) => {
 		const { renterId, propertyId } = interest;
 		const client = getStreamClient();
 
+		// Ensure both users exist in Stream before creating channel (Stream requires this)
+		const User = require("../models/userModel");
+		const Profile = require("../models/profileModel");
+		const [listerUser, renterUser, listerProfile, renterProfile] = await Promise.all([
+			User.findById(listerId).select("name").lean(),
+			User.findById(renterId).select("name").lean(),
+			Profile.findOne({ userId: listerId }).select("image").lean(),
+			Profile.findOne({ userId: renterId }).select("image").lean(),
+		]);
+		const upsertUser = async (userId, user, profile) => {
+			const data = { id: userId.toString(), name: user?.name || "User" };
+			if (profile?.image) data.image = profile.image;
+			await client.upsertUser(data);
+		};
+		await Promise.all([
+			upsertUser(listerId, listerUser, listerProfile),
+			upsertUser(renterId, renterUser, renterProfile),
+		]);
+
 		// Create a unique and predictable channel ID
 		const channelId = `interest-${interestId}`;
 
@@ -230,8 +249,14 @@ exports.approveInterestAndCreateChannel = async (req, res) => {
 		});
 	} catch (error) {
 		console.error("Error approving interest:", error);
+		const isStreamError =
+			error.message?.includes("Stream") ||
+			error.message?.includes("client has not been initialized");
 		res.status(500).json({
-			message: "Server error while approving interest.",
+			message: isStreamError
+				? "Chat service unavailable. Please try again or contact support."
+				: "Server error while approving interest.",
+			error: process.env.NODE_ENV === "development" ? error.message : undefined,
 		});
 	}
 };

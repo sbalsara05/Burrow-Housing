@@ -18,8 +18,9 @@ router.post("/initiate", authenticateToken, createDraft);
 // Get all agreements for the user
 router.get("/my-agreements", authenticateToken, getMyAgreements);
 
-// Get single contract by ID
+// Get single contract by ID (also supports /:id/sign for GET - same response)
 router.get("/:id", authenticateToken, getContractById);
+router.get("/:id/sign", authenticateToken, getContractById);
 
 // Update a draft (Lister only)
 router.put("/:id/update-draft", authenticateToken, updateDraft);
