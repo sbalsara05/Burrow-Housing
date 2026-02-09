@@ -1,10 +1,8 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
 import DashboardHeaderTwo from '../../../layouts/headers/dashboard/DashboardHeaderTwo';
 import { useSidebarCollapse } from '../../../hooks/useSidebarCollapse';
 
 const AmbassadorComingSoonPage: React.FC = () => {
-  const navigate = useNavigate();
   const isCollapsed = useSidebarCollapse();
 
   return (
@@ -17,12 +15,6 @@ const AmbassadorComingSoonPage: React.FC = () => {
           <p className="text-muted text-center mb-4">
             Ambassador features are coming soon! We&apos;re working on it. Check back later.
           </p>
-          <button
-            className="btn btn-primary"
-            onClick={() => navigate('/dashboard/dashboard-index')}
-          >
-            Back to Dashboard
-          </button>
         </div>
       </div>
     </div>
