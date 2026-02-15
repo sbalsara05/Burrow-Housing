@@ -193,17 +193,31 @@ const ContractViewer = () => {
     const listerProcessing = currentContract.listerPaymentStatus === 'PROCESSING' || currentContract.listerStripePaymentStatus === 'processing';
     const bothPaid = tenantPaid && listerPaid;
 
+    const scrollToBottom = () => {
+        window.scrollTo({
+            top: document.documentElement.scrollHeight,
+            behavior: 'smooth',
+        });
+    };
+
     return (
-        <div className="row mx-0">
+        <div className="row mx-0 position-relative">
             <div className="col-lg-10 m-auto px-3 px-lg-4" style={{ minWidth: 0 }}>
                 <div className="bg-white card-box border-20 p-5 agreement-review">
 
                     {/* Header */}
                     <div className="agreement-review-header d-flex justify-content-between align-items-center mb-4 pb-3">
                         <h2 className="dash-title-three mb-0">Sublease Agreement</h2>
-                        <span className={getStatusBadgeClass()}>
-                            {formatStatus(currentContract.status)}
-                        </span>
+                        <div className="d-flex align-items-center gap-2 flex-wrap justify-content-end">
+                            <span className={getStatusBadgeClass()}>
+                                {formatStatus(currentContract.status)}
+                            </span>
+                            {currentContract.status === 'COMPLETED' && !bothPaid && (
+                                <span className="agreement-status-badge payment-pending">
+                                    Payment pending
+                                </span>
+                            )}
+                        </div>
                     </div>
 
                     {successMessage && <div className="agreement-review-success">{successMessage}</div>}
@@ -221,15 +235,7 @@ const ContractViewer = () => {
                         dangerouslySetInnerHTML={{ __html: filledHtml }}
                     />
 
-                    {/* Liability Waiver (Hardcoded) */}
-                    <div className="agreement-review-waiver fs-sm mb-5">
-                        <strong>Liability Waiver:</strong> By signing this agreement, both parties acknowledge that
-                        Burrow Housing is strictly a listing platform. Burrow Housing bears no responsibility for
-                        property damage, rent disputes, or lease violations. This contract is solely between the
-                        Sublessor and the Sublessee.
-                    </div>
-
-                    {/* Next Steps (Sublessor - COMPLETED, waiting for tenant to pay) */}
+                    {/* Next Steps (Subletter - COMPLETED, waiting for tenant to pay) */}
                     {currentContract.status === 'COMPLETED' && isLister && !tenantPaid && (
                         <div className="agreement-review-blurb mb-5">
                             <strong>What&apos;s next:</strong> The sublessee will be prompted to pay their 2.5% service fee. Be on the lookout in your email for any updates.
@@ -267,10 +273,10 @@ const ContractViewer = () => {
                     {/* Signatures Section */}
                     <div className="row mb-5 agreement-review-signatures">
                         <div className="col-md-6">
-                            <p className="fw-bold mb-2">Sublessee Signature:</p>
+                            <p className="fw-bold mb-2">Subtenant Signature:</p>
                             {currentContract.tenantSignature?.url ? (
                                 <div className="agreement-review-sig-box signed p-3">
-                                    <img src={currentContract.tenantSignature.url} alt="Sublessee Signature" height="60" />
+                                    <img src={currentContract.tenantSignature.url} alt="Subtenant Signature" height="60" />
                                     <div className="agreement-review-sig-date mt-2">
                                         Signed: {new Date(currentContract.updatedAt).toLocaleDateString()}
                                     </div>
@@ -282,10 +288,10 @@ const ContractViewer = () => {
                             )}
                         </div>
                         <div className="col-md-6">
-                            <p className="fw-bold mb-2">Sublessor Signature:</p>
+                            <p className="fw-bold mb-2">Subletter Signature:</p>
                             {currentContract.listerSignature?.url ? (
                                 <div className="agreement-review-sig-box signed p-3">
-                                    <img src={currentContract.listerSignature.url} alt="Sublessor Signature" height="60" />
+                                    <img src={currentContract.listerSignature.url} alt="Subletter Signature" height="60" />
                                 </div>
                             ) : (
                                 <div className="agreement-review-sig-box waiting p-3">
@@ -560,6 +566,18 @@ const ContractViewer = () => {
                     )}
 
                 </div>
+
+                    {/* Scroll to bottom button */}
+                    <button
+                        type="button"
+                        className="agreement-scroll-to-bottom"
+                        onClick={scrollToBottom}
+                        title="Scroll to bottom"
+                        aria-label="Scroll to bottom"
+                    >
+                        <i className="bi bi-chevron-double-down" />
+                        <span>Scroll to bottom</span>
+                    </button>
             </div>
         </div>
     );

@@ -1,3 +1,11 @@
+// Lease taken over pill - glass look matching agreement-review-success (payment complete tag)
+.lease-taken-over-pill {
+    background: rgba($color-six, 0.12);
+    color: darken($color-six, 10%);
+    border: 1px solid rgba($color-six, 0.25);
+    backdrop-filter: blur(8px);
+}
+
 .theme-details-one {
     .border-20 {
         border-radius: 20px;

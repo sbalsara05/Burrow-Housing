@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch } from '../../../redux/slices/store';
 import {
@@ -28,7 +28,6 @@ const timeSince = (date: string): string => {
 
 const Notification: React.FC = () => {
     const dispatch = useDispatch<AppDispatch>();
-    const navigate = useNavigate();
     const notifications = useSelector(selectAllNotifications);
 
     // State to track which notifications are expanded (using array for React reactivity)
@@ -64,10 +63,6 @@ const Notification: React.FC = () => {
         }
     };
 
-    const handleNotificationClick = (link: string) => {
-        navigate(link);
-    };
-
     const toggleExpanded = (e: React.MouseEvent, notificationId: string) => {
         e.preventDefault();
         e.stopPropagation();
@@ -97,6 +92,17 @@ const Notification: React.FC = () => {
     };
 
     const hasReadNotifications = notifications.some(n => n.isRead);
+
+    // For contract notifications, ensure link goes to agreement screen (handles old notifications with /my-agreements)
+    const getNotificationLink = (item: NotificationType): string | undefined => {
+        const contractTypes = ['contract_pending', 'contract_tenant_signed', 'contract_completed', 'contract_payment_received'];
+        const contractId = item.metadata?.contractId;
+        if (contractTypes.includes(item.type) && contractId) {
+            const id = typeof contractId === 'string' ? contractId : (contractId as { toString?: () => string })?.toString?.() ?? String(contractId);
+            return `/dashboard/agreements/${id}/sign`;
+        }
+        return item.link;
+    };
 
     return (
         <ul className="dropdown-menu" aria-labelledby="notification-dropdown" style={{ 
@@ -130,57 +136,70 @@ const Notification: React.FC = () => {
                                     className={`d-flex align-items-start ${!item.isRead ? 'unread' : ''}`}
                                     style={{ cursor: 'pointer', padding: '8px 12px', position: 'relative' }}
                                 >
-                                    <div
-                                        className="flex-fill pe-3"
-                                        onClick={() => handleNotificationClick(item.link)}
-                                        style={{ minWidth: 0 }} // This allows the flex item to shrink
-                                    >
-                                        <h6 className="mb-1" style={{ wordBreak: 'break-word', lineHeight: '1.4', whiteSpace: 'pre-wrap' }}>
-                                            {messageData.text}
-                                        </h6>
-                                        {messageData.needsTruncation && (
-                                            <button
-                                                onClick={(e) => {
-                                                    e.preventDefault();
-                                                    e.stopPropagation();
-                                                    toggleExpanded(e, item._id);
-                                                }}
-                                                className="btn btn-sm btn-link p-0 mt-1 d-block"
-                                                style={{
-                                                    fontSize: '0.75rem',
-                                                    color: '#ff6b35',
-                                                    textDecoration: 'none',
-                                                    padding: '0',
-                                                    fontWeight: '500',
-                                                    display: 'block'
-                                                }}
-                                            >
-                                                {isExpanded ? 'View less' : 'View more'}
-                                            </button>
-                                        )}
-                                        <span className="time text-muted d-block mt-1" style={{ fontSize: '0.75rem' }}>
-                                            {timeSince(item.createdAt)}
-                                        </span>
-                                    </div>
+                                    {getNotificationLink(item) ? (
+                                        <Link
+                                            to={getNotificationLink(item)!}
+                                            className="flex-fill pe-3 text-decoration-none text-dark d-block"
+                                            style={{ minWidth: 0 }}
+                                        >
+                                            <h6 className="mb-1" style={{ wordBreak: 'break-word', lineHeight: '1.4', whiteSpace: 'pre-wrap' }}>
+                                                {messageData.text}
+                                            </h6>
+                                            {messageData.needsTruncation && (
+                                                <span
+                                                    role="button"
+                                                    tabIndex={0}
+                                                    onKeyDown={(e) => e.key === 'Enter' && toggleExpanded(e as unknown as React.MouseEvent, item._id)}
+                                                    onClick={(e) => {
+                                                        e.preventDefault();
+                                                        e.stopPropagation();
+                                                        toggleExpanded(e, item._id);
+                                                    }}
+                                                    className="btn btn-sm btn-link p-0 mt-1 d-block"
+                                                    style={{
+                                                        fontSize: '0.75rem',
+                                                        color: '#ff6b35',
+                                                        textDecoration: 'none',
+                                                        padding: '0',
+                                                        fontWeight: '500',
+                                                        display: 'block'
+                                                    }}
+                                                >
+                                                    {isExpanded ? 'View less' : 'View more'}
+                                                </span>
+                                            )}
+                                            <span className="time text-muted d-block mt-1" style={{ fontSize: '0.75rem' }}>
+                                                {timeSince(item.createdAt)}
+                                            </span>
+                                        </Link>
+                                    ) : (
+                                        <div className="flex-fill pe-3" style={{ minWidth: 0 }}>
+                                            <h6 className="mb-1" style={{ wordBreak: 'break-word', lineHeight: '1.4', whiteSpace: 'pre-wrap' }}>
+                                                {messageData.text}
+                                            </h6>
+                                            {messageData.needsTruncation && (
+                                                <button
+                                                    type="button"
+                                                    onClick={(e) => toggleExpanded(e, item._id)}
+                                                    className="btn btn-sm btn-link p-0 mt-1 d-block"
+                                                    style={{
+                                                        fontSize: '0.75rem',
+                                                        color: '#ff6b35',
+                                                        textDecoration: 'none',
+                                                        padding: '0',
+                                                        fontWeight: '500',
+                                                        display: 'block'
+                                                    }}
+                                                >
+                                                    {isExpanded ? 'View less' : 'View more'}
+                                                </button>
+                                            )}
+                                            <span className="time text-muted d-block mt-1" style={{ fontSize: '0.75rem' }}>
+                                                {timeSince(item.createdAt)}
+                                            </span>
+                                        </div>
+                                    )}
                                     <div className="d-flex flex-column gap-1 align-items-end">
-                                        {(item.type === 'ambassador_request' || item.link?.includes('/ambassador')) && (
-                                            <button
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    handleNotificationClick(item.link);
-                                                }}
-                                                className="btn btn-sm"
-                                                style={{ 
-                                                    backgroundColor: '#ff6b35', 
-                                                    color: 'white', 
-                                                    border: 'none',
-                                                    fontSize: '0.75rem',
-                                                    padding: '2px 8px'
-                                                }}
-                                            >
-                                                View
-                                            </button>
-                                        )}
                                         <button
                                             onClick={(e) => handleDelete(e, item)}
                                             className="btn btn-sm btn-link text-danger p-1 flex-shrink-0"

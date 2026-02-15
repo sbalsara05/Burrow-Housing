@@ -342,7 +342,7 @@ exports.handleWebhook = async (req, res) => {
 						const propertyTitle =
 							contract.property?.overview?.title ||
 							`${contract.property?.listingDetails?.bedrooms || ""} Bed ${contract.property?.overview?.category || "Property"}`.trim();
-						const link = "/dashboard/my-agreements";
+						const link = `/dashboard/agreements/${contract._id}/sign`;
 						const metadata = { contractId: contract._id, propertyId: contract.property?._id };
 
 						// Notify counterparty (lister when tenant pays, tenant when lister pays)
@@ -405,7 +405,7 @@ exports.handleWebhook = async (req, res) => {
 						const recipientId = payer === "lister" ? contract.lister?._id : contract.tenant?._id;
 						if (recipientId) {
 							const message = "Your bank transfer has been received and is being processed. You'll be notified when it completes.";
-							const link = "/dashboard/my-agreements";
+							const link = `/dashboard/agreements/${contract._id}/sign`;
 							const metadata = { contractId: contract._id, propertyId: contract.property };
 							await Notification.create({
 								userId: recipientId,
