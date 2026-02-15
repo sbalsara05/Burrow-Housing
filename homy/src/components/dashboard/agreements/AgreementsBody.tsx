@@ -70,15 +70,18 @@ const AgreementsBody = () => {
         if (contract.status === 'COMPLETED') {
             const tenantPaid = contract.paymentStatus === 'SUCCEEDED' || contract.stripePaymentStatus === 'succeeded';
             const listerPaid = contract.listerPaymentStatus === 'SUCCEEDED' || contract.listerStripePaymentStatus === 'succeeded';
+            const bothPaidForThis = tenantPaid && listerPaid;
             const needsToPay = (isTenant && !tenantPaid) || (isLister && !listerPaid);
+            // When archived: Action column only has Download PDF; View agreement moves to Cancel column
+            const showViewInAction = !(activeTab === 'archive' && bothPaidForThis);
             return (
                 <div className="agreement-action-buttons">
-                    <a href={contract.finalPdfUrl} target="_blank" rel="noopener noreferrer" className="btn btn-one btn-sm text-nowrap">
-                        Download PDF
+                    <a href={contract.finalPdfUrl} target="_blank" rel="noopener noreferrer" className="btn btn-one btn-sm" title="Download PDF">
+                        Download
                     </a>
-                    {(isTenant || isLister) && (
-                        <Link to={`/dashboard/agreements/${contract._id}/sign`} className={`btn btn-sm text-nowrap ${needsToPay ? 'btn-one' : 'btn-two'}`}>
-                            {needsToPay ? 'Pay now' : 'View agreement'}
+                    {showViewInAction && (isTenant || isLister) && (
+                        <Link to={`/dashboard/agreements/${contract._id}/sign`} className={`btn btn-sm ${needsToPay ? 'btn-one' : 'btn-two'}`}>
+                            {needsToPay ? 'Pay now' : 'View'}
                         </Link>
                     )}
                 </div>
@@ -144,7 +147,16 @@ const AgreementsBody = () => {
     };
 
     // Helper for Cancel/Delete button: lister can cancel any non-completed; tenant can decline when pending their signature
+    // When archived, this column shows View agreement instead (archived agreements can't be cancelled)
     const getCancelAction = (contract: any) => {
+        // Archived: show View agreement in this column (moved over from Action)
+        if (activeTab === 'archive' && contract.status === 'COMPLETED') {
+            return (
+                <Link to={`/dashboard/agreements/${contract._id}/sign`} className="btn btn-two btn-sm" onClick={(e) => e.stopPropagation()}>
+                    View
+                </Link>
+            );
+        }
         const isLister = contract.lister?._id === user?._id;
         const isTenant = contract.tenant?._id === user?._id;
         if (contract.status === 'COMPLETED') return null;
@@ -205,8 +217,8 @@ const AgreementsBody = () => {
                 </div>
             </div>
 
-            {/* List Body - no scroll, table fits container */}
-            <div className="p-4 overflow-visible">
+            {/* List Body - no scroll for archive tab */}
+            <div className={`agreements-table-wrapper ${activeTab === 'archive' ? 'archive-no-scroll' : ''}`}>
                 <table className="table table-borderless mb-0 agreements-table">
                     <colgroup>
                         <col style={{ width: '22%' }} />
@@ -223,7 +235,7 @@ const AgreementsBody = () => {
                             <th scope="col">Status</th>
                             <th scope="col">Last Update</th>
                             <th scope="col">Action</th>
-                            <th scope="col">Cancel</th>
+                            <th scope="col">{activeTab === 'archive' ? 'View' : 'Cancel'}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -268,8 +280,8 @@ const AgreementsBody = () => {
                                             : `Sublessor: ${contract.lister?.name}`}
                                     </td>
                                     <td>
-                                        <div className={`agreement-status-badge ${contract.status === 'COMPLETED' ? 'completed' : contract.status === 'CANCELLED' ? 'cancelled' : 'pending'}`}>
-                                            {formatStatus(contract.status)}
+                                        <div className={`agreement-status-badge ${activeTab === 'archive' && contract.status === 'COMPLETED' ? 'archived' : contract.status === 'COMPLETED' ? 'completed' : contract.status === 'CANCELLED' ? 'cancelled' : 'pending'}`}>
+                                            {activeTab === 'archive' && contract.status === 'COMPLETED' ? 'Archived' : formatStatus(contract.status)}
                                         </div>
                                     </td>
                                     <td>{new Date(contract.updatedAt).toLocaleDateString()}</td>

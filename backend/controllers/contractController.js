@@ -3,6 +3,10 @@ const Contract = require("../models/contractModel");
 const Property = require("../models/propertyModel");
 const User = require("../models/userModel");
 const { generateContractPdf } = require("../services/pdfService");
+const {
+	SUBLEASE_AGREEMENT_V2_HTML,
+	getDefaultVariables,
+} = require("../templates/subleaseAgreementTemplate");
 const Notification = require("../models/notificationModel");
 const { sendTransactionalEmail } = require("../services/emailService");
 const { queueNotificationEmail } = require("../utils/notificationEmailHelper");
@@ -92,33 +96,25 @@ exports.createDraft = async (req, res) => {
 					"property",
 					"overview addressAndLocation.address images listingDetails.bedrooms"
 				)
-				.populate("lister", "name email")
-				.populate("tenant", "name email");
+				.populate("lister", "name email phone")
+				.populate("tenant", "name email phone");
 			return res.status(200).json(populated);
 		}
 
-		// Initialize default template (sublessor = lister, sublessee = tenant)
-		const defaultTemplate = `
-            <h3>Sublease Agreement</h3>
-            <p>The sublessee agrees to pay a monthly rent of <strong>{{Rent_Amount}}</strong>.</p>
-            <p>Lease Start Date: <strong>{{Start_Date}}</strong></p>
-            <p>Lease End Date: <strong>{{End_Date}}</strong></p>
-        `;
+		// Fetch lister and tenant for pre-filling contract variables
+		const [lister, tenant] = await Promise.all([
+			User.findById(listerId).select("name email phone").lean(),
+			User.findById(tenantId).select("name email phone").lean(),
+		]);
 
-		// Pre-fill variables from property details
-		const defaultVariables = {
-			Rent_Amount: property.overview?.rent
-				? `$${property.overview.rent}`
-				: "",
-			Start_Date: "",
-			End_Date: "",
-		};
+		// Use v2 Sublease Agreement template (Burrow Housing Sublease Agreement v2)
+		const defaultVariables = getDefaultVariables(property, lister, tenant);
 
 		const contract = await Contract.create({
 			property: propertyId,
 			lister: listerId,
 			tenant: tenantId,
-			templateHtml: defaultTemplate,
+			templateHtml: SUBLEASE_AGREEMENT_V2_HTML,
 			variables: defaultVariables,
 		});
 
@@ -128,8 +124,8 @@ exports.createDraft = async (req, res) => {
 				"property",
 				"overview addressAndLocation.address images listingDetails.bedrooms"
 			)
-			.populate("lister", "name email")
-			.populate("tenant", "name email");
+			.populate("lister", "name email phone")
+			.populate("tenant", "name email phone");
 
 		res.status(201).json(populatedContract);
 	} catch (error) {
@@ -156,8 +152,8 @@ exports.getMyAgreements = async (req, res) => {
 				"property",
 				"overview addressAndLocation.address images listingDetails.bedrooms"
 			)
-			.populate("lister", "name email")
-			.populate("tenant", "name email")
+			.populate("lister", "name email phone")
+			.populate("tenant", "name email phone")
 			.sort({ updatedAt: -1 });
 
 		res.json(contracts);
@@ -178,7 +174,8 @@ async function createPaymentNotification(contract, payer) {
 		const propertyTitle =
 			contract.property?.overview?.title ||
 			`${contract.property?.listingDetails?.bedrooms || ""} Bed ${contract.property?.overview?.category || "Property"}`.trim();
-		const link = `/dashboard/my-agreements`;
+		const contractId = contract._id?.toString?.() || contract._id;
+		const link = `/dashboard/agreements/${contractId}/sign`;
 		const metadata = { contractId: contract._id, propertyId: contract.property?._id };
 
 		if (payer === "tenant") {
@@ -216,7 +213,8 @@ async function createPaymentNotification(contract, payer) {
  */
 async function createPaymentPayerNotification(contract, payer, status) {
 	try {
-		const link = `/dashboard/my-agreements`;
+		const contractId = contract._id?.toString?.() || contract._id;
+		const link = `/dashboard/agreements/${contractId}/sign`;
 		const metadata = { contractId: contract._id, propertyId: contract.property?._id };
 		const recipientId = payer === "tenant" ? (contract.tenant?._id || contract.tenant) : (contract.lister?._id || contract.lister);
 		if (!recipientId) return;
@@ -302,8 +300,8 @@ async function syncPaymentStatusFromStripe(contract) {
 				// Re-fetch from DB so we never return unsaved modifications
 				const fresh = await Contract.findById(contract._id)
 					.populate("property", "overview addressAndLocation.address images listingDetails.bedrooms")
-					.populate("lister", "name email")
-					.populate("tenant", "name email");
+					.populate("lister", "name email phone")
+					.populate("tenant", "name email phone");
 				return fresh || contract;
 			}
 		}
@@ -313,8 +311,8 @@ async function syncPaymentStatusFromStripe(contract) {
 		try {
 			const fresh = await Contract.findById(contract._id)
 				.populate("property", "overview addressAndLocation.address images listingDetails.bedrooms")
-				.populate("lister", "name email")
-				.populate("tenant", "name email");
+				.populate("lister", "name email phone")
+				.populate("tenant", "name email phone");
 			return fresh || contract;
 		} catch (rethrow) {
 			return contract;
@@ -352,8 +350,8 @@ exports.getContractById = async (req, res) => {
 				"property",
 				"overview addressAndLocation.address images listingDetails.bedrooms"
 			)
-			.populate("lister", "name email")
-			.populate("tenant", "name email");
+			.populate("lister", "name email phone")
+			.populate("tenant", "name email phone");
 
 		if (!contract)
 			return res
@@ -419,8 +417,8 @@ exports.updateDraft = async (req, res) => {
 				"property",
 				"overview addressAndLocation.address images listingDetails.bedrooms"
 			)
-			.populate("lister", "name email")
-			.populate("tenant", "name email");
+			.populate("lister", "name email phone")
+			.populate("tenant", "name email phone");
 
 		res.json(populatedContract);
 	} catch (error) {
@@ -467,8 +465,8 @@ exports.lockContract = async (req, res) => {
 				"property",
 				"overview addressAndLocation.address images listingDetails.bedrooms"
 			)
-			.populate("lister", "name email")
-			.populate("tenant", "name email");
+			.populate("lister", "name email phone")
+			.populate("tenant", "name email phone");
 
 		// Notification + email: non-fatal so lock always returns success
 		const _getVar = (v, key) => (v && typeof v.get === "function" ? v.get(key) : (v && v[key]));
@@ -600,8 +598,8 @@ exports.signContract = async (req, res) => {
 					"property",
 					"overview.title addressAndLocation.address images listingDetails.bedrooms"
 				)
-				.populate("lister", "name email")
-				.populate("tenant", "name email");
+				.populate("lister", "name email phone")
+				.populate("tenant", "name email phone");
 
 			// Notification + email: non-fatal
 			const propertyTitle =
@@ -739,8 +737,8 @@ exports.signContract = async (req, res) => {
 					"property",
 					"overview addressAndLocation.address images listingDetails.bedrooms"
 				)
-				.populate("lister", "name email")
-				.populate("tenant", "name email");
+				.populate("lister", "name email phone")
+				.populate("tenant", "name email phone");
 
 			// Notifications + emails: non-fatal so sign always returns success
 			const propertyTitle =
@@ -860,8 +858,8 @@ exports.recallContract = async (req, res) => {
 				"property",
 				"overview addressAndLocation.address images listingDetails.bedrooms"
 			)
-			.populate("lister", "name email")
-			.populate("tenant", "name email");
+			.populate("lister", "name email phone")
+			.populate("tenant", "name email phone");
 
 		res.json(populatedContract);
 	} catch (error) {

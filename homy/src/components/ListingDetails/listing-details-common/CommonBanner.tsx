@@ -123,7 +123,7 @@ const CommonBanner: React.FC<CommonBannerProps> = ({ property, style_3 }) => {
             <div className="col-lg-6">
                 <h3 className="property-titlee">{displayTitle}</h3>
                 <div className="tw-">
-                    <div className="d-flex flex-wrap mt-10 tw-gap-3">
+                    <div className="d-flex flex-wrap align-items-center mt-10 tw-gap-3">
                         <div className="tw-rounded-full tw-size-fit tw-bg-primary tw-text-black tw-font-medium">
                             <div
                                 className={` text-uppercase mt-15 tw-pl-4 tw-pr-4 tw-pb-2 tw-size-fit ${style_3 ? "bg-white text-dark fw-500" : "text-uppercase border-20"}`}>
@@ -131,11 +131,8 @@ const CommonBanner: React.FC<CommonBannerProps> = ({ property, style_3 }) => {
                             </div>
                         </div>
                         {property.leaseTakenOver && (
-                            <div className="tw-rounded-full tw-size-fit tw-font-medium">
-                                <div
-                                    className="d-flex align-items-center justify-content-center text-uppercase mt-15 tw-pl-4 tw-pr-4 tw-pb-2 tw-gap-2 tw-rounded-full"
-                                    style={{ background: 'rgb(22, 163, 74)', color: 'white' }}
-                                >
+                            <div className="tw-rounded-full tw-size-fit tw-font-medium lease-taken-over-pill">
+                                <div className="d-flex align-items-center justify-content-center text-uppercase mt-15 tw-pl-4 tw-pr-4 tw-pb-2 tw-gap-2 tw-size-fit">
                                     <i className="bi bi-check2-circle"></i>
                                     <span className="tw-font-semibold tw-text-sm">Lease taken over</span>
                                 </div>
