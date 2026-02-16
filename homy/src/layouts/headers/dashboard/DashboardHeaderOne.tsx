@@ -88,8 +88,6 @@ const DashboardHeaderOne: React.FC<DashboardHeaderOneProps> = ({ isActive, setIs
         }
     }, [isCollapsed]);
 
-    const isChatPage = pathname === '/dashboard/chat';
-
     // Check if user is an active ambassador
     const isActiveAmbassador = user?.isAmbassador && user?.ambassadorStatus === 'active';
 
@@ -109,6 +107,18 @@ const DashboardHeaderOne: React.FC<DashboardHeaderOneProps> = ({ isActive, setIs
                     label: 'Account Settings',
                     iconPath: '/assets/images/dashboard/icon/icon_4.svg',
                     activeIconPath: '/assets/images/dashboard/icon/icon_4_active.svg'
+                }
+            ]
+        },
+        {
+            title: 'Messaging',
+            showDivider: true,
+            items: [
+                {
+                    path: '/dashboard/chat',
+                    label: 'Chat',
+                    iconPath: '/assets/images/icon/message-circle-more.svg',
+                    activeIconPath: '/assets/images/icon/message-circle-more-active.svg'
                 }
             ]
         },
@@ -158,18 +168,6 @@ const DashboardHeaderOne: React.FC<DashboardHeaderOneProps> = ({ isActive, setIs
                     iconPath: '/assets/images/dashboard/icon/icon_5.svg',
                     activeIconPath: '/assets/images/dashboard/icon/icon_5_active.svg'
                 },
-            ]
-        },
-        {
-            title: 'Messaging',
-            showDivider: true,
-            items: [
-                {
-                    path: '/dashboard/chat',
-                    label: 'Chat',
-                    iconPath: '/assets/images/icon/message-circle-more.svg',
-                    activeIconPath: '/assets/images/icon/message-circle-more-active.svg'
-                }
             ]
         },
         {
