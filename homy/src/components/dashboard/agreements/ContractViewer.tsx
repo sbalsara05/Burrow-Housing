@@ -223,7 +223,9 @@ const ContractViewer = () => {
                         </div>
                     </div>
 
-                    {successMessage && <div className="agreement-review-success">{successMessage}</div>}
+                    {successMessage && !(isTenant && successMessage.toLowerCase().includes('sent to tenant')) && (
+                        <div className="agreement-review-success">{successMessage}</div>
+                    )}
 
                     {/* Payment complete / agreement complete banner */}
                     {currentContract.status === 'COMPLETED' && bothPaid && (
@@ -271,7 +273,7 @@ const ContractViewer = () => {
                     {/* All complete - both signed (and paid if payments enabled) */}
                     {currentContract.status === 'COMPLETED' && bothPaid && (
                         <div className="agreement-review-blurb agreement-review-blurb-done mb-5">
-                            <strong>What&apos;s next:</strong> This agreement is fully complete. You can download your copy from My Agreements.
+                            <strong>What&apos;s next:</strong> This agreement is fully complete. You can download your copy from the archive section of My Agreements.
                         </div>
                     )}
 

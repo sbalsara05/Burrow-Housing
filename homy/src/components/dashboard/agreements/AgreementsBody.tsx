@@ -75,9 +75,10 @@ const AgreementsBody = () => {
             const tenantPaid = contract.paymentStatus === 'SUCCEEDED' || contract.stripePaymentStatus === 'succeeded';
             const listerPaid = contract.listerPaymentStatus === 'SUCCEEDED' || contract.listerStripePaymentStatus === 'succeeded';
             const bothPaidForThis = tenantPaid && listerPaid;
-            const needsToPay = (isTenant && !tenantPaid) || (isLister && !listerPaid);
+            // When payments disabled, never show "Pay now"
+            const needsToPay = !paymentsDisabled && ((isTenant && !tenantPaid) || (isLister && !listerPaid));
             // When archived: Action column only has Download PDF; View agreement moves to Cancel column
-            const showViewInAction = !(activeTab === 'archive' && bothPaidForThis);
+            const showViewInAction = !(activeTab === 'archive' && (bothPaidForThis || paymentsDisabled));
             return (
                 <div className="agreement-action-buttons">
                     <a href={contract.finalPdfUrl} target="_blank" rel="noopener noreferrer" className="btn btn-one btn-sm" title="Download PDF">
@@ -156,7 +157,7 @@ const AgreementsBody = () => {
         // Archived: show View agreement in this column (moved over from Action)
         if (activeTab === 'archive' && contract.status === 'COMPLETED') {
             return (
-                <Link to={`/dashboard/agreements/${contract._id}/sign`} className="btn btn-two btn-sm" onClick={(e) => e.stopPropagation()}>
+                <Link to={`/dashboard/agreements/${contract._id}/sign`} className="btn btn-two btn-sm agreement-view-btn" onClick={(e) => e.stopPropagation()}>
                     View
                 </Link>
             );
