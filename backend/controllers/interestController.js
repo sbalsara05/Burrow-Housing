@@ -71,7 +71,7 @@ exports.submitInterest = async (req, res) => {
 		// --- Create Notification for the Lister ---
 		const renter = await User.findById(renterId).select("name");
 		const propertyDisplay = getPropertyDisplayName(property);
-		const notificationMessage = `${renter.name} sent an inquiry for "${propertyDisplay}".`;
+		const notificationMessage = `${renter.name} sent a request for "${propertyDisplay}".`;
 
 		const newNotification = new Notification({
 			userId: listerId,
@@ -97,7 +97,7 @@ exports.submitInterest = async (req, res) => {
 		// -----------------------------------------
 
 		res.status(201).json({
-			message: "Your interest has been submitted successfully.",
+			message: "Your request has been submitted successfully.",
 			interest: newInterest,
 		});
 	} catch (error) {
@@ -227,7 +227,7 @@ exports.withdrawInterest = async (req, res) => {
 		const interest = await Interest.findById(interestId);
 		if (!interest) {
 			return res.status(404).json({
-				message: "Interest request not found.",
+				message: "Request not found.",
 			});
 		}
 		// Security Check: Only the renter who created it can withdraw

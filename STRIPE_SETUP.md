@@ -2,13 +2,23 @@
 
 Stripe is used for payments **after both parties have signed** a contract. This doc covers the boilerplate setup.
 
+## Disabling Payments (No Charge Mode)
+
+To run without charging users—property becomes "rented" when **both parties sign** (no payment step):
+
+- **Backend:** Set `DISABLE_STRIPE_PAYMENTS=true` in `backend/.env`
+- **Frontend:** Set `VITE_DISABLE_STRIPE_PAYMENTS=true` in `homy/.env.development` (or omit `VITE_STRIPE_PUBLISHABLE_KEY`)
+
+The Stripe implementation stays in place for future use. To re-enable, remove or set these to `false`.
+
 ## Environment Variables
 
 Add to your `.env` (or Dotenv Vault):
 
 | Variable | Description |
 |----------|-------------|
-| `STRIPE_SECRET_KEY` | Stripe secret key (e.g. `sk_test_...` or `sk_live_...`). **Required** for creating PaymentIntents. |
+| `DISABLE_STRIPE_PAYMENTS` | Set to `true` or `1` to skip charging; property = rented when both sign. |
+| `STRIPE_SECRET_KEY` | Stripe secret key (e.g. `sk_test_...` or `sk_live_...`). **Required** for creating PaymentIntents when payments enabled. |
 | `STRIPE_WEBHOOK_SECRET` | Webhook signing secret (e.g. `whsec_...`). **Required** for verifying webhook events. |
 | `STRIPE_PUBLISHABLE_KEY` | Publishable key (e.g. `pk_test_...`). Optional for backend; use in frontend with Stripe.js. |
 

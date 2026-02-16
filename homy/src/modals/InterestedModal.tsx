@@ -70,7 +70,7 @@ const InterestedModal: React.FC<InterestedModalProps> = ({
         <div className="modal-overlay">
             <div className="modal-content">
                 <div className="modal-header">
-                    <h3 className="modal-title">Show Interest in this Property</h3>
+                    <h3 className="modal-title">Send Request for this Property</h3>
                     <button
                         type="button"
                         className="close-button"
@@ -83,7 +83,7 @@ const InterestedModal: React.FC<InterestedModalProps> = ({
 
                 <div className="modal-body">
                     <div className="property-info">
-                        <p className="property-subtitle">Let the property owner know you're interested!</p>
+                        <p className="property-subtitle">Let the subletter know you&apos;d like to learn more.</p>
                     </div>
 
                     <form onSubmit={handleSubmit(handleFormSubmit)} className="interest-form">
@@ -144,7 +144,7 @@ const InterestedModal: React.FC<InterestedModalProps> = ({
                                         Sending...
                                     </>
                                 ) : (
-                                    'Send Interest'
+                                    'Send Request'
                                 )}
                             </button>
                         </div>

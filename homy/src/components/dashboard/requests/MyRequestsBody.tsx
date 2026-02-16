@@ -1,24 +1,19 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
-import axios from 'axios';
-import DashboardHeaderTwo from '../../../layouts/headers/dashboard/DashboardHeaderTwo';
 import { Link, useNavigate } from 'react-router-dom';
-import Fancybox from '../../../components/common/Fancybox';
+import DashboardHeaderTwo from '../../../layouts/headers/dashboard/DashboardHeaderTwo';
 import { useSidebarCollapse } from '../../../hooks/useSidebarCollapse';
 
-// Try importing without AppDispatch first to isolate the issue
 import {
     fetchSentInterests,
     withdrawInterest,
     selectSentInterests,
     selectInterestsLoading,
     selectInterestsError,
-    type Interest
+    type Interest,
 } from '../../../redux/slices/interestsSlice';
-
-// Import types separately
-import type { AppDispatch } from '../../../redux/store'; // Changed path
+import type { AppDispatch } from '../../../redux/store';
 
 const MyRequestsBody = () => {
     const dispatch = useDispatch<AppDispatch>();
@@ -33,17 +28,36 @@ const MyRequestsBody = () => {
     }, [dispatch]);
 
     const handleWithdraw = async (id: string) => {
-        if (!window.confirm("Are you sure you want to withdraw this request?")) return;
+        if (!window.confirm('Are you sure you want to withdraw this request?')) return;
         try {
             await dispatch(withdrawInterest(id)).unwrap();
-            toast.info("Request withdrawn.");
+            toast.info('Request withdrawn.');
         } catch (err) {
             toast.error(err as string);
         }
     };
 
+    const getStatusClass = (status: string) => {
+        switch (status) {
+            case 'approved': return 'my-requests-card__status--approved';
+            case 'pending': return 'my-requests-card__status--pending';
+            case 'declined': return 'my-requests-card__status--declined';
+            case 'withdrawn': return 'my-requests-card__status--withdrawn';
+            default: return 'my-requests-card__status--withdrawn';
+        }
+    };
+
     if (isLoading && requests.length === 0) {
-        return <div className="dashboard-body"><p>Loading your requests...</p></div>;
+        return (
+            <div className={`dashboard-body ${isCollapsed ? 'sidebar-collapsed' : ''}`}>
+                <DashboardHeaderTwo title="My Requests" />
+                <div className="my-requests-section">
+                    <div className="my-requests-empty">
+                        <p className="text-muted mb-0">Loading your requests...</p>
+                    </div>
+                </div>
+            </div>
+        );
     }
 
     const hasNoRequests = requests.length === 0 && !isLoading;
@@ -51,99 +65,82 @@ const MyRequestsBody = () => {
     return (
         <div className={`dashboard-body ${isCollapsed ? 'sidebar-collapsed' : ''}`}>
             <div className="position-relative">
-                <DashboardHeaderTwo title="My Sent Requests" />
-                <h2 className="main-title d-block d-lg-none">My Sent Requests</h2>
+                <DashboardHeaderTwo title="My Requests" />
+                <h2 className="main-title d-block d-lg-none">My Requests</h2>
 
-                {error && <div className="alert alert-danger">{error}</div>}
-
-                {hasNoRequests && (
-                    <div className="bg-white card-box border-20 text-center p-5">
-                        <h4>You haven't sent any interest requests yet.</h4>
-                        <p className="text-muted">Browse listings and click "I'm Interested" to express interest in a property.</p>
-                        <Link to="/all_listings" className="btn-two">Find a Property</Link>
+                {error && (
+                    <div className="alert alert-danger" role="alert">
+                        {error}
                     </div>
                 )}
 
-                {/* Interest Requests Section */}
-                {requests.length > 0 && (
-                    <div>
-                        <h4 className="dash-title-two mb-4">Interest Requests</h4>
-                    </div>
-                )}
-
-                {requests.map((req: Interest) => (
-                    <div key={req._id} className="bg-white card-box border-20 p-4 mb-4">
-                        <div className="row">
-                            <div className="col-md-2">
-                                <img
-                                    src={req.propertyId?.images?.[0] || '/assets/images/listing/img_placeholder.jpg'}
-                                    alt="property"
-                                    className="img-fluid rounded"
-                                />
-                            </div>
-                            <div className="col-md-6">
-                                <h5>
-                                    Request for:
-                                    <Link to={`/listing_details/${req.propertyId?._id}`} className="text-decoration-underline">
-                                        {req.propertyId?.overview?.title || 'Property'}
-                                    </Link>
-                                </h5>
-                                <p>
-                                    <strong>Status:</strong>
-                                    <span className={`fw-500 text-capitalize text-${
-                                        req.status === 'approved' ? 'success' :
-                                        req.status === 'declined' ? 'danger' :
-                                        req.status === 'withdrawn' ? 'secondary' : 'warning'
-                                    }`}>
-                                        {req.status}
-                                    </span>
-                                </p>
-                                <p className="mb-0">
-                                    <strong>Sent on:</strong> {new Date(req.createdAt).toLocaleDateString()}
-                                </p>
-                            </div>
-                            <div className="col-md-4 d-flex align-items-center justify-content-md-end gap-2">
-                                {req.status === 'pending' && (
-                                    <button
-                                        onClick={() => handleWithdraw(req._id)}
-                                        className="btn"
-                                        disabled={isLoading}
-                                        style={{
-                                            border: '1px solid #dc3545',
-                                            color: '#dc3545',
-                                            backgroundColor: 'transparent',
-                                            borderRadius: '8px',
-                                            padding: '10px 20px',
-                                            fontWeight: 500,
-                                            transition: 'all 0.3s ease'
-                                        }}
-                                        onMouseEnter={(e) => {
-                                            e.currentTarget.style.backgroundColor = '#dc3545';
-                                            e.currentTarget.style.color = '#fff';
-                                        }}
-                                        onMouseLeave={(e) => {
-                                            e.currentTarget.style.backgroundColor = 'transparent';
-                                            e.currentTarget.style.color = '#dc3545';
-                                        }}
-                                    >
-                                        Withdraw Request
-                                    </button>
-                                )}
-                                {req.status === 'approved' && (
-                                    <button
-                                        onClick={() => navigate('/dashboard/chat')}
-                                        className="btn-two"
-                                        style={{ 
-                                            padding: '10px 24px'
-                                        }}
-                                    >
-                                        Go to Chat
-                                    </button>
-                                )}
-                            </div>
+                <div className="my-requests-section">
+                    {hasNoRequests && (
+                        <div className="my-requests-empty">
+                            <h4>You haven&apos;t sent any requests yet.</h4>
+                            <p className="text-muted mb-0">
+                                Browse listings and click &quot;Send Request&quot; to request a property you&apos;re interested in.
+                            </p>
+                            <Link to="/all_listings" className="btn-two mt-3">
+                                Find a Property
+                            </Link>
                         </div>
-                    </div>
-                ))}
+                    )}
+
+                    {requests.length > 0 && (
+                        <div className="mt-2">
+                            {requests.map((req: Interest) => (
+                                <div key={req._id} className="my-requests-card">
+                                    <img
+                                        src={req.propertyId?.images?.[0] || '/assets/images/listing/img_placeholder.jpg'}
+                                        alt={req.propertyId?.overview?.title || 'Property'}
+                                        className="my-requests-card__img"
+                                    />
+                                    <div className="my-requests-card__body">
+                                        <h5 className="my-requests-card__title">
+                                            <Link to={`/listing_details/${req.propertyId?._id}`}>
+                                                {req.propertyId?.overview?.title || 'Property'}
+                                            </Link>
+                                        </h5>
+                                        <p className="my-requests-card__meta mb-0">
+                                            Sent {new Date(req.createdAt).toLocaleDateString()}
+                                        </p>
+                                        <span className={`my-requests-card__status ${getStatusClass(req.status)}`}>
+                                            {req.status}
+                                        </span>
+                                    </div>
+                                    <div className="my-requests-card__actions">
+                                        {req.status === 'pending' && (
+                                            <button
+                                                type="button"
+                                                onClick={() => handleWithdraw(req._id)}
+                                                className="my-requests-card__btn my-requests-card__btn--outline-danger"
+                                                disabled={isLoading}
+                                            >
+                                                Withdraw Request
+                                            </button>
+                                        )}
+                                        {req.status === 'approved' && (
+                                            <>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => navigate('/dashboard/chat')}
+                                                    className="my-requests-card__btn my-requests-card__btn--primary"
+                                                >
+                                                    Go to Chat
+                                                </button>
+                                                <p className="my-requests-card__hint mb-0">
+                                                    After you chat, your subletter may send an agreement for you to sign.
+                                                    You&apos;ll get a notification when that happens.
+                                                </p>
+                                            </>
+                                        )}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
             </div>
         </div>
     );

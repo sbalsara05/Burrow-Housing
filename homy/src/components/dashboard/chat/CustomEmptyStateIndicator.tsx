@@ -26,7 +26,7 @@ const CustomEmptyStateIndicator = () => {
                 </div>
                 <h4 className="mb-2">No chats yet</h4>
                 <p className="text-muted text-center">
-                    When you approve an interest request, a chat will be created here.
+                    When you approve a request, a chat will be created here.
                 </p>
             </div>
         );

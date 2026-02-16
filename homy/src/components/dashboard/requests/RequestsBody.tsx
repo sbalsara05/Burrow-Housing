@@ -126,22 +126,14 @@ const RequestsBody = () => {
                 {hasNoRequests ? (
                     <div className="bg-white card-box border-20 text-center p-5">
                         <h4>No received requests yet.</h4>
-                        <p className="text-muted">You'll see interest requests here when users are interested in your properties.</p>
+                        <p className="text-muted">You&apos;ll see requests here when sublessees want to learn more about your properties.</p>
                     </div>
                 ) : (
                     <>
-                        {/* Ambassador Requests - Coming Soon */}
-                        <div className="mb-5">
-                            <h4 className="dash-title-two mb-4">Ambassador Requests</h4>
-                            <div className="bg-white card-box border-20 p-4 text-center">
-                                <p className="text-muted mb-0">Coming soon! We&apos;re working on it. Check back later.</p>
-                            </div>
-                        </div>
-
-                        {/* Interest Requests Section */}
+                        {/* Requests Section */}
                         {requests.length > 0 && (
                             <div>
-                                <h4 className="dash-title-two mb-4">Interest Requests</h4>
+                                <h4 className="dash-title-two mb-4">Requests</h4>
                                 <div className="row g-4 justify-content-start">
                                     {requests.map((req: any) => (
                                         <div className="col-lg-4 col-md-6" key={req._id}>
@@ -149,11 +141,11 @@ const RequestsBody = () => {
                                                 <div className="text-center">
                                                     <img
                                                         src={req.renterId?.image || "/assets/images/dashboard/no-profile-pic.png"}
-                                                        alt={req.renterId?.username || 'Renter'}
+                                                        alt={req.renterId?.username || 'Sublessee'}
                                                         className="rounded-circle mx-auto d-block"
                                                         style={{ width: '100px', height: '100px', objectFit: 'cover' }}
                                                     />
-                                                    <h5 className="mt-3 mb-1">{req.renterId?.username || 'Renter Name'}</h5>
+                                                    <h5 className="mt-3 mb-1">{req.renterId?.username || 'Sublessee'}</h5>
                                                     <p className="text-muted small">
                                                         {req.renterId?.school_attending || 'University not specified'}<br />
                                                         {req.renterId?.majors_minors || 'Major not specified'}
@@ -161,7 +153,7 @@ const RequestsBody = () => {
                                                 </div>
 
                                                 <div className="mt-4">
-                                                    <p className="mb-1"><strong>Interested In:</strong></p>
+                                                    <p className="mb-1"><strong>Requesting:</strong></p>
                                                     <h6 className="color-dark">
                                                         <Link
                                                             to={`/listing_details/${req.propertyId?._id ?? ''}`}

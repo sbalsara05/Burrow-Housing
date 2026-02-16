@@ -431,7 +431,7 @@ const SidebarInfo: React.FC<SidebarInfoProps> = ({
                         className="btn flex-fill d-flex align-items-center justify-content-center text-white"
                         style={{backgroundColor: '#f16040'}}
                     >
-                        I'm Interested
+                        Send Request
                     </button>
                 );
         }
@@ -444,7 +444,7 @@ const SidebarInfo: React.FC<SidebarInfoProps> = ({
     if (!profile) {
         return (
             <div className="agent-info bg-white border-20 p-30 mb-40 text-center">
-                <p>Lister information is not available.</p>
+                <p>Subletter information is not available.</p>
             </div>
         );
     }

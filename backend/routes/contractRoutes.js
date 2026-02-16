@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const {
 	createDraft,
+	getContractByChat,
 	getMyAgreements,
 	getContractById,
 	updateDraft,
@@ -17,6 +18,9 @@ router.post("/initiate", authenticateToken, createDraft);
 
 // Get all agreements for the user
 router.get("/my-agreements", authenticateToken, getMyAgreements);
+
+// Get contract for chat context (property + counterparty)
+router.get("/by-chat", authenticateToken, getContractByChat);
 
 // Get single contract by ID (also supports /:id/sign for GET - same response)
 router.get("/:id", authenticateToken, getContractById);

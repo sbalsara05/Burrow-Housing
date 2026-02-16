@@ -17,6 +17,8 @@ import SignaturePad from '../../common/SignaturePad';
 const stripePublishableKey = (import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || '').trim();
 const stripePromise = stripePublishableKey ? loadStripe(stripePublishableKey) : null;
 const isTestMode = stripePublishableKey.startsWith('pk_test_');
+/** When true, payments are disabled; agreement is complete when both parties sign. */
+const paymentsDisabled = import.meta.env.VITE_DISABLE_STRIPE_PAYMENTS === 'true' || !stripePublishableKey;
 
 const CARD_ELEMENT_OPTIONS = {
     style: {
@@ -191,7 +193,8 @@ const ContractViewer = () => {
     const listerPaid = currentContract.listerPaymentStatus === 'SUCCEEDED' || currentContract.listerStripePaymentStatus === 'succeeded';
     const tenantProcessing = currentContract.paymentStatus === 'PROCESSING' || currentContract.stripePaymentStatus === 'processing';
     const listerProcessing = currentContract.listerPaymentStatus === 'PROCESSING' || currentContract.listerStripePaymentStatus === 'processing';
-    const bothPaid = tenantPaid && listerPaid;
+    // When payments disabled, treat COMPLETED as fully complete (no payment step)
+    const bothPaid = paymentsDisabled ? currentContract.status === 'COMPLETED' : (tenantPaid && listerPaid);
 
     const scrollToBottom = () => {
         window.scrollTo({
@@ -212,7 +215,7 @@ const ContractViewer = () => {
                             <span className={getStatusBadgeClass()}>
                                 {formatStatus(currentContract.status)}
                             </span>
-                            {currentContract.status === 'COMPLETED' && !bothPaid && (
+                            {currentContract.status === 'COMPLETED' && !bothPaid && !paymentsDisabled && (
                                 <span className="agreement-status-badge payment-pending">
                                     Payment pending
                                 </span>
@@ -220,12 +223,16 @@ const ContractViewer = () => {
                         </div>
                     </div>
 
-                    {successMessage && <div className="agreement-review-success">{successMessage}</div>}
+                    {successMessage && !(isTenant && successMessage.toLowerCase().includes('sent to tenant')) && (
+                        <div className="agreement-review-success">{successMessage}</div>
+                    )}
 
-                    {/* Payment complete banner - only when BOTH have paid */}
+                    {/* Payment complete / agreement complete banner */}
                     {currentContract.status === 'COMPLETED' && bothPaid && (
                         <div className="agreement-review-success mb-4">
-                            Agreement fully complete. Both parties have paid their service fees.
+                            {paymentsDisabled
+                                ? 'Agreement fully complete. Both parties have signed.'
+                                : 'Agreement fully complete. Both parties have paid their service fees.'}
                         </div>
                     )}
 
@@ -235,22 +242,22 @@ const ContractViewer = () => {
                         dangerouslySetInnerHTML={{ __html: filledHtml }}
                     />
 
-                    {/* Next Steps (Subletter - COMPLETED, waiting for tenant to pay) */}
-                    {currentContract.status === 'COMPLETED' && isLister && !tenantPaid && (
+                    {/* Next Steps (Subletter - COMPLETED, waiting for tenant to pay) - hidden when payments disabled */}
+                    {currentContract.status === 'COMPLETED' && isLister && !tenantPaid && !paymentsDisabled && (
                         <div className="agreement-review-blurb mb-5">
                             <strong>What&apos;s next:</strong> The sublessee will be prompted to pay their 2.5% service fee. Be on the lookout in your email for any updates.
                         </div>
                     )}
 
-                    {/* Next Steps (Tenant - COMPLETED, tenant paid but waiting for lister to pay) */}
-                    {currentContract.status === 'COMPLETED' && isTenant && tenantPaid && !listerPaid && (
+                    {/* Next Steps (Tenant - COMPLETED, tenant paid but waiting for lister to pay) - hidden when payments disabled */}
+                    {currentContract.status === 'COMPLETED' && isTenant && tenantPaid && !listerPaid && !paymentsDisabled && (
                         <div className="agreement-review-blurb mb-5">
                             <strong>What&apos;s next:</strong> You&apos;ve paid your service fee. Waiting for the sublessor to pay their 2.5% service fee. You&apos;ll be notified when the agreement is fully complete.
                         </div>
                     )}
 
-                    {/* Next Steps (Sublessor - COMPLETED, tenant paid, lister needs to pay) */}
-                    {currentContract.status === 'COMPLETED' && isLister && tenantPaid && !listerPaid && (
+                    {/* Next Steps (Sublessor - COMPLETED, tenant paid, lister needs to pay) - hidden when payments disabled */}
+                    {currentContract.status === 'COMPLETED' && isLister && tenantPaid && !listerPaid && !paymentsDisabled && (
                         <div className="agreement-review-blurb mb-5">
                             <strong>What&apos;s next:</strong> The sublessee has paid. Please pay your 2.5% service fee below to complete the agreement.
                         </div>
@@ -263,10 +270,10 @@ const ContractViewer = () => {
                         </div>
                     )}
 
-                    {/* All complete - both paid */}
+                    {/* All complete - both signed (and paid if payments enabled) */}
                     {currentContract.status === 'COMPLETED' && bothPaid && (
                         <div className="agreement-review-blurb agreement-review-blurb-done mb-5">
-                            <strong>What&apos;s next:</strong> This agreement is fully complete. You can download your copy from My Agreements.
+                            <strong>What&apos;s next:</strong> This agreement is fully complete. You can download your copy from the archive section of My Agreements.
                         </div>
                     )}
 
@@ -292,6 +299,9 @@ const ContractViewer = () => {
                             {currentContract.listerSignature?.url ? (
                                 <div className="agreement-review-sig-box signed p-3">
                                     <img src={currentContract.listerSignature.url} alt="Subletter Signature" height="60" />
+                                    <div className="agreement-review-sig-date mt-2">
+                                        Signed: {new Date(currentContract.listerSignature?.signedAt || currentContract.updatedAt).toLocaleDateString()}
+                                    </div>
                                 </div>
                             ) : (
                                 <div className="agreement-review-sig-box waiting p-3">
@@ -301,8 +311,8 @@ const ContractViewer = () => {
                         </div>
                     </div>
 
-                    {/* Payment (both parties; each pays their own fee) */}
-                    {currentContract.status === 'COMPLETED' && (
+                    {/* Payment (both parties; each pays their own fee) - hidden when payments disabled */}
+                    {currentContract.status === 'COMPLETED' && !paymentsDisabled && (
                         <div className="agreement-review-payment mb-5 p-4">
                             <h5 className="mb-3">Payment</h5>
                             {isTenant && !tenantPaid && listerPaid && (
