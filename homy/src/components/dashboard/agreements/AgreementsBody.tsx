@@ -10,7 +10,11 @@ const formatStatus = (status: string) =>
     status.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase());
 
 /** When true, payments are disabled; COMPLETED agreements go to archive, not payment pending */
-const paymentsDisabled = import.meta.env.VITE_DISABLE_STRIPE_PAYMENTS === 'true' || !(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || '').trim();
+const stripePk = (import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || '').trim();
+const paymentsDisabled =
+    import.meta.env.VITE_STRIPE_PAYMENTS_ENABLED !== 'true' ||
+    import.meta.env.VITE_DISABLE_STRIPE_PAYMENTS === 'true' ||
+    !stripePk;
 
 // Get the route for viewing/acting on a contract based on status
 const getContractViewRoute = (contract: { status: string; _id: string }) => {

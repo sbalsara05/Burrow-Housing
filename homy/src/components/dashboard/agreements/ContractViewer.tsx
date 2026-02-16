@@ -17,8 +17,11 @@ import SignaturePad from '../../common/SignaturePad';
 const stripePublishableKey = (import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || '').trim();
 const stripePromise = stripePublishableKey ? loadStripe(stripePublishableKey) : null;
 const isTestMode = stripePublishableKey.startsWith('pk_test_');
-/** When true, payments are disabled; agreement is complete when both parties sign. */
-const paymentsDisabled = import.meta.env.VITE_DISABLE_STRIPE_PAYMENTS === 'true' || !stripePublishableKey;
+/** When true, payments are disabled; agreement is complete when both parties sign. Default: disabled (enable with VITE_STRIPE_PAYMENTS_ENABLED=true) */
+const paymentsDisabled =
+    import.meta.env.VITE_STRIPE_PAYMENTS_ENABLED !== 'true' ||
+    import.meta.env.VITE_DISABLE_STRIPE_PAYMENTS === 'true' ||
+    !stripePublishableKey;
 
 const CARD_ELEMENT_OPTIONS = {
     style: {
