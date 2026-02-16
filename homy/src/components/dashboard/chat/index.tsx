@@ -5,6 +5,7 @@ import DashboardHeaderTwo from '../../../layouts/headers/dashboard/DashboardHead
 import ChatProvider from './ChatProvider'; // Import our provider
 import { Channel, ChannelList, Window, MessageList, MessageInput, Thread, useChatContext, useChannelStateContext } from 'stream-chat-react';
 import CustomChannelHeader from './CustomChannelHeader';
+import ChatAgreementBanner from './ChatAgreementBanner';
 import CustomEmptyStateIndicator from './CustomEmptyStateIndicator';
 import CustomLoadingComponent from './CustomLoadingComponent';
 import { useSidebarCollapse } from '../../../hooks/useSidebarCollapse';
@@ -32,7 +33,7 @@ const NoChannelSelected = () => {
             </div>
             <h4 className="mb-2">No chats yet</h4>
             <p className="text-muted text-center">
-                When you approve an interest request, a chat will be created here.
+                When you approve a request, a chat will be created here.
             </p>
         </div>
     );
@@ -148,6 +149,7 @@ const ChannelWrapper = ({ toggleSidebar, channelId }: { toggleSidebar: () => voi
             >
                 <Window>
                     <CustomChannelHeader toggleSidebar={toggleSidebar} />
+                    <ChatAgreementBanner />
                     <MessageList />
                     <MessageInput />
                 </Window>
@@ -215,6 +217,7 @@ const ChannelContentWrapper = ({
         return (
             <Window>
                 <CustomChannelHeader toggleSidebar={toggleSidebar} />
+                <ChatAgreementBanner />
                 <MessageList />
                 <MessageInput />
             </Window>

@@ -146,7 +146,7 @@ exports.approveInterestAndCreateChannel = async (req, res) => {
 		const interest = await Interest.findById(interestId);
 		if (!interest) {
 			return res.status(404).json({
-				message: "Interest request not found.",
+				message: "Request not found.",
 			});
 		}
 
@@ -189,7 +189,7 @@ exports.approveInterestAndCreateChannel = async (req, res) => {
 		const channelId = `interest-${interestId}`;
 
 		const channel = client.channel("messaging", channelId, {
-			name: `Inquiry for Property`, // You can customize this
+			name: `Request for Property`,
 			members: [listerId.toString(), renterId.toString()],
 			created_by_id: listerId.toString(),
 			propertyId: propertyId.toString(),
@@ -211,7 +211,7 @@ exports.approveInterestAndCreateChannel = async (req, res) => {
 		const propertyTitle =
 			property?.overview?.title ||
 			"the property you requested";
-		const notificationMessage = `Your request for "${propertyTitle}" was approved! You can now chat with the lister.`;
+		const notificationMessage = `Your request for "${propertyTitle}" was approved! You can now chat with the subletter.`;
 
 		const newNotification = new Notification({
 			userId: renterId,
@@ -270,7 +270,7 @@ exports.declineInterest = async (req, res) => {
 		const interest = await Interest.findById(interestId);
 		if (!interest) {
 			return res.status(404).json({
-				message: "Interest request not found.",
+				message: "Request not found.",
 			});
 		}
 

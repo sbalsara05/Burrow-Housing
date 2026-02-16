@@ -124,7 +124,7 @@ exports.testEmailNotification = async (req, res) => {
 		// Create a test notification in the database
 		const testMessage =
 			type === "new_interest"
-				? "Test User sent an inquiry for 'Test Property'."
+				? "Test User sent a request for 'Test Property'."
 				: type === "interest_approved"
 				? "Your request for 'Test Property' was approved!"
 				: type === "ambassador_request"

@@ -92,8 +92,17 @@ function computePaymentSnapshot(rentCents, paymentMethod) {
  * Callable by tenant only. Charges only the platform service fee (2.5% of rent + 1% if card).
  * Rent is paid through other portals; Burrow does not collect rent.
  */
+/** When true, payments are disabled; property becomes "rented" when both parties sign. */
+const PAYMENTS_DISABLED = process.env.DISABLE_STRIPE_PAYMENTS === "true" || process.env.DISABLE_STRIPE_PAYMENTS === "1";
+
 exports.createPaymentIntentForContract = async (req, res) => {
 	try {
+		if (PAYMENTS_DISABLED) {
+			return res.status(503).json({
+				message: "Payments are temporarily disabled. Your agreement is complete.",
+			});
+		}
+
 		const { contractId, paymentMethod } = req.body;
 		const userId = (req.user?.userId || req.user?.id || "").toString();
 

@@ -9,6 +9,9 @@ import { fetchMyAgreements, deleteContract, recallContract } from '../../../redu
 const formatStatus = (status: string) =>
     status.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase());
 
+/** When true, payments are disabled; COMPLETED agreements go to archive, not payment pending */
+const paymentsDisabled = import.meta.env.VITE_DISABLE_STRIPE_PAYMENTS === 'true' || !(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || '').trim();
+
 // Get the route for viewing/acting on a contract based on status
 const getContractViewRoute = (contract: { status: string; _id: string }) => {
     if (contract.status === 'DRAFT') return `/dashboard/agreements/${contract._id}/edit`;
@@ -47,7 +50,8 @@ const AgreementsBody = () => {
     );
     const tenantPaid = (c: any) => c.paymentStatus === 'SUCCEEDED' || c.stripePaymentStatus === 'succeeded';
     const listerPaid = (c: any) => c.listerPaymentStatus === 'SUCCEEDED' || c.listerStripePaymentStatus === 'succeeded';
-    const bothPaid = (c: any) => tenantPaid(c) && listerPaid(c);
+    // When payments disabled, COMPLETED = fully done (no payment step)
+    const bothPaid = (c: any) => (paymentsDisabled && c.status === 'COMPLETED') ? true : (tenantPaid(c) && listerPaid(c));
 
     const paymentPendingContracts = contracts.filter(c =>
         c.status === 'COMPLETED' && !bothPaid(c)

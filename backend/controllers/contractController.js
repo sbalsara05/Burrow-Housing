@@ -138,6 +138,42 @@ exports.createDraft = async (req, res) => {
 };
 
 /**
+ * Get contract for a chat context (property + counterparty).
+ * Used to show agreement status/banner inside chat.
+ * GET /contracts/by-chat?propertyId=...&counterpartyId=...
+ */
+exports.getContractByChat = async (req, res) => {
+	try {
+		const userId = req.user.userId;
+		const { propertyId, counterpartyId } = req.query;
+
+		if (!propertyId || !counterpartyId) {
+			return res.status(400).json({
+				message: "propertyId and counterpartyId are required.",
+			});
+		}
+
+		// Contract exists where current user and counterparty are lister/tenant (either order) for this property
+		const contract = await Contract.findOne({
+			property: propertyId,
+			$or: [
+				{ lister: userId, tenant: counterpartyId },
+				{ lister: counterpartyId, tenant: userId },
+			],
+			status: { $in: ["DRAFT", "PENDING_TENANT_SIGNATURE", "PENDING_LISTER_SIGNATURE", "COMPLETED"] },
+		})
+			.populate("property", "overview.title")
+			.select("_id status")
+			.lean();
+
+		res.json(contract || null);
+	} catch (error) {
+		console.error("Error fetching contract by chat:", error);
+		res.status(500).json({ message: "Server Error", error: error.message });
+	}
+};
+
+/**
  * Retrieves all agreements associated with the authenticated user
  * (either as a lister or a tenant).
  */
@@ -725,9 +761,11 @@ exports.signContract = async (req, res) => {
 			);
 			await contract.save();
 
-			// Update Property Inventory Status (Inactive = off market; leaseTakenOver + "Rented" display set when both pay)
+			// Update Property Inventory Status: Inactive = off market; leaseTakenOver = "Rented" display.
+			// When Stripe is disabled, we mark as rented when both sign. When enabled, markPropertyLeaseTakenOverIfBothPaid handles it after both pay.
 			await Property.findByIdAndUpdate(contract.property, {
 				status: "Inactive",
+				leaseTakenOver: true,
 			});
 
 			const populatedContract = await Contract.findById(

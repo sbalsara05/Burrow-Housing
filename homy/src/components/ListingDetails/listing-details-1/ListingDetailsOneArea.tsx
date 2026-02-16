@@ -106,7 +106,7 @@ const ListingDetailsOneArea = () => {
             setIsModalOpen(true);
         } else {
             // If the user is NOT logged in, show a toast and open the login modal
-            toast.info("Please log in to express your interest.");
+            toast.info("Please log in to send a request.");
             setLoginModalOpen(true);
         }
     };
@@ -123,7 +123,7 @@ const ListingDetailsOneArea = () => {
                 message: data.message,
                 moveInDate: data.moveInDate,
             });
-            toast.success("Your request has been sent to the lister!");
+            toast.success("Your request has been sent to the subletter!");
             setInterestStatus('pending');
             setIsModalOpen(false);
         } catch (err: any) {

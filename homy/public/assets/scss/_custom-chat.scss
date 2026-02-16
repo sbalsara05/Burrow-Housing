@@ -337,3 +337,37 @@
     overflow-x: hidden;
     width: 25%;
 }
+
+// Chat Agreement Banner - glass styling
+.chat-agreement-banner {
+    margin: 12px 16px;
+    padding: 12px 16px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    background: rgba($color-six, 0.12);
+    border: 1px solid rgba($color-six, 0.25);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    color: darken($color-six, 10%);
+    font-size: 14px;
+
+    a {
+        font-weight: 600;
+        color: inherit;
+        text-decoration: underline;
+
+        &:hover {
+            opacity: 0.9;
+        }
+    }
+
+    &.chat-agreement-banner--action {
+        background: rgba($color-one, 0.12);
+        border-color: rgba($color-one, 0.25);
+        color: darken($color-one, 10%);
+    }
+}
