@@ -36,7 +36,7 @@ const sendTransactionalEmail = async (templateId, toEmail, toName, params) => {
 		year: new Date().getFullYear(), // Automatically add the current year
 	};
 	sendSmtpEmail.sender = {
-		name: "Burrow Housing",
+		name: "Burrow Housing Limited",
 		email: process.env.BREVO_SENDER_EMAIL,
 	};
 

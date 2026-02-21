@@ -1,15 +1,15 @@
 /**
- * Burrow Housing Sublease Agreement v2
+ * Burrow Housing Limited Sublease Agreement v2
  * Legal template — Revised with Legal Counsel Feedback
  * DO NOT modify legal language without legal review.
  */
 
 const SUBLEASE_AGREEMENT_V2_HTML = `
 <div class="sublease-v2">
-<p class="legal-notice"><strong>IMPORTANT NOTICE:</strong> THIS DOCUMENT IS PROVIDED FOR INFORMATIONAL PURPOSES ONLY AND DOES NOT CONSTITUTE LEGAL ADVICE. BURROW HOUSING STRONGLY RECOMMENDS THAT BOTH PARTIES CONSULT WITH A LICENSED ATTORNEY BEFORE SIGNING ANY SUBLEASE AGREEMENT. USE OF THIS TEMPLATE IS ENTIRELY AT YOUR OWN RISK.</p>
+<p class="legal-notice"><strong>IMPORTANT NOTICE:</strong> THIS DOCUMENT IS PROVIDED FOR INFORMATIONAL PURPOSES ONLY AND DOES NOT CONSTITUTE LEGAL ADVICE. BURROW HOUSING LIMITED STRONGLY RECOMMENDS THAT BOTH PARTIES CONSULT WITH A LICENSED ATTORNEY BEFORE SIGNING ANY SUBLEASE AGREEMENT. USE OF THIS TEMPLATE IS ENTIRELY AT YOUR OWN RISK.</p>
 
 <h4>PLATFORM ROLE AND DISCLAIMER</h4>
-<p>Burrow Housing, Inc. ("Burrow" or "Platform") is a technology platform that facilitates connections between potential subletters and subtenants. Burrow is NOT a party to this Agreement and shall not be bound by any of its terms.</p>
+<p>Burrow Housing Limited ("Burrow" or "Platform") is a technology platform that facilitates connections between potential subletters and subtenants. Burrow is NOT a party to this Agreement and shall not be bound by any of its terms.</p>
 <p>Burrow is not a real estate broker, agent, property manager, landlord, or legal representative of either party. Burrow does not act as an agent or fiduciary for the Subletter, the Subtenant, or any landlord or property owner. Nothing in this Agreement or in the use of the Platform shall be construed as creating an agency, partnership, joint venture, employment, or fiduciary relationship between Burrow and any user of the Platform.</p>
 <p>Burrow does not own, manage, maintain, or control any property listed on the Platform. Burrow does not verify, warrant, or guarantee the accuracy, completeness, or reliability of any listing, property description, photograph, amenity claim, rental price, or any other information provided by users on the Platform. All property information is provided solely by the Subletter and has not been independently verified by Burrow.</p>
 <p>Burrow does not guarantee the condition, habitability, safety, legality, or suitability of any property. Burrow makes no representations regarding whether any property complies with applicable building codes, zoning regulations, health and safety standards, or any other legal requirements.</p>
@@ -29,7 +29,7 @@ Name: <strong>{{Subtenant_Name}}</strong><br/>
 Email: <strong>{{Subtenant_Email}}</strong><br/>
 Phone: <strong>{{Subtenant_Phone}}</strong></p>
 
-<p>This Agreement is solely between the Subletter and the Subtenant. Burrow Housing is not a party to this Agreement, does not endorse or guarantee its terms, and assumes no responsibility for its enforcement, performance, or any outcome arising from it.</p>
+<p>This Agreement is solely between the Subletter and the Subtenant. Burrow Housing Limited is not a party to this Agreement, does not endorse or guarantee its terms, and assumes no responsibility for its enforcement, performance, or any outcome arising from it.</p>
 
 <h4>1. Property</h4>
 <p>The Subletter agrees to sublease to the Subtenant the following property:</p>
@@ -53,7 +53,7 @@ Furnished: <strong>{{Furnished}}</strong></p>
 <h4>4. Security Deposit</h4>
 <p>Security Deposit Amount: <strong>{{Security_Deposit}}</strong></p>
 <p>The security deposit shall be paid directly to the Subletter on or before the Start Date.</p>
-<p>Burrow Housing does not collect, hold, manage, or escrow security deposits. The Subletter is solely responsible for holding, managing, and returning the security deposit in accordance with Massachusetts General Laws Chapter 186, Section 15B, and any other applicable law.</p>
+<p>Burrow Housing Limited does not collect, hold, manage, or escrow security deposits. The Subletter is solely responsible for holding, managing, and returning the security deposit in accordance with Massachusetts General Laws Chapter 186, Section 15B, and any other applicable law.</p>
 <p>The Subletter shall return the security deposit (less any lawful deductions with itemized documentation) within thirty (30) days of the termination of this Agreement or the Subtenant's vacating of the property, whichever occurs later.</p>
 
 <h4>5. Utilities and Fees</h4>
@@ -90,18 +90,18 @@ Estimated monthly utility cost: <strong>{{Estimated_Utility_Cost}}</strong></p>
 <p>The Subtenant may not assign this Agreement, or further sublease or transfer occupancy of the property (or any portion thereof), to any third party without the prior written consent of the Subletter.</p>
 
 <h4>12. Assumption of Risk and Acknowledgment</h4>
-<p>Both parties acknowledge that subletting inherently involves risks, including but not limited to financial loss, property damage, misrepresentation by either party, and disputes regarding lease terms or property condition. Both parties expressly assume all risks associated with entering into this Agreement and using the Burrow Housing Platform. Each party is solely responsible for conducting their own due diligence regarding the other party, the property, the terms of the sublease, and compliance with all applicable laws.</p>
+<p>Both parties acknowledge that subletting inherently involves risks, including but not limited to financial loss, property damage, misrepresentation by either party, and disputes regarding lease terms or property condition. Both parties expressly assume all risks associated with entering into this Agreement and using the Burrow Housing Limited Platform. Each party is solely responsible for conducting their own due diligence regarding the other party, the property, the terms of the sublease, and compliance with all applicable laws.</p>
 <p>The Subtenant specifically acknowledges that: (a) Burrow has not verified the identity, background, or creditworthiness of the Subletter; (b) Burrow has not verified the accuracy of any property listing, description, or photograph; (c) Burrow has not verified the Subletter's legal right to sublease; and (d) any representations about the property were made solely by the Subletter, not by Burrow.</p>
 <p>The Subletter specifically acknowledges that: (a) Burrow has not verified the identity, background, or creditworthiness of the Subtenant; (b) Burrow does not guarantee payment of rent or performance of any obligation by the Subtenant; and (c) the Subletter is solely responsible for vetting the Subtenant.</p>
 
 <h4>13. Liability, Indemnification, and Waiver</h4>
 <p>Each party agrees to be responsible for their own actions and omissions. Neither party shall hold the other liable for losses except as required by applicable law.</p>
-<p><strong>Release and Waiver Regarding Burrow Housing:</strong> Both the Subletter and the Subtenant, on behalf of themselves and their respective heirs, successors, and assigns, hereby release, discharge, and waive any and all claims, demands, actions, causes of action, suits, damages, losses, costs, expenses (including attorneys' fees), and liabilities of any kind, whether known or unknown, arising out of or in any way related to: this Agreement or any sublease transaction facilitated through the Platform; any property condition, defect, or hazard; any misrepresentation, omission, or fraud by the Subletter, the Subtenant, or any third party; any listing information, photographs, descriptions, or other content on the Platform; any Ambassador inspection report or related services; any payment processing through the Platform; any personal injury, property damage, or financial loss.</p>
-<p><strong>Limitation of Liability:</strong> In no event shall Burrow Housing, its officers, directors, employees, agents, affiliates, or Ambassadors be liable for any direct, indirect, incidental, special, consequential, or punitive damages arising from or related to this Agreement, the Platform, or any sublease transaction, even if Burrow has been advised of the possibility of such damages.</p>
-<p><strong>Indemnification:</strong> Each party agrees to indemnify, defend, and hold harmless Burrow Housing, its officers, directors, employees, agents, affiliates, and Ambassadors from and against any and all claims, damages, losses, costs, and expenses (including reasonable attorneys' fees) arising from or related to: (a) such party's breach of this Agreement; (b) such party's use of the Platform; (c) such party's misrepresentation or fraud; or (d) such party's violation of any applicable law.</p>
+<p><strong>Release and Waiver Regarding Burrow Housing Limited:</strong> Both the Subletter and the Subtenant, on behalf of themselves and their respective heirs, successors, and assigns, hereby release, discharge, and waive any and all claims, demands, actions, causes of action, suits, damages, losses, costs, expenses (including attorneys' fees), and liabilities of any kind, whether known or unknown, arising out of or in any way related to: this Agreement or any sublease transaction facilitated through the Platform; any property condition, defect, or hazard; any misrepresentation, omission, or fraud by the Subletter, the Subtenant, or any third party; any listing information, photographs, descriptions, or other content on the Platform; any Ambassador inspection report or related services; any payment processing through the Platform; any personal injury, property damage, or financial loss.</p>
+<p><strong>Limitation of Liability:</strong> In no event shall Burrow Housing Limited, its officers, directors, employees, agents, affiliates, or Ambassadors be liable for any direct, indirect, incidental, special, consequential, or punitive damages arising from or related to this Agreement, the Platform, or any sublease transaction, even if Burrow has been advised of the possibility of such damages.</p>
+<p><strong>Indemnification:</strong> Each party agrees to indemnify, defend, and hold harmless Burrow Housing Limited, its officers, directors, employees, agents, affiliates, and Ambassadors from and against any and all claims, damages, losses, costs, and expenses (including reasonable attorneys' fees) arising from or related to: (a) such party's breach of this Agreement; (b) such party's use of the Platform; (c) such party's misrepresentation or fraud; or (d) such party's violation of any applicable law.</p>
 
 <h4>14. Dispute Resolution</h4>
-<p>Any dispute arising under this Agreement shall be resolved between the Subletter and the Subtenant. Burrow Housing shall not be required to participate in, mediate, or resolve any dispute between the parties. The parties agree to attempt to resolve any dispute through good-faith negotiation before pursuing any legal action. If the dispute cannot be resolved through negotiation, the parties may pursue remedies available under applicable law.</p>
+<p>Any dispute arising under this Agreement shall be resolved between the Subletter and the Subtenant. Burrow Housing Limited shall not be required to participate in, mediate, or resolve any dispute between the parties. The parties agree to attempt to resolve any dispute through good-faith negotiation before pursuing any legal action. If the dispute cannot be resolved through negotiation, the parties may pursue remedies available under applicable law.</p>
 
 <h4>15. Governing Law</h4>
 <p>This Agreement shall be governed by and construed in accordance with the laws of the Commonwealth of Massachusetts, without regard to its conflict of laws principles.</p>
@@ -114,14 +114,14 @@ Estimated monthly utility cost: <strong>{{Estimated_Utility_Cost}}</strong></p>
 
 <h4>18. Entire Agreement</h4>
 <p>This Agreement constitutes the entire understanding between the Subletter and the Subtenant regarding the sublease and supersedes any prior discussions, representations, or agreements, whether written or oral. No modification of this Agreement shall be valid unless in writing and signed by both parties.</p>
-<p>This Agreement does not modify, supersede, or affect the Burrow Housing Terms of Service, Privacy Policy, or any other agreement between either party and Burrow Housing, all of which remain in full force and effect.</p>
+<p>This Agreement does not modify, supersede, or affect the Burrow Housing Limited Terms of Service, Privacy Policy, or any other agreement between either party and Burrow Housing Limited, all of which remain in full force and effect.</p>
 
 <h4>19. Signatures</h4>
 <p>By signing below, both parties acknowledge that they have read, understood, and voluntarily agreed to all terms of this Agreement. Both parties further acknowledge that they have been advised to seek independent legal counsel and have had a reasonable opportunity to do so.</p>
 <p><strong>Subletter:</strong> (Signature collected electronically)</p>
 <p><strong>Subtenant:</strong> (Signature collected electronically)</p>
-<p class="footer-note">Burrow Housing • Student Subleasing Platform • www.burrowhousing.com<br/>
-This document is a sample template only. Burrow Housing is not a law firm and does not provide legal services.</p>
+<p class="footer-note">Burrow Housing Limited • Student Subleasing Platform • www.burrowhousing.com<br/>
+This document is a sample template only. Burrow Housing Limited is not a law firm and does not provide legal services.</p>
 </div>
 `;
 
@@ -152,7 +152,7 @@ function getDefaultVariables(property, lister, tenant) {
 		End_Date: "",
 		Rent_Amount: property?.overview?.rent ? `$${property.overview.rent}` : "",
 		Rent_Due_Day: "1",
-		Payment_Method: "Burrow Housing Platform (subject to Platform terms of service and applicable fees)",
+		Payment_Method: "Burrow Housing Limited Platform (subject to Platform terms of service and applicable fees)",
 		Late_Fee_Days: "5",
 		Late_Fee_Amount: "$50",
 		Security_Deposit: "",

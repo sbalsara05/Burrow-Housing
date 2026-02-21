@@ -566,7 +566,7 @@ const ContractViewer = () => {
                                     <div className="modal-body">
                                         <p className="small text-danger mb-3">
                                             By drawing your signature below, you agree to the terms listed in the contract
-                                            and the Burrow Housing Liability Waiver.
+                                            and the Burrow Housing Limited Liability Waiver.
                                         </p>
                                         <SignaturePad
                                             onSave={handleSignatureSave}

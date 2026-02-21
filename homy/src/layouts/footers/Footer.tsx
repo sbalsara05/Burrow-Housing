@@ -118,7 +118,7 @@ const Footer = () => {
                         <div className="row align-items-center">
                             <div className="col-md-6">
                                 <p className="copyright mb-0 text-muted">
-                                    Copyright ©2026 Burrow Housing.
+                                    Copyright ©2026 Burrow Housing Limited.
                                 </p>
                             </div>
                             <div className="col-md-6">

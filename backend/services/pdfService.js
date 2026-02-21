@@ -42,7 +42,7 @@ exports.generateContractPdf = async (
                 <div class="container">
                     <div class="header">
                         <h1>Sublease Agreement</h1>
-                        <p>Burrow Housing Sublease Agreement v2 • Facilitated by Burrow Housing</p>
+                        <p>Burrow Housing Limited Sublease Agreement v2 • Facilitated by Burrow Housing Limited</p>
                     </div>
 
                     <div class="content">
@@ -63,7 +63,7 @@ exports.generateContractPdf = async (
                     </div>
 
                     <div class="footer">
-                        <p>Burrow Housing • Student Subleasing Platform • www.burrowhousing.com</p>
+                        <p>Burrow Housing Limited • Student Subleasing Platform • www.burrowhousing.com</p>
                         <p>Generated on ${new Date().toLocaleString()}</p>
                     </div>
                 </div>

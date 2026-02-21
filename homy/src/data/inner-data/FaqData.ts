@@ -19,8 +19,8 @@ const inner_faq_data: DataType[] = [
         faq: [
             {
                 id: 1,
-                question: "What is Burrow Housing?",
-                answer: "Burrow Housing is a technology platform that enables students to discover, list, and communicate about potential sublease opportunities.",
+                question: "What is Burrow Housing Limited?",
+                answer: "Burrow Housing Limited is a technology platform that enables students to discover, list, and communicate about potential sublease opportunities.",
             },
             {
                 id: 2,

@@ -107,7 +107,7 @@ exports.createDraft = async (req, res) => {
 			User.findById(tenantId).select("name email phone").lean(),
 		]);
 
-		// Use v2 Sublease Agreement template (Burrow Housing Sublease Agreement v2)
+		// Use v2 Sublease Agreement template (Burrow Housing Limited Sublease Agreement v2)
 		const defaultVariables = getDefaultVariables(property, lister, tenant);
 
 		const contract = await Contract.create({
