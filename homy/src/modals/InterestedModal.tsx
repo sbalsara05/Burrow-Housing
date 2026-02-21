@@ -174,7 +174,7 @@ const InterestedModal: React.FC<InterestedModalProps> = ({
                     max-width: 500px;
                     max-height: 90vh;
                     overflow-y: auto;
-                    animation: slideIn 0.3s ease-out;
+                    animation: modalScaleIn 0.25s ease-out;
                     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
                 }
 
@@ -334,14 +334,14 @@ const InterestedModal: React.FC<InterestedModalProps> = ({
                     }
                 }
 
-                @keyframes slideIn {
+                @keyframes modalScaleIn {
                     from {
                         opacity: 0;
-                        transform: translateY(-20px);
+                        transform: scale(0.96);
                     }
                     to {
                         opacity: 1;
-                        transform: translateY(0);
+                        transform: scale(1);
                     }
                 }
 

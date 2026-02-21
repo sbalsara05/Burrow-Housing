@@ -8,9 +8,9 @@
 .modal-backdrop.show {
     opacity: 0.5;
     display: block;
-    animation: loginBackdropFadeIn 0.2s ease-out;
+    animation: modalBackdropFadeIn 0.2s ease-out;
 }
-@keyframes loginBackdropFadeIn {
+@keyframes modalBackdropFadeIn {
     from { opacity: 0; }
     to { opacity: 0.5; }
 }
@@ -20,10 +20,11 @@
         margin: 40px auto;
     }
 }
-.modal.show .user-data-form.modal-content {
-    animation: loginModalScaleIn 0.25s ease-out;
+// Universal modal animation - applies to all modals
+.modal.show .modal-content {
+    animation: modalScaleIn 0.25s ease-out;
 }
-@keyframes loginModalScaleIn {
+@keyframes modalScaleIn {
     from {
         opacity: 0;
         transform: scale(0.96);

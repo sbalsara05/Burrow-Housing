@@ -39,16 +39,13 @@ const DeleteModal = () => {
 
    return (
       <>
-         {/* Custom backdrop */}
          <div
-            className="tw-fixed tw-inset-0 tw-bg-black tw-bg-opacity-50 tw-z-[1050] tw-flex tw-items-center tw-justify-center"
+            className="modal fade show"
+            style={{ display: 'block', backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1050 }}
             onClick={handleClose}
          >
-            {/* Modal content */}
-            <div
-               className="tw-bg-white tw-rounded-lg tw-p-8 tw-max-w-md tw-w-full tw-mx-4 tw-relative tw-z-[1051]"
-               onClick={(e) => e.stopPropagation()} // Prevent backdrop click when clicking modal content
-            >
+            <div className="modal-dialog modal-dialog-centered" onClick={(e) => e.stopPropagation()}>
+               <div className="modal-content tw-bg-white tw-rounded-lg tw-p-8 tw-max-w-md tw-w-full tw-mx-4 tw-relative tw-z-[1051]">
                {/* Close button */}
                <button
                   onClick={handleClose}
@@ -78,6 +75,7 @@ const DeleteModal = () => {
                         Cancel
                      </button>
                   </div>
+               </div>
                </div>
             </div>
          </div>

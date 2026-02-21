@@ -107,8 +107,9 @@ const AmbassadorRequestModal: React.FC<AmbassadorRequestModalProps> = ({
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="modal fade show" style={{ display: 'block', backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1050 }} onClick={onClose}>
+            <div className="modal-dialog modal-dialog-centered modal-lg p-4" onClick={(e) => e.stopPropagation()}>
+                <div className="modal-content bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
                 {/* Step 1: Inspection Points */}
                 {step === 1 && (
                     <div className="p-8">
@@ -288,6 +289,7 @@ const AmbassadorRequestModal: React.FC<AmbassadorRequestModalProps> = ({
                         </div>
                     </div>
                 )}
+                </div>
             </div>
         </div>
     );
