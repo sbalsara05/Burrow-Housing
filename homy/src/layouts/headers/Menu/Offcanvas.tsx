@@ -106,9 +106,9 @@ const Offcanvas = ({ offCanvas, setOffCanvas }: any) => {
                   </div>
 
                   <div className="address-block mt-50">
-                     <h4 className="title pb-15">Our Address</h4>
-                     <p>Chowrastar Mirpur- 1210, Sangu <br />River, Dhaka</p>
-                     <p>Urgent issue? call us at <br /><Link to="tel:310.841.5500">310.841.5500</Link></p>
+                     <h4 className="title pb-15">Contact</h4>
+                     <p>Find and post your next sublet with Burrow Housing - the easiest way to find and post your next sublet for Northeastern students.</p>
+                     <p>Questions? <br /><Link to="mailto:burrowhousingsublets@gmail.com">burrowhousingsublets@gmail.com</Link></p>
                   </div>
                   <ul
                      className="style-none d-flex flex-wrap w-100 justify-content-between align-items-center social-icon pt-25 mt-auto">

@@ -2,7 +2,7 @@ import { Helmet } from "react-helmet-async";
 
 const SITE_URL = import.meta.env.VITE_SITE_URL || "https://www.burrowhousing.com";
 const DEFAULT_DESCRIPTION =
-  "Burrow Housing – Find and list subleases for Northeastern University students. Student sublease marketplace for apartments and rooms near campus.";
+  "Burrow Housing – Sublets for Northeastern University students. Find and list apartments and rooms for sublease near Boston campus.";
 
 export interface SEOProps {
   pageTitle: string;
