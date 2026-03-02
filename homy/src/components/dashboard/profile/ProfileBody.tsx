@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { useSearchParams } from "react-router-dom";
 import UserAvatarSetting from "./UserAvatarSetting"; // Renders form fields
 import DashboardHeaderTwo from "../../../layouts/headers/dashboard/DashboardHeaderTwo";
 import { toast } from "react-toastify";
@@ -21,7 +22,10 @@ import { selectCurrentUser } from "../../../redux/slices/authSlice";
 
 const ProfileBody = () => {
     const dispatch = useDispatch<AppDispatch>();
+    const [searchParams] = useSearchParams();
     const isCollapsed = useSidebarCollapse();
+    // Option 3: ?firstTime=true forces the first-time prompt for testing
+    const forceFirstTime = searchParams.get("firstTime") === "true";
     // Select state from the profile slice
     const profile = useSelector(selectProfile);
     const isLoading = useSelector(selectProfileLoading);
@@ -289,6 +293,15 @@ const ProfileBody = () => {
         dispatch(clearProfileError()); // Clear any errors shown
     };
 
+    // --- First-time profile prompt ---
+    // Show when: profile is incomplete (missing major, graduation, school) OR ?firstTime=true (for testing)
+    const isProfileIncomplete = profile && (
+        !profile.majors_minors?.trim() ||
+        !profile.expected_graduation_year?.trim() ||
+        !profile.school_attending?.trim()
+    );
+    const showFirstTimePrompt = forceFirstTime || isProfileIncomplete;
+
     // --- Loading State ---
     if (profileStatus === 'loading' && !profile) { // Show loading only on initial fetch
         return (
@@ -308,7 +321,19 @@ const ProfileBody = () => {
                 <DashboardHeaderTwo title="Profile" />
                 <h2 className="main-title d-block d-lg-none">Profile</h2>
 
-                <div className="bg-white card-box border-20">
+                <div className="bg-white card-box border-20 profile-form-card">
+                    {/* First-time profile prompt (or ?firstTime=true for testing) */}
+                    {showFirstTimePrompt && (
+                        <div 
+                            className="profile-welcome-banner d-flex align-items-center mb-4" 
+                            role="alert"
+                            style={{ boxShadow: 'none' }}
+                        >
+                            <div>
+                                <strong>Welcome!</strong> Complete your profile to help other students get to know you. Add your major, graduation year, and university below.
+                            </div>
+                        </div>
+                    )}
                     {/* Display API error messages */}
                     {error && (
                         <div className="alert alert-danger d-flex justify-content-between align-items-center" role="alert">

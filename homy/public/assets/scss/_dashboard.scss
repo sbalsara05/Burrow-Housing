@@ -310,6 +310,12 @@
         border: none !important;
     }
 
+    // Profile page: force no shadow on card and banner
+    .profile-form-card,
+    .profile-form-card .profile-welcome-banner {
+        box-shadow: none !important;
+    }
+
     .main-title {
         font-size: 28px;
         margin-bottom: 40px;
@@ -2547,5 +2553,28 @@
         opacity: 1;
         transform: translateY(-50%) translateX(0);
         transition-delay: 0.2s; /* Only delay the appear animation */
+    }
+}
+
+/* Profile first-time welcome banner - orange with fade-in animation */
+.profile-welcome-banner {
+    background: linear-gradient(135deg, rgba($color-one, 0.15) 0%, rgba($color-one, 0.08) 100%);
+    border: 1px solid rgba($color-one, 0.4);
+    border-left: 4px solid $color-one;
+    color: darken($color-one, 15%);
+    padding: 1rem 1.25rem;
+    border-radius: 12px;
+    box-shadow: none; /* Override any inherited shadow */
+    animation: profileBannerFadeIn 0.5s ease-out;
+}
+
+@keyframes profileBannerFadeIn {
+    0% {
+        opacity: 0;
+        transform: translateY(-12px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
     }
 }
