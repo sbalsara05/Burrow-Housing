@@ -13,11 +13,13 @@ jobs:
       uses: actions/checkout@v3
 
     - name: Deploy to Digital Ocean Droplet
-      uses: appleboy/ssh-action@master
+      uses: appleboy/ssh-action@v1.0.3
       with:
         host: ${{ secrets.DROPLET_IP }}
         username: ${{ secrets.DROPLET_USER }}
         key: ${{ secrets.SSH_PRIVATE_KEY }}
+        port: 22
+        command_timeout: 2m
         script: |
           cd ~/app
           git fetch origin
