@@ -32,9 +32,9 @@ const schema = yup
             .required("Email is required.")
             .email("Enter a valid email.")
             .test(
-                "is-edu",
-                "Email must end with .edu domain",
-                (value) => value?.toLowerCase().endsWith(".edu") || false
+                "is-northeastern",
+                "Email must be a Northeastern University email (@northeastern.edu)",
+                (value) => value?.toLowerCase().endsWith("@northeastern.edu") || false
             ),
         password: yup
             .string()
@@ -132,7 +132,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onOtpRequired }) => {
                 <div className="col-12">
                     <div className="input-group-meta position-relative mb-25">
                         <label>Email*</label>
-                        <input type="email" {...register("email")} placeholder="youremail@university.edu" />
+                        <input type="email" {...register("email")} placeholder="youremail@northeastern.edu" />
                         <p className="form_error">{errors.email?.message}</p>
                     </div>
                 </div>

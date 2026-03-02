@@ -35,9 +35,9 @@ const schema = yup
             .required("Email is required")
             .email("Must be a valid email")
             .test(
-                "is-edu",
-                "Email must end with .edu domain",
-                (value) => value?.toLowerCase().endsWith(".edu") || false
+                "is-northeastern",
+                "Email must be a Northeastern University email",
+                (value) => value?.toLowerCase().endsWith("@northeastern.edu") || false
             )
             .label("Email"),
         password: yup.string().required().label("Password"),
@@ -156,7 +156,7 @@ const LoginForm: React.FC<LoginFormProps> = ({onOtpRequired}) => {
                 <div className="col-12">
                     <div className="input-group-meta position-relative mb-25">
                         <label>Email*</label>
-                        <input type="email" {...register("email")} placeholder="youremail@university.edu"/>
+                        <input type="email" {...register("email")} placeholder="youremail@northeastern.edu"/>
                         <p className="form_error">{errors.email?.message}</p>
                     </div>
                 </div>

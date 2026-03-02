@@ -28,6 +28,13 @@ exports.register = async (req, res) => {
 				.json({ message: "Invalid email format." });
 		}
 
+		// Require Northeastern University email
+		if (!email.toLowerCase().endsWith("@northeastern.edu")) {
+			return res
+				.status(422)
+				.json({ message: "Only Northeastern University emails (@northeastern.edu) are allowed." });
+		}
+
 		// Check if the user already exists by email
 		const existingUserByEmail = await User.findOne({ email });
 		if (existingUserByEmail) {
@@ -140,6 +147,13 @@ exports.login = async (req, res) => {
 			return res
 				.status(422)
 				.json({ message: "Invalid email format." });
+		}
+
+		// Require Northeastern University email
+		if (!email.toLowerCase().endsWith("@northeastern.edu")) {
+			return res
+				.status(422)
+				.json({ message: "Only Northeastern University emails (@northeastern.edu) are allowed." });
 		}
 
 		// Find user by email
@@ -255,6 +269,15 @@ exports.googleSignIn = async (req, res) => {
 
 		// Extract user information
 		const { sub, email, name, picture } = googleUserInfo.data;
+
+		// Require Northeastern University email for Google sign-in
+		if (!email || !email.toLowerCase().endsWith("@northeastern.edu")) {
+			return res
+				.status(403)
+				.json({
+					message: "Only Northeastern University emails (@northeastern.edu) can sign in.",
+				});
+		}
 
 		// Generate a JWT token
 		const jwtToken = jwt.sign(

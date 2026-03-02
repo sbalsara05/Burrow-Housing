@@ -141,7 +141,7 @@ const inner_faq_data: DataType[] = [
             {
                 id: 14,
                 question: "How does verification work?",
-                answer: "Burrow may require users to verify their identity or student status (e.g., .edu email or third-party verification services).\n\nBurrow does not guarantee that verification eliminates risk and disclaims liability for user misrepresentation.",
+                answer: "Burrow may require users to verify their identity or student status (e.g., Northeastern University email @northeastern.edu or third-party verification services).\n\nBurrow does not guarantee that verification eliminates risk and disclaims liability for user misrepresentation.",
             },
             {
                 id: 15,
