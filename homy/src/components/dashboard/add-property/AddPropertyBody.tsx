@@ -254,7 +254,7 @@ const AddPropertyBody: React.FC<AddPropertyBodyProps> = ({ isEditMode = false, p
                 <h2 className="main-title d-block d-lg-none">{pageTitle}</h2>
                 {error && <div className="alert alert-danger mt-3">{error}</div>}
 
-                <form onSubmit={handleSubmit}>
+                <form onSubmit={handleSubmit} autoComplete="off">
                     <div className="bg-white card-box border-20">
                         {/* Property Type Toggle */}
                         <div className="dash-input-wrapper mb-40">

@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { GoogleMap, useJsApiLoader, Autocomplete, Marker } from '@react-google-maps/api';
 
 // Define the shape of the data this component needs and manages
@@ -41,6 +41,15 @@ const API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 const libraries: ("places" | "drawing" | "geometry" | "localContext" | "visualization")[] = ['places'];
 const LOADER_ID = 'google-map-script-places';
 
+/** Chrome ignores autocomplete=off when id/name/label look like "address"; keep tokens neutral. */
+const FIELD_IDS = {
+    line1: 'burrow-listing-street-primary',
+    line2: 'burrow-listing-unit',
+    city: 'burrow-listing-locality',
+    state: 'burrow-listing-region',
+    zip: 'burrow-listing-postal',
+} as const;
+
 const AddressAndLocation: React.FC<AddressAndLocationProps> = ({
     location,
     setLocation,
@@ -69,6 +78,9 @@ const AddressAndLocation: React.FC<AddressAndLocationProps> = ({
 
     const [autocomplete, setAutocomplete] = useState<google.maps.places.Autocomplete | null>(null);
     const mapRef = useRef<google.maps.Map | null>(null);
+    const geocodeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    /** Chrome autofill does not fire Places `place_changed`; brief readOnly defers native autofill until focus. */
+    const [addressLine1ReadOnly, setAddressLine1ReadOnly] = useState(true);
 
     // Autocomplete throws if google.maps.places is missing. Only render it when places exists.
     // This avoids "libraries places" errors on first Add Property visit (e.g. when another
@@ -127,6 +139,63 @@ const AddressAndLocation: React.FC<AddressAndLocationProps> = ({
         }
     };
 
+    // When the browser autofills or the user types the full address without picking a Places result,
+    // lat/lng stay at 0 and submit fails. Geocode on blur when we have a full address but no coords.
+    const geocodeIfNeeded = useCallback(() => {
+        if (typeof google === 'undefined' || !google.maps?.Geocoder) return;
+        const { line1, city, state, zip } = addressData;
+        const zipTrim = zip?.trim() || '';
+        if (!line1?.trim() || !city?.trim() || !state?.trim() || zipTrim.length < 5) return;
+        if (location.lat !== 0 && location.lng !== 0) return;
+
+        const composed = `${line1.trim()}, ${city.trim()}, ${state.trim()} ${zipTrim}`;
+        const geocoder = new google.maps.Geocoder();
+        geocoder.geocode({ address: composed, region: 'US' }, (results, status) => {
+            if (status !== 'OK' || !results?.[0]?.geometry?.location) return;
+            const loc = results[0].geometry.location;
+            const lat = loc.lat();
+            const lng = loc.lng();
+            setLocation({ lat, lng });
+            if (results[0].formatted_address) {
+                handleAddressChange('address', results[0].formatted_address);
+            }
+            if (mapRef.current) {
+                mapRef.current.panTo({ lat, lng });
+                mapRef.current.setZoom(15);
+            }
+        });
+    }, [addressData, location.lat, location.lng, setLocation, handleAddressChange]);
+
+    const scheduleGeocodeIfNeeded = useCallback(() => {
+        if (geocodeTimeoutRef.current) clearTimeout(geocodeTimeoutRef.current);
+        geocodeTimeoutRef.current = setTimeout(() => {
+            geocodeIfNeeded();
+        }, 400);
+    }, [geocodeIfNeeded]);
+
+    useEffect(() => {
+        return () => {
+            if (geocodeTimeoutRef.current) clearTimeout(geocodeTimeoutRef.current);
+        };
+    }, []);
+
+    // Chrome autofill can populate all fields without blur events; still need coords for submit validation.
+    useEffect(() => {
+        const { line1, city, state, zip } = addressData;
+        const zipTrim = zip?.trim() || '';
+        if (!line1?.trim() || !city?.trim() || !state?.trim() || zipTrim.length < 5) return;
+        if (location.lat !== 0 && location.lng !== 0) return;
+
+        if (geocodeTimeoutRef.current) clearTimeout(geocodeTimeoutRef.current);
+        geocodeTimeoutRef.current = setTimeout(() => {
+            geocodeIfNeeded();
+        }, 400);
+
+        return () => {
+            if (geocodeTimeoutRef.current) clearTimeout(geocodeTimeoutRef.current);
+        };
+    }, [addressData.line1, addressData.city, addressData.state, addressData.zip, location.lat, location.lng, geocodeIfNeeded]);
+
     if (loadError) {
         return (
             <div className="bg-white card-box border-20 mt-40">
@@ -180,7 +249,7 @@ const AddressAndLocation: React.FC<AddressAndLocationProps> = ({
                 {/* Address Line 1 with Autocomplete */}
                 <div className="col-12">
                     <div className="dash-input-wrapper mb-25">
-                        <label htmlFor="address-line1">Address Line 1*</label>
+                        <label htmlFor={FIELD_IDS.line1}>Address Line 1*</label>
                         <Autocomplete
                             onLoad={onAutocompleteLoad}
                             onPlaceChanged={onPlaceChanged}
@@ -190,12 +259,20 @@ const AddressAndLocation: React.FC<AddressAndLocationProps> = ({
                             }}
                         >
                             <input
-                                id="address-line1"
-                                type="text"
+                                id={FIELD_IDS.line1}
+                                name="burrow_listing_street_primary"
+                                type="search"
                                 className="type-input"
-                                placeholder="Street address"
+                                placeholder="Type to search (Google suggestions)"
                                 value={addressData.line1 || ''}
                                 onChange={(e) => handleAddressChange('line1', e.target.value)}
+                                onBlur={scheduleGeocodeIfNeeded}
+                                onFocus={() => setAddressLine1ReadOnly(false)}
+                                readOnly={addressLine1ReadOnly}
+                                autoComplete="off"
+                                autoCorrect="off"
+                                spellCheck={false}
+                                inputMode="text"
                                 required
                             />
                         </Autocomplete>
@@ -205,14 +282,16 @@ const AddressAndLocation: React.FC<AddressAndLocationProps> = ({
                 {/* Address Line 2 */}
                 <div className="col-12">
                     <div className="dash-input-wrapper mb-25">
-                        <label htmlFor="address-line2">Address Line 2</label>
+                        <label htmlFor={FIELD_IDS.line2}>Address Line 2</label>
                         <input
-                            id="address-line2"
+                            id={FIELD_IDS.line2}
+                            name="burrow_listing_unit"
                             type="text"
                             className="type-input"
-                            placeholder="Apartment, unit, etc. (optional)"
+                            placeholder="Unit, apt, etc. (optional)"
                             value={addressData.line2 || ''}
                             onChange={(e) => handleAddressChange('line2', e.target.value)}
+                            autoComplete="off"
                         />
                     </div>
                 </div>
@@ -220,42 +299,51 @@ const AddressAndLocation: React.FC<AddressAndLocationProps> = ({
                 {/* City, State, Zip */}
                 <div className="col-md-4">
                     <div className="dash-input-wrapper mb-25">
-                        <label htmlFor="address-city">City*</label>
+                        <label htmlFor={FIELD_IDS.city}>City*</label>
                         <input
-                            id="address-city"
+                            id={FIELD_IDS.city}
+                            name="burrow_listing_locality"
                             type="text"
                             className="type-input"
                             placeholder="City"
                             value={addressData.city || ''}
                             onChange={(e) => handleAddressChange('city', e.target.value)}
+                            onBlur={scheduleGeocodeIfNeeded}
+                            autoComplete="off"
                             required
                         />
                     </div>
                 </div>
                 <div className="col-md-4">
                     <div className="dash-input-wrapper mb-25">
-                        <label htmlFor="address-state">State*</label>
+                        <label htmlFor={FIELD_IDS.state}>State*</label>
                         <input
-                            id="address-state"
+                            id={FIELD_IDS.state}
+                            name="burrow_listing_region"
                             type="text"
                             className="type-input"
                             placeholder="State"
                             value={addressData.state || ''}
                             onChange={(e) => handleAddressChange('state', e.target.value.toUpperCase())}
+                            onBlur={scheduleGeocodeIfNeeded}
+                            autoComplete="off"
                             required
                         />
                     </div>
                 </div>
                 <div className="col-md-4">
                     <div className="dash-input-wrapper mb-25">
-                        <label htmlFor="address-zip">ZIP Code*</label>
+                        <label htmlFor={FIELD_IDS.zip}>ZIP Code*</label>
                         <input
-                            id="address-zip"
+                            id={FIELD_IDS.zip}
+                            name="burrow_listing_postal"
                             type="text"
                             className="type-input"
                             placeholder="ZIP"
                             value={addressData.zip || ''}
                             onChange={(e) => handleAddressChange('zip', e.target.value)}
+                            onBlur={scheduleGeocodeIfNeeded}
+                            autoComplete="off"
                             required
                         />
                     </div>
