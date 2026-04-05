@@ -20,6 +20,7 @@ const ambassadorDashboardRoutes = require("./routes/ambassadorDashboardRoutes");
 const contractRoutes = require("./routes/contractRoutes");
 const stripeRoutes = require("./routes/stripeRoutes");
 const { handleWebhook } = require("./controllers/stripeController");
+const { handleStreamWebhook } = require("./controllers/streamWebhookController");
 
 // Initialize Express app
 const app = express();
@@ -30,6 +31,15 @@ app.post(
 	express.raw({ type: "application/json" }),
 	(req, res, next) => {
 		handleWebhook(req, res).catch(next);
+	}
+);
+
+// Stream Chat webhook (message.new → in-app + email notifications for each message)
+app.post(
+	"/api/stream/webhook",
+	express.raw({ type: "application/json" }),
+	(req, res, next) => {
+		handleStreamWebhook(req, res).catch(next);
 	}
 );
 
@@ -194,6 +204,7 @@ app.get("/", (req, res) => {
 			health: "/health",
 			stripe: "/api/stripe/create-payment-intent",
 			stripeWebhook: "/api/stripe/webhook",
+			streamChatWebhook: "/api/stream/webhook",
 		},
 	});
 });
