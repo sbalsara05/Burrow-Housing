@@ -67,9 +67,26 @@ const NotificationSchema = new mongoose.Schema(
 				type: mongoose.Schema.Types.ObjectId,
 				ref: "User",
 			},
+			// Stream Chat message id — used to dedupe webhook retries
+			streamMessageId: {
+				type: String,
+				trim: true,
+			},
 		},
 	},
 	{ timestamps: true }
+);
+
+// Only enforce uniqueness when streamMessageId is a non-empty string, so we do not
+// collapse multiple chat notifications or collide on missing/empty ids (Stream retries).
+NotificationSchema.index(
+	{ userId: 1, type: 1, "metadata.streamMessageId": 1 },
+	{
+		unique: true,
+		partialFilterExpression: {
+			"metadata.streamMessageId": { $exists: true, $type: "string", $ne: "" },
+		},
+	}
 );
 
 const Notification = mongoose.model("Notification", NotificationSchema);
