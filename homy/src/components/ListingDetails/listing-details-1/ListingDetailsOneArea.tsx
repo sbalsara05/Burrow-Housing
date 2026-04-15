@@ -27,6 +27,8 @@ import LoginModal from '../../../modals/LoginModal';
 import CommonPropertyFeatureList from "../listing-details-common/CommonPropertyFeatureList";
 import { formatOverviewParagraphs } from "../../../utils/overviewFormatting";
 
+type ListingDetailsTab = 'overview' | 'features' | 'amenities' | 'nearby' | 'location';
+
 const ListingDetailsOneArea = () => {
     const { id: propertyId } = useParams<{ id: string }>();
     const dispatch = useDispatch<AppDispatch>();
@@ -45,6 +47,7 @@ const ListingDetailsOneArea = () => {
     const [loginModalOpen, setLoginModalOpen] = useState(false);
     const [interestStatus, setInterestStatus] = useState<string | null>(null);
     const [isStatusLoading, setIsStatusLoading] = useState(true);
+    const [activeTab, setActiveTab] = useState<ListingDetailsTab>('overview');
 
     // Fetch essential data on mount
     useEffect(() => {
@@ -155,6 +158,13 @@ const ListingDetailsOneArea = () => {
             (property.geoLocation?.coordinates ? property.geoLocation.coordinates[0] : undefined)
     };
     const overviewParagraphs = formatOverviewParagraphs(property.description);
+    const tabItems: { key: ListingDetailsTab; label: string }[] = [
+        { key: 'overview', label: 'Overview' },
+        { key: 'features', label: 'Property Features' },
+        { key: 'amenities', label: 'Amenities' },
+        { key: 'nearby', label: "What's Nearby" },
+        { key: 'location', label: 'Location' },
+    ];
 
     return (
         <>
@@ -171,48 +181,77 @@ const ListingDetailsOneArea = () => {
 
                     <div className="row tw-mt-8">
                         <div className="col-xl-8">
-                            <div className="property-overview bg-white shadow4 p-40 mb-50 tw-rounded-md">
-                                <h4 className="mb-20">Overview</h4>
-                                {overviewParagraphs.length > 0 ? (
-                                    <div className="property-overview-copy">
-                                        {overviewParagraphs.map((paragraph, index) => (
-                                            <p key={`${paragraph}-${index}`} className="property-overview-paragraph">
-                                                {paragraph}
-                                            </p>
-                                        ))}
-                                    </div>
-                                ) : (
-                                    <p className="property-overview-empty">No detailed description available.</p>
-                                )}
-                            </div>
-
-                            <div className="property-feature-accordion bg-white shadow4 p-40 mb-50 tw-rounded-md">
-                                <h4 className="mb-20">Property Features</h4>
-                                <p className="fs-20 lh-lg">Detailed characteristics of the property.</p>
-                                <div className="accordion-style-two mt-45">
-                                    <CommonPropertyFeatureList property={property} />
+                            <div className="listing-details-tabs bg-white shadow4 p-15 mb-25 tw-rounded-md">
+                                <div className="listing-details-tabs__inner" role="tablist" aria-label="Listing details tabs">
+                                    {tabItems.map((tab) => (
+                                        <button
+                                            key={tab.key}
+                                            type="button"
+                                            role="tab"
+                                            aria-selected={activeTab === tab.key}
+                                            className={`listing-details-tab-btn ${activeTab === tab.key ? 'is-active' : ''}`}
+                                            onClick={() => setActiveTab(tab.key)}
+                                        >
+                                            {tab.label}
+                                        </button>
+                                    ))}
                                 </div>
                             </div>
 
-                            <div className="property-amenities rounded shadow4 bg-white p-40 mb-50 tw-rounded-md">
-                                <CommonAmenities amenities={property.amenities} />
-                            </div>
+                            <div className="listing-details-tab-panel bg-white shadow4 p-40 mb-50 tw-rounded-md">
+                                {activeTab === 'overview' && (
+                                    <div className="property-overview">
+                                        <h4 className="mb-20">Overview</h4>
+                                        {overviewParagraphs.length > 0 ? (
+                                            <div className="property-overview-copy">
+                                                {overviewParagraphs.map((paragraph, index) => (
+                                                    <p key={`${paragraph}-${index}`} className="property-overview-paragraph">
+                                                        {paragraph}
+                                                    </p>
+                                                ))}
+                                            </div>
+                                        ) : (
+                                            <p className="property-overview-empty">No detailed description available.</p>
+                                        )}
+                                    </div>
+                                )}
 
-                            <div className=" bg-white shadow4 p-40 mb-50 tw-rounded-md">
-                                <CommonNearbyList
-                                    location={{
-                                        address: property.addressAndLocation.address,
-                                        lat: property.addressAndLocation.location.lat,
-                                        lng: property.addressAndLocation.location.lng
-                                    }}
-                                />
-                            </div>
+                                {activeTab === 'features' && (
+                                    <div className="property-feature-accordion">
+                                        <h4 className="mb-20">Property Features</h4>
+                                        <p className="fs-20 lh-lg">Detailed characteristics of the property.</p>
+                                        <div className="accordion-style-two mt-45">
+                                            <CommonPropertyFeatureList property={property} />
+                                        </div>
+                                    </div>
+                                )}
 
-                            <div className="property-location tw-pb-0 tw-w-full ">
-                                <CommonLocation
-                                    location={locationData}
-                                    propertyName={property.overview?.title || property.addressAndLocation?.address || 'Property'}
-                                />
+                                {activeTab === 'amenities' && (
+                                    <div className="property-amenities">
+                                        <CommonAmenities amenities={property.amenities} />
+                                    </div>
+                                )}
+
+                                {activeTab === 'nearby' && (
+                                    <div>
+                                        <CommonNearbyList
+                                            location={{
+                                                address: property.addressAndLocation.address,
+                                                lat: property.addressAndLocation.location.lat,
+                                                lng: property.addressAndLocation.location.lng
+                                            }}
+                                        />
+                                    </div>
+                                )}
+
+                                {activeTab === 'location' && (
+                                    <div className="property-location tw-pb-0 tw-w-full">
+                                        <CommonLocation
+                                            location={locationData}
+                                            propertyName={property.overview?.title || property.addressAndLocation?.address || 'Property'}
+                                        />
+                                    </div>
+                                )}
                             </div>
                         </div>
 
