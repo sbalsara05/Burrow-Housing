@@ -254,6 +254,7 @@ exports.getAllProperties = async (req, res) => {
 			bedrooms, // e.g., "1", "2", "3", "4" (meaning X or more) -> NEW
 			bathrooms, // e.g., "1", "2", "3", "4" (meaning X or more) -> NEW
 			amenities, // e.g., "Wifi,Parking" (comma-separated string) -> NEW
+			leaseTerms, // e.g., "Fall,Summer 1" (comma-separated string)
 			sqftMin, // e.g., "1000" -> NEW
 			sqftMax, // e.g., "2000" -> NEW
 			// Add yearBuiltMin, yearBuiltMax etc. if needed
@@ -362,6 +363,23 @@ exports.getAllProperties = async (req, res) => {
 				filterObject["amenities"] = {
 					$all: amenitiesArray,
 				};
+			}
+		}
+
+		// Lease term filter (matches any selected term, case-insensitive)
+		if (
+			leaseTerms &&
+			typeof leaseTerms === "string" &&
+			leaseTerms.trim() !== ""
+		) {
+			const leaseTermsArray = leaseTerms
+				.split(",")
+				.map((t) => t.trim())
+				.filter((t) => t);
+			if (leaseTermsArray.length > 0) {
+				filterObject.$or = leaseTermsArray.map((term) => ({
+					leaseLength: { $regex: term, $options: "i" },
+				}));
 			}
 		}
 

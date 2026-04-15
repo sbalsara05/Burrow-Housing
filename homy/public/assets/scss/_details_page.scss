@@ -108,6 +108,27 @@
         }
     }
 
+    .property-overview-copy {
+        .property-overview-paragraph {
+            font-size: 18px;
+            line-height: 1.85;
+            color: rgba($color: #000, $alpha: 0.74);
+            margin-bottom: 18px;
+            white-space: pre-line;
+            overflow-wrap: anywhere;
+        }
+
+        .property-overview-paragraph:last-child {
+            margin-bottom: 0;
+        }
+    }
+
+    .property-overview-empty {
+        font-size: 18px;
+        line-height: 1.8;
+        color: rgba($color: #000, $alpha: 0.55);
+    }
+
     .list-type {
         font-size: 12px;
         letter-spacing: 0.12px;
@@ -468,6 +489,50 @@
     .list-style-two {
         li {
             width: 22%;
+        }
+    }
+
+    // Listing amenities — same orange chips as dashboard add-property (read-only)
+    .property-amenities {
+        .lease-term-tag-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .lease-term-tag {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 48px;
+            padding: 12px 22px;
+            border-radius: 999px;
+            font-size: 16px;
+            font-weight: 500;
+            line-height: 1.25;
+            border: 1px solid rgba($color-one, 0.2);
+            background: rgba($color-one, 0.1);
+            color: darken($color-one, 10%);
+            @include transition(0.2s);
+
+            &.is-selected {
+                background: rgba($color-one, 0.14);
+                color: darken($color-one, 12%);
+                font-weight: 600;
+                border: 1px solid rgba($color-one, 0.3);
+                box-shadow: none;
+            }
+
+            &.lease-term-tag--readonly {
+                cursor: default;
+                pointer-events: none;
+
+                &.is-selected:hover {
+                    background: rgba($color-one, 0.14);
+                    border-color: rgba($color-one, 0.3);
+                    color: darken($color-one, 12%);
+                }
+            }
         }
     }
 

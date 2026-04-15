@@ -1,7 +1,6 @@
 import { Link } from "react-router-dom";
 import NiceSelect from "../../../ui/NiceSelect";
-
-const ammenities_data = ["A/C & Heating", "Garages", "Garden", "Disabled Access", "Swimming Pool", "Parking", "Wifi", "Pet Friendly", "Ceiling Height", "Fireplace", "Play Ground", "Elevator"]
+import { PROPERTY_AMENITIES } from "../../../constants/propertyAmenities";
 
 const DropdownModal = () => {
 
@@ -104,7 +103,7 @@ const DropdownModal = () => {
                                     <div className="col-12">
                                        <h6 className="block-title fw-bold mb-30">Amenities</h6>
                                        <ul className="style-none d-flex flex-wrap justify-content-between filter-input">
-                                          {ammenities_data.map((list, i) => (
+                                          {PROPERTY_AMENITIES.map((list, i) => (
                                              <li key={i}>
                                                 <input type="checkbox" name="Amenities" value={`${i}`} />
                                                 <label>{list}</label>

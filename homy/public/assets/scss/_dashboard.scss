@@ -1061,35 +1061,6 @@
         row-gap: 16px;
     }
 
-    // Property Type Toggle Styles
-    .property-type-toggle {
-        flex: 1;
-        padding: 12px 24px;
-        border: 1px solid #E9E9E9;
-        border-radius: 10px;
-        background: #fff;
-        color: #000;
-        font-size: 16px;
-        font-weight: 500;
-        cursor: pointer;
-        transition: all 0.3s ease;
-
-        &:hover {
-            border-color: $color-one;
-            color: $color-one;
-        }
-
-        &.active {
-            background: $color-one;
-            border-color: $color-one;
-            color: #fff;
-        }
-
-        &:first-child {
-            margin-right: 12px;
-        }
-    }
-
     .profile-fields-grid .profile-field {
         width: 100%;
     }
@@ -1112,6 +1083,19 @@
             font-size: 14px;
             letter-spacing: -0.14px;
             color: rgba($color: #000, $alpha: 0.5);
+        }
+
+        .overview-helper-text {
+            font-size: 14px;
+            letter-spacing: -0.14px;
+            color: rgba($color: #000, $alpha: 0.58);
+            margin-bottom: 10px;
+        }
+
+        .description-label {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 8px;
         }
 
         input {
@@ -1151,6 +1135,83 @@
             .option {
                 line-height: 38px;
             }
+        }
+
+        // Same pill pattern as .my-requests-card__status (approved / declined), orange theme
+        .lease-term-tag-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 4px;
+        }
+
+        .lease-term-tag {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 48px;
+            padding: 12px 22px;
+            border-radius: 999px;
+            font-size: 16px;
+            font-weight: 500;
+            line-height: 1.25;
+            border: 1px solid rgba($color-one, 0.2);
+            background: rgba($color-one, 0.1);
+            color: darken($color-one, 10%);
+            cursor: pointer;
+            @include transition(0.2s);
+
+            &:hover:not(.is-selected) {
+                background: rgba($color-one, 0.14);
+                border-color: rgba($color-one, 0.28);
+            }
+
+            &.is-selected {
+                background: $color-one;
+                color: #fff;
+                font-weight: 600;
+                border: 1px solid $color-one;
+                box-shadow: 0 4px 14px rgba($color-one, 0.4);
+
+                &:hover {
+                    background: darken($color-one, 7%);
+                    border-color: darken($color-one, 7%);
+                }
+            }
+
+            &:focus-visible {
+                outline: 2px solid rgba($color-one, 0.45);
+                outline-offset: 2px;
+            }
+        }
+
+        // Equal-width chips in a row (Apartment / Room, Single / Shared)
+        .lease-term-tag--fill {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .overview-preview {
+            border: 1px solid rgba($color: #000, $alpha: 0.08);
+            border-radius: 12px;
+            background: rgba($color: #fff, $alpha: 0.95);
+            padding: 16px 18px 4px;
+        }
+
+        .overview-preview__title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #000;
+            margin-bottom: 10px;
+        }
+
+        .overview-preview__paragraph {
+            font-size: 15px;
+            line-height: 1.7;
+            color: rgba($color: #000, $alpha: 0.75);
+            margin-bottom: 12px;
+            white-space: pre-line;
+            overflow-wrap: anywhere;
         }
 
         .map-frame {

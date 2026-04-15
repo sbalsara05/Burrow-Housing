@@ -25,6 +25,7 @@ import CommonLocation from "../listing-details-common/CommonLocation";
 import InterestedModal from '../../../modals/InterestedModal.tsx';
 import LoginModal from '../../../modals/LoginModal';
 import CommonPropertyFeatureList from "../listing-details-common/CommonPropertyFeatureList";
+import { formatOverviewParagraphs } from "../../../utils/overviewFormatting";
 
 const ListingDetailsOneArea = () => {
     const { id: propertyId } = useParams<{ id: string }>();
@@ -153,6 +154,7 @@ const ListingDetailsOneArea = () => {
         longitude: property.addressAndLocation?.location?.lng ||
             (property.geoLocation?.coordinates ? property.geoLocation.coordinates[0] : undefined)
     };
+    const overviewParagraphs = formatOverviewParagraphs(property.description);
 
     return (
         <>
@@ -169,9 +171,19 @@ const ListingDetailsOneArea = () => {
 
                     <div className="row tw-mt-8">
                         <div className="col-xl-8">
-                            <div className="property-overview bg-white shadow4 p-40 tw-rounded-md">
+                            <div className="property-overview bg-white shadow4 p-40 mb-50 tw-rounded-md">
                                 <h4 className="mb-20">Overview</h4>
-                                <p className="fs-20 lh-lg">{property.description || "No detailed description available."}</p>
+                                {overviewParagraphs.length > 0 ? (
+                                    <div className="property-overview-copy">
+                                        {overviewParagraphs.map((paragraph, index) => (
+                                            <p key={`${paragraph}-${index}`} className="property-overview-paragraph">
+                                                {paragraph}
+                                            </p>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <p className="property-overview-empty">No detailed description available.</p>
+                                )}
                             </div>
 
                             <div className="property-feature-accordion bg-white shadow4 p-40 mb-50 tw-rounded-md">

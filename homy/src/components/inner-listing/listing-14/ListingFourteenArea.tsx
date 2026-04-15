@@ -20,13 +20,13 @@ import {
 
 import {
     selectAmenities,
-    selectApiFormattedFilters, selectFilters, selectMaxPriceForSlider, selectPriceRangeValues, selectSortBy,
+    selectApiFormattedFilters, selectFilters, selectLeaseTerms, selectMaxPriceForSlider, selectPriceRangeValues, selectSortBy,
     setBathrooms,
     setBedrooms,
     setCategory,
     setNeighborhood, setPriceRangeValues, setRentRange, setRoomType,
-    setSearchTerm, setSqftMax, setSqftMin, toggleAmenity,
-    resetFilters // Import the correct action name
+    setSearchTerm, setSqftMax, setSqftMin, toggleAmenity, toggleLeaseTerm,
+    resetFilters
     // ... your other filter imports
 } from '../../../redux/slices/filterSlice';
 
@@ -45,7 +45,6 @@ import {selectIsAuthenticated} from '../../../redux/slices/authSlice';
 
 // Component imports (adjust paths as needed)
 import DropdownSeven from "../../search-dropdown/inner-dropdown/DropdownSeven";
-import NiceSelect from "../../../ui/NiceSelect";
 import PropertyMap from './propertyMap';
 import PropertyCarousel from '../../homes/home/PropertyCarousel';
 
@@ -88,10 +87,10 @@ const ListingFourteenArea = () => {
     const error = useSelector(selectPropertyError);
     const filters = useSelector(selectFilters);
     const apiFormattedFilters = useSelector(selectApiFormattedFilters);
-    const sortBy = useSelector(selectSortBy) || 'newest';
     const maxPriceForSlider = useSelector(selectMaxPriceForSlider);
     const currentPriceRangeValues = useSelector(selectPriceRangeValues) || [0, 10000];
     const currentAmenities = useSelector(selectAmenities) || [];
+    const currentLeaseTerms = useSelector(selectLeaseTerms) || [];
     const propertyStatus = useSelector(selectPropertyStatus);
 
     // Favorites state
@@ -121,6 +120,7 @@ const ListingFourteenArea = () => {
         const bathroomsFromUrl = searchParams.get('bathrooms');
         const searchTermFromUrl = searchParams.get('search');
         const amenitiesFromUrl = searchParams.get('amenities');
+        const leaseTermsFromUrl = searchParams.get('leaseTerms');
 
         console.log('📋 URL Parameters:', {
             category: categoryFromUrl,
@@ -131,6 +131,7 @@ const ListingFourteenArea = () => {
             bathrooms: bathroomsFromUrl,
             search: searchTermFromUrl,
             amenities: amenitiesFromUrl
+            ,leaseTerms: leaseTermsFromUrl
         });
 
         // Check if we have state passed from navigation (from home page)
@@ -195,6 +196,17 @@ const ListingFourteenArea = () => {
             }
             shouldUpdateFilters = true;
         }
+        if (leaseTermsFromUrl) {
+            const leaseTermsArray = leaseTermsFromUrl.split(',').filter(Boolean);
+            const currentLeaseTermsState = filters.leaseTerms || [];
+            for (const term of currentLeaseTermsState) {
+                dispatch(toggleLeaseTerm(term));
+            }
+            for (const term of leaseTermsArray) {
+                dispatch(toggleLeaseTerm(term));
+            }
+            shouldUpdateFilters = true;
+        }
 
         // Initialize from navigation state if no URL params (fallback)
         if (!shouldUpdateFilters && navigationState?.filters) {
@@ -237,6 +249,16 @@ const ListingFourteenArea = () => {
                 }
                 for (const amenity of navFilters.amenities) {
                     dispatch(toggleAmenity(amenity));
+                }
+                shouldUpdateFilters = true;
+            }
+            if (navFilters.leaseTerms && navFilters.leaseTerms.length > 0) {
+                const currentLeaseTermsState = filters.leaseTerms || [];
+                for (const term of currentLeaseTermsState) {
+                    dispatch(toggleLeaseTerm(term));
+                }
+                for (const term of navFilters.leaseTerms) {
+                    dispatch(toggleLeaseTerm(term));
                 }
                 shouldUpdateFilters = true;
             }
@@ -379,6 +401,7 @@ const ListingFourteenArea = () => {
     const handleBedroomChange = (e: React.ChangeEvent<HTMLSelectElement>) => updateFilterAndRefetch(setBedrooms(e.target.value));
     const handleBathroomChange = (e: React.ChangeEvent<HTMLSelectElement>) => updateFilterAndRefetch(setBathrooms(e.target.value));
     const handleAmenityChange = (e: React.ChangeEvent<HTMLInputElement>) => updateFilterAndRefetch(toggleAmenity(e.target.value));
+    const handleLeaseTermChange = (term: string) => updateFilterAndRefetch(toggleLeaseTerm(term));
     const handlePriceRangeSliderChange = (values: number[]) => updateFilterAndRefetch(setPriceRangeValues([values[0], values[1]]));
     const handleRentRangeDropdownChange = (e: React.ChangeEvent<HTMLSelectElement>) => updateFilterAndRefetch(setRentRange(e.target.value === 'any' ? null : e.target.value));
     const handleSqftMinChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -405,12 +428,6 @@ const ListingFourteenArea = () => {
         const currentApiFilters = selectApiFormattedFilters(store.getState());
         console.log('🔄 Triggering fetch with current filters:', currentApiFilters);
         dispatch(fetchAllPublicProperties({page: 1, limit: ITEMS_PER_PAGE, ...currentApiFilters}));
-    };
-
-    // Sort handler
-    const handleSortChange = (value: string) => {
-        console.log('Sort changed to:', value);
-        dispatch(setSortBy(value));
     };
 
     // Calculate pagination
@@ -510,21 +527,20 @@ const ListingFourteenArea = () => {
                                 className="color-dark fw-500">{pagination?.totalItems || 0}</span> results
                             </div>
                             <div className="d-flex align-items-center xs-mt-20">
-                                <div className="short-filter d-flex align-items-center">
-                                    <div className="fs-16 me-2">Sort by:</div>
-                                    <NiceSelect
-                                        className="nice-select"
-                                        options={[
-                                            {value: "newest", text: "Newest"},
-                                            {value: "price_low", text: "Price Low"},
-                                            {value: "price_high", text: "Price High"},
-                                        ]}
-                                        value={sortBy}  // Use current sortBy value instead of key/defaultCurrent
-                                        onChange={handleSortChange}
-                                        name="sortBy"
-                                        placeholder="Default"
-                                    />
-
+                                <div className="lease-term-filter-inline d-flex align-items-center">
+                                    <div className="lease-term-filter-inline__tags">
+                                        {["Fall", "Spring", "Summer 1", "Summer 2"].map((term) => (
+                                            <button
+                                                key={term}
+                                                type="button"
+                                                className={`lease-term-filter-inline__tag${currentLeaseTerms.includes(term) ? ' is-selected' : ''}`}
+                                                onClick={() => handleLeaseTermChange(term)}
+                                                aria-pressed={currentLeaseTerms.includes(term)}
+                                            >
+                                                {term}
+                                            </button>
+                                        ))}
+                                    </div>
                                 </div>
                             </div>
                         </div>

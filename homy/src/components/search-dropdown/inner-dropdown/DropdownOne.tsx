@@ -1,8 +1,7 @@
 import { Link } from "react-router-dom";
 import NiceSelect from "../../../ui/NiceSelect";
 import PriceRange from "../../common/PriceRange";
-
-const ammenities_data: string[] = ["A/C & Heating", "Garages", "Garden", "Disabled Access", "Swimming Pool", "Parking", "Wifi", "Pet Friendly", "Ceiling Height", "Fireplace", "Play Ground", "Elevator"]
+import { PROPERTY_AMENITIES } from "../../../constants/propertyAmenities";
 
 const DropdownOne = ({
    handleBathroomChange,
@@ -104,7 +103,7 @@ const DropdownOne = ({
                <h6 className="block-title fw-bold mb-30">Amenities</h6>
                <ul
                   className="style-none d-flex flex-wrap justify-content-between filter-input">
-                  {ammenities_data.map((list, i) => (
+                  {PROPERTY_AMENITIES.map((list, i) => (
                      <li key={i}>
                         <input
                            type="checkbox"

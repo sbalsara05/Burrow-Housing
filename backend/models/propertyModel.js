@@ -62,6 +62,22 @@ const PropertySchema = new mongoose.Schema({
 		items: {
 			type: "string",
 			enum: [
+				// Current catalog (sublets / apartments)
+				"Furnished",
+				"Utilities included",
+				"A/C & heating",
+				"In-unit laundry",
+				"Dishwasher",
+				"Wi-Fi included",
+				"Elevator",
+				"Gym or fitness center",
+				"Step-free or accessible entrance",
+				"Parking available",
+				"Bike storage",
+				"Balcony or patio",
+				"Private bathroom",
+				"Pet friendly",
+				// Legacy values (keep so existing documents still validate)
 				"A/C & Heating",
 				"Balcony",
 				"Driveway",
