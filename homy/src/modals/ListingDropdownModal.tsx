@@ -5,12 +5,7 @@ import PriceRange from "../components/common/PriceRange"; // Ensure correct path
 import NiceSelect from "../ui/NiceSelect";
 // Import FilterState interface for prop typing
 import { FilterState } from "../redux/slices/filterSlice"; // Ensure correct path
-
-const ammenities_data: string[] = [
-    "A/C & Heating", "Garages", "Garden", "Disabled Access", "Swimming Pool",
-    "Parking", "Wifi", "Pet Friendly", "Ceiling Height", "Fireplace",
-    "Play Ground", "Elevator"
-];
+import { PROPERTY_AMENITIES } from "../constants/propertyAmenities";
 
 // Define props expected from the parent component (e.g., DropdownSeven)
 interface ListingDropdownModalProps {
@@ -147,7 +142,7 @@ const ListingDropdownModal: React.FC<ListingDropdownModalProps> = ({
                                                 <div className="col-12">
                                                     <h6 className="block-title fw-bold mb-30">Amenities</h6>
                                                     <ul className="style-none d-flex flex-wrap justify-content-between filter-input">
-                                                        {ammenities_data.map((list, i) => (
+                                                        {PROPERTY_AMENITIES.map((list, i) => (
                                                             <li key={i}>
                                                                 <input
                                                                     type="checkbox"

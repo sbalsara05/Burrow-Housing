@@ -22,6 +22,49 @@ import PhotoUploader from './PhotoUploader';
 import PropertyTypeToggle from './PropertyTypeToggle';
 import NeighborhoodSelect from './NeighborhoodSelect';
 import { Link } from "react-router-dom";
+import { formatOverviewParagraphs } from "../../../utils/overviewFormatting";
+
+type LeaseTermSelection = {
+    fall: boolean;
+    spring: boolean;
+    summer1: boolean;
+    summer2: boolean;
+};
+
+const emptyLeaseTermSelection = (): LeaseTermSelection => ({
+    fall: false,
+    spring: false,
+    summer1: false,
+    summer2: false,
+});
+
+/** Parse stored leaseLength for edit mode and legacy strings. */
+function parseLeaseTerm(raw: string): LeaseTermSelection {
+    const t = (raw || "").trim();
+    if (!t) return emptyLeaseTermSelection();
+    if (/^fall$/i.test(t)) return { fall: true, spring: false, summer1: false, summer2: false };
+    if (/^spring$/i.test(t)) return { fall: false, spring: true, summer1: false, summer2: false };
+    const summer1 = /summer\s*1/i.test(t);
+    const summer2 = /summer\s*2/i.test(t);
+    if (summer1 || summer2) return { fall: false, spring: false, summer1, summer2 };
+    return emptyLeaseTermSelection();
+}
+
+function serializeLeaseTerm(sel: LeaseTermSelection): string {
+    if (sel.fall) return "Fall";
+    if (sel.spring) return "Spring";
+    const parts: string[] = [];
+    if (sel.summer1) parts.push("Summer 1");
+    if (sel.summer2) parts.push("Summer 2");
+    return parts.join(", ");
+}
+
+const LEASE_TERM_BUTTONS: { id: keyof LeaseTermSelection; label: string }[] = [
+    { id: "fall", label: "Fall" },
+    { id: "spring", label: "Spring" },
+    { id: "summer1", label: "Summer 1" },
+    { id: "summer2", label: "Summer 2" },
+];
 
 // Props for the component
 interface AddPropertyBodyProps {
@@ -156,6 +199,42 @@ const AddPropertyBody: React.FC<AddPropertyBodyProps> = ({ isEditMode = false, p
         setFormData(prev => ({ ...prev, amenities: newAmenities }));
     };
 
+    const handleLeaseTermClick = (key: keyof LeaseTermSelection) => {
+        setFormData((prev) => {
+            const sel = parseLeaseTerm(prev.leaseLength);
+            let { fall, spring, summer1, summer2 } = sel;
+
+            if (key === "fall") {
+                fall = !fall;
+                if (fall) {
+                    spring = false;
+                    summer1 = false;
+                    summer2 = false;
+                }
+            } else if (key === "spring") {
+                spring = !spring;
+                if (spring) {
+                    fall = false;
+                    summer1 = false;
+                    summer2 = false;
+                }
+            } else if (key === "summer1") {
+                summer1 = !summer1;
+                fall = false;
+                spring = false;
+            } else if (key === "summer2") {
+                summer2 = !summer2;
+                fall = false;
+                spring = false;
+            }
+
+            return {
+                ...prev,
+                leaseLength: serializeLeaseTerm({ fall, spring, summer1, summer2 }),
+            };
+        });
+    };
+
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         dispatch(clearPropertyError());
@@ -172,6 +251,10 @@ const AddPropertyBody: React.FC<AddPropertyBodyProps> = ({ isEditMode = false, p
             .join(', ');
 
         // Client-side Validation
+        if (!formData.leaseLength) {
+            toast.error("Please select a lease term (Fall, Spring, and/or Summer 1 & Summer 2).");
+            return;
+        }
         if (!line1 || !city || !state || !zip || !location.lat || !location.lng) {
             toast.error("Please complete the address fields and select it on the map.");
             return;
@@ -246,6 +329,8 @@ const AddPropertyBody: React.FC<AddPropertyBodyProps> = ({ isEditMode = false, p
     };
 
     const pageTitle = isEditMode ? "Edit Property" : "Add New Property";
+    const leaseTermSel = parseLeaseTerm(formData.leaseLength);
+    const overviewPreviewParagraphs = formatOverviewParagraphs(formData.description);
 
     return (
         <div className={`dashboard-body ${isCollapsed ? 'sidebar-collapsed' : ''}`}>
@@ -382,18 +467,26 @@ const AddPropertyBody: React.FC<AddPropertyBodyProps> = ({ isEditMode = false, p
                             />
                         </div>
 
-                        {/* Lease Length */}
+                        {/* Lease term — pill tags (Fall / Spring exclusive; Summer 1 & 2 multi-select) */}
                         <div className="dash-input-wrapper mb-40">
-                            <label htmlFor="leaseLength">Lease Length*</label>
-                            <input 
-                                type="text" 
-                                id="leaseLength"
-                                name="leaseLength"
-                                placeholder="e.g., 12 Months" 
-                                value={formData.leaseLength} 
-                                onChange={handleTopLevelChange} 
-                                required 
-                            />
+                            <label id="lease-term-label">Lease term*</label>
+                            <div
+                                className="lease-term-tag-group"
+                                role="group"
+                                aria-labelledby="lease-term-label"
+                            >
+                                {LEASE_TERM_BUTTONS.map(({ id, label }) => (
+                                    <button
+                                        key={id}
+                                        type="button"
+                                        className={`lease-term-tag${leaseTermSel[id] ? " is-selected" : ""}`}
+                                        onClick={() => handleLeaseTermClick(id)}
+                                        aria-pressed={leaseTermSel[id]}
+                                    >
+                                        {label}
+                                    </button>
+                                ))}
+                            </div>
                         </div>
                     </div>
 
@@ -410,7 +503,9 @@ const AddPropertyBody: React.FC<AddPropertyBodyProps> = ({ isEditMode = false, p
                     {/* Amenities */}
                     <div className="bg-white card-box border-20 mt-40">
                         <h4 className="dash-title-three m0 pb-5">Amenities</h4>
-                        <SelectAmenities selected={formData.amenities} onChange={handleAmenityChange} />
+                        <div className="dash-input-wrapper mb-0">
+                            <SelectAmenities selected={formData.amenities} onChange={handleAmenityChange} />
+                        </div>
                     </div>
 
                     {/* Address - Simplified but keep map */}
@@ -424,18 +519,32 @@ const AddPropertyBody: React.FC<AddPropertyBodyProps> = ({ isEditMode = false, p
                     {/* Description - Large textarea */}
                     <div className="bg-white card-box border-20 mt-40">
                         <div className="dash-input-wrapper mb-30">
-                            <label htmlFor="description">Description*</label>
+                            <label htmlFor="description" className="description-label">Description*</label>
+                            <p className="overview-helper-text">
+                                Keep it scannable: short paragraphs, one topic per paragraph (unit, building, neighborhood, terms).
+                            </p>
                             <textarea 
                                 name="description" 
                                 id="description" 
                                 className="size-lg" 
-                                placeholder="Write about the property..." 
+                                placeholder={"Example:\nRoom + apartment setup\n\nBuilding amenities + what is included\n\nLocation/transit + lease details"} 
                                 value={formData.description} 
                                 onChange={handleTopLevelChange} 
                                 required 
                                 rows={8}
                                 style={{ minHeight: '200px' }}
                             ></textarea>
+
+                            {overviewPreviewParagraphs.length > 0 && (
+                                <div className="overview-preview mt-20">
+                                    <h6 className="overview-preview__title">Overview preview</h6>
+                                    {overviewPreviewParagraphs.map((paragraph, index) => (
+                                        <p key={`${paragraph}-${index}`} className="overview-preview__paragraph">
+                                            {paragraph}
+                                        </p>
+                                    ))}
+                                </div>
+                            )}
                         </div>
                     </div>
 

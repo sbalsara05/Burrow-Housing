@@ -1,41 +1,44 @@
-// frontend/components/dashboard/add-property/SelectAmenities.tsx
-import React from 'react'; // Import React
+import React from "react";
+import { PROPERTY_AMENITIES } from "../../../constants/propertyAmenities";
 
-// List of all possible amenities matching the backend enum (or fetch this list if dynamic)
-const all_amenities: string[] = [
-    "A/C & Heating", "Balcony", "Driveway", "Disabled Access",
-    "Refrigerator", "Wifi", "Washer & Dryer", "Lawn"
-    // Add others if your model supports more like "Swimming Pool", "Parking", etc.
-];
-
-// Define props interface
 interface SelectAmenitiesProps {
-    selected: string[]; // Array of currently selected amenity strings
-    onChange: (event: React.ChangeEvent<HTMLInputElement>) => void; // Handler from parent
+    selected: string[];
+    onChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
+function amenitySlug(amenity: string): string {
+    return amenity
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-|-$/g, "");
+}
 
-const SelectAmenities: React.FC<SelectAmenitiesProps> = ({ selected = [], onChange }) => { // Default selected to empty array
+const SelectAmenities: React.FC<SelectAmenitiesProps> = ({ selected = [], onChange }) => {
+    const toggle = (amenity: string) => {
+        const checked = !selected.includes(amenity);
+        onChange({
+            target: { value: amenity, checked },
+        } as React.ChangeEvent<HTMLInputElement>);
+    };
+
     return (
-        // Removed container div, styling handled by parent AddPropertyBody's card-box
-        <ul className="style-none d-flex flex-wrap filter-input"> {/* Use existing classes */}
-            {all_amenities.map((amenity, index) => (
-                <li key={index}>
-                    <input
-                        type="checkbox"
-                        id={`amenity-${index}`} // Add unique id
-                        name="amenities" // Group checkboxes logically
-                        value={amenity}
-                        // Determine checked state based on whether amenity is in the selected prop array
-                        checked={selected.includes(amenity)}
-                        // Call the onChange handler passed from the parent
-                        onChange={onChange}
-                    />
-                    {/* Use htmlFor to link label to input */}
-                    <label htmlFor={`amenity-${index}`}>{amenity}</label>
-                </li>
-            ))}
-        </ul>
+        <div className="lease-term-tag-group">
+            {PROPERTY_AMENITIES.map((amenity) => {
+                const isOn = selected.includes(amenity);
+                return (
+                    <button
+                        key={amenity}
+                        type="button"
+                        className={`lease-term-tag${isOn ? " is-selected" : ""}`}
+                        onClick={() => toggle(amenity)}
+                        aria-pressed={isOn}
+                        id={`amenity-${amenitySlug(amenity)}`}
+                    >
+                        {amenity}
+                    </button>
+                );
+            })}
+        </div>
     );
 };
 

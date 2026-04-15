@@ -1,16 +1,22 @@
-// frontend/components/ListingDetails/listing-details-common/CommonAmenities.tsx
-import React from 'react';
+import React from "react";
+import { PROPERTY_AMENITIES } from "../../../constants/propertyAmenities";
 
-// No need to import Property if only amenities array is passed
 interface CommonAmenitiesProps {
-    amenities?: string[]; // Accept amenities array (optional)
+    amenities?: string[];
 }
 
-// Static list for fallback or determining display order/icons if needed later
-// const all_possible_amenities: string[] = [ "A/C & Heating", "Garages", ... ];
+const CATALOG_ORDER = PROPERTY_AMENITIES as readonly string[];
+
+function sortAmenitiesForDisplay(list: string[]): string[] {
+    const known = list.filter((a) => CATALOG_ORDER.includes(a));
+    known.sort((a, b) => CATALOG_ORDER.indexOf(a) - CATALOG_ORDER.indexOf(b));
+    const unknown = list.filter((a) => !CATALOG_ORDER.includes(a));
+    return [...known, ...unknown];
+}
 
 const CommonAmenities: React.FC<CommonAmenitiesProps> = ({ amenities }) => {
-    const amenitiesToShow = amenities && amenities.length > 0 ? amenities : []; // Use provided or empty array
+    const amenitiesToShow =
+        amenities && amenities.length > 0 ? sortAmenitiesForDisplay(amenities) : [];
 
     return (
         <>
@@ -20,12 +26,17 @@ const CommonAmenities: React.FC<CommonAmenitiesProps> = ({ amenities }) => {
                     <p className="fs-20 lh-lg pb-25">
                         This property includes the following amenities.
                     </p>
-                    <ul className="style-none d-flex flex-wrap justify-content-between list-style-two">
-                        {/* Map over the amenities from the property prop */}
+                    <div className="lease-term-tag-group" role="list">
                         {amenitiesToShow.map((item, index) => (
-                            <li key={index}>{item}</li>
+                            <span
+                                key={`${item}-${index}`}
+                                role="listitem"
+                                className="lease-term-tag lease-term-tag--readonly is-selected"
+                            >
+                                {item}
+                            </span>
                         ))}
-                    </ul>
+                    </div>
                 </>
             ) : (
                 <p className="fs-20 lh-lg">No specific amenities listed for this property.</p>

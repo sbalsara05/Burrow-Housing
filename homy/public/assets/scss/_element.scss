@@ -164,6 +164,51 @@
             border: 1px solid #000;
         }
     }
+
+    .listing-lease-term-filter {
+        margin-top: 18px;
+        padding: 0 6px;
+    }
+
+    .listing-lease-term-filter__label {
+        font-size: 13px;
+        color: rgba($color: #000, $alpha: 0.55);
+        margin-bottom: 8px;
+    }
+
+    .listing-lease-term-filter__tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .listing-lease-term-tag {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 40px;
+        padding: 8px 16px;
+        border-radius: 999px;
+        font-size: 14px;
+        font-weight: 500;
+        line-height: 1.2;
+        border: 1px solid rgba($color-one, 0.2);
+        background: rgba($color-one, 0.1);
+        color: darken($color-one, 10%);
+        @include transition(0.2s);
+        cursor: pointer;
+
+        &:hover:not(.is-selected) {
+            background: rgba($color-one, 0.14);
+            border-color: rgba($color-one, 0.28);
+        }
+
+        &.is-selected {
+            background: rgba($color-one, 0.14);
+            color: darken($color-one, 12%);
+            border: 1px solid rgba($color-one, 0.3);
+        }
+    }
 }
 .dark-bg {
     .input-box-one .label {

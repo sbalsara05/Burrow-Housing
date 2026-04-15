@@ -2,10 +2,10 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { RootState } from './store.ts';
 // Import FetchPropertiesPayload if needed by selectApiFormattedFilters
-import  FetchPropertiesPayload  from './propertySlice'; // Adjust path as necessary
+import type { FetchPropertiesPayload } from './propertySlice';
 
 // --- Interfaces ---
-interface FilterState {
+export interface FilterState {
     searchTerm: string;
     // **** ADDED/UPDATED state fields ****
     category: string | null;       // e.g., "Single Room", "Apartment"
@@ -16,6 +16,7 @@ interface FilterState {
     bedrooms: string;          // '0', '1', '2', etc. ('0' means "Any")
     bathrooms: string;         // '0', '1', '2', etc. ('0' means "Any")
     amenities: string[];
+    leaseTerms: string[];
     sqftRange: [number | null, number | null]; // [min, max] SQFT values
     // **** END ADDED/UPDATED state fields ****
 
@@ -39,6 +40,7 @@ const initialState: FilterState = {
     bedrooms: '0',
     bathrooms: '0',
     amenities: [],
+    leaseTerms: [],
     sqftRange: [null, null],
     // **** END ADDED/UPDATED initial values ****
 
@@ -105,6 +107,18 @@ const filterSlice = createSlice({
             if (index >= 0) { state.amenities.splice(index, 1); }
             else { state.amenities.push(amenity); }
         },
+        toggleLeaseTerm: (state, action: PayloadAction<string>) => {
+            const term = action.payload;
+            if (!Array.isArray(state.leaseTerms)) {
+                state.leaseTerms = [];
+            }
+            const index = state.leaseTerms.indexOf(term);
+            if (index >= 0) {
+                state.leaseTerms.splice(index, 1);
+            } else {
+                state.leaseTerms.push(term);
+            }
+        },
         setSqftMin: (state, action: PayloadAction<number | null>) => {
             state.sqftRange[0] = action.payload;
         },
@@ -151,6 +165,7 @@ export const {
     setBedrooms,
     setBathrooms,
     toggleAmenity,
+    toggleLeaseTerm,
     setSqftMin,
     setSqftMax,
     setMaxPriceForSlider,
@@ -169,6 +184,7 @@ export const selectPriceRangeValues = (state: RootState) => state.filters.priceR
 export const selectBedrooms = (state: RootState) => state.filters.bedrooms;
 export const selectBathrooms = (state: RootState) => state.filters.bathrooms;
 export const selectAmenities = (state: RootState) => state.filters.amenities;
+export const selectLeaseTerms = (state: RootState) => state.filters.leaseTerms;
 export const selectSqftRange = (state: RootState) => state.filters.sqftRange;
 export const selectMaxPriceForSlider = (state: RootState) => state.filters.maxPriceForSlider;
 export const selectSortBy = (state: RootState) => state.filters.sortBy;
@@ -201,6 +217,10 @@ export const selectApiFormattedFilters = (state: RootState): FetchPropertiesPayl
 
     if (filters.amenities.length > 0) {
         apiFilters.amenities = filters.amenities.join(','); // Send as comma-separated string
+    }
+    const leaseTerms = Array.isArray(filters.leaseTerms) ? filters.leaseTerms : [];
+    if (leaseTerms.length > 0) {
+        apiFilters.leaseTerms = leaseTerms.join(',');
     }
 
     if (filters.sqftRange[0] !== null) apiFilters.sqftMin = filters.sqftRange[0].toString();

@@ -131,12 +131,19 @@ const initialState: PropertyState = {
 // --- Async Thunks (API Interactions) ---
 
 // Thunk to Fetch All Public Properties (Paginated and Filtered)
-interface FetchPropertiesPayload {
+export interface FetchPropertiesPayload {
     page?: number;
     limit?: number;
     category?: string;
+    roomType?: string;
     neighborhood?: string;
     rentRange?: string;
+    bedrooms?: string;
+    bathrooms?: string;
+    amenities?: string;
+    leaseTerms?: string;
+    sqftMin?: string;
+    sqftMax?: string;
     // Add other potential backend filters here
 }
 

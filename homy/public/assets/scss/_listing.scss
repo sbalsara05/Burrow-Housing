@@ -89,6 +89,54 @@
 
 // Listing Header Filter
 .listing-header-filter {
+    .lease-term-filter-inline {
+        margin-left: auto;
+        flex-wrap: wrap;
+        row-gap: 8px;
+    }
+
+    .lease-term-filter-inline__tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        justify-content: flex-end;
+    }
+
+    .lease-term-filter-inline__tag {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 44px;
+        padding: 10px 18px;
+        border-radius: 999px;
+        font-size: 14px;
+        font-weight: 500;
+        line-height: 1.2;
+        border: 1px solid rgba($color-one, 0.22);
+        background: rgba($color-one, 0.1);
+        color: darken($color-one, 10%);
+        cursor: pointer;
+        @include transition(0.2s);
+
+        &:hover:not(.is-selected) {
+            background: rgba($color-one, 0.16);
+            border-color: rgba($color-one, 0.32);
+        }
+
+        &.is-selected {
+            background: $color-one;
+            color: #fff;
+            font-weight: 600;
+            border-color: $color-one;
+            box-shadow: 0 4px 14px rgba($color-one, 0.4);
+
+            &:hover {
+                background: darken($color-one, 7%);
+                border-color: darken($color-one, 7%);
+            }
+        }
+    }
+
     .nice-select {
         background: transparent;
         border: 1px solid #000;
