@@ -37,34 +37,38 @@ const MediaGallery: React.FC<MediaGalleryProps> = ({ property, style }) => {
     return (
         <div className="media-gallery mt-100 xl-mt-80 lg-mt-60">
             <div className={`bg-white border-20 ${style ? "" : "shadow4 p-30"}`}>
-                <div className="media-gallery-layout">
-                    <div className="media-gallery-main-tile">
-                        <img
-                            src={mainImage}
-                            alt={property?.overview?.title || "Property main image"}
-                        />
-                        <div className="img-fancy-btn border-10 fw-500 fs-16 color-dark">
-                            See all {totalPhotos} Photos
-                        </div>
-                        <a className="media-gallery-tile-link" data-fancybox={`gallery-${property._id}`} href={mainImage} aria-label="Open photo gallery"></a>
-                    </div>
-
-                    <div className="media-gallery-thumb-grid">
-                        {thumbImages.map((thumbUrl, index) => (
-                            <div key={thumbUrl + index} className="media-gallery-thumb-tile">
-                                <img src={thumbUrl} alt={`Property thumbnail ${index + 1}`} />
-                                {index === thumbImages.length - 1 && images.length > 5 && (
-                                    <div className="media-gallery-thumb-overlay">
-                                        +{images.length - 5}
-                                    </div>
-                                )}
-                                <a className="media-gallery-tile-link" data-fancybox={`gallery-${property._id}`} href={thumbUrl} aria-label={`Open image ${index + 2}`}></a>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-
                 <Fancybox options={{ Carousel: { infinite: true } }}>
+                    <div className="media-gallery-layout">
+                        <div className="media-gallery-main-tile">
+                            <img
+                                src={mainImage}
+                                alt={property?.overview?.title || "Property main image"}
+                            />
+                            <a
+                                className="img-fancy-btn border-10 fw-500 fs-16 color-dark"
+                                data-fancybox={`gallery-${property._id}`}
+                                href={mainImage}
+                            >
+                                See all {totalPhotos} Photos
+                            </a>
+                            <a className="media-gallery-tile-link" data-fancybox={`gallery-${property._id}`} href={mainImage} aria-label="Open photo gallery"></a>
+                        </div>
+
+                        <div className="media-gallery-thumb-grid">
+                            {thumbImages.map((thumbUrl, index) => (
+                                <div key={thumbUrl + index} className="media-gallery-thumb-tile">
+                                    <img src={thumbUrl} alt={`Property thumbnail ${index + 1}`} />
+                                    {index === thumbImages.length - 1 && images.length > 5 && (
+                                        <div className="media-gallery-thumb-overlay">
+                                            +{images.length - 5}
+                                        </div>
+                                    )}
+                                    <a className="media-gallery-tile-link" data-fancybox={`gallery-${property._id}`} href={thumbUrl} aria-label={`Open image ${index + 2}`}></a>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
                     {images.length > 5 ? (
                         images.slice(5).map((imgUrl, index) => (
                             <a key={index} className="d-block media-gallery-fancybox-anchor" data-fancybox={`gallery-${property._id}`} href={imgUrl}></a>
