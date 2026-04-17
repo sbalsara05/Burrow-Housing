@@ -110,6 +110,7 @@ exports.testEmailNotification = async (req, res) => {
 		"contract_completed",
 		"contract_payment_received",
 		"contract_cancelled",
+		"new_property_listing",
 	];
 
 	const type = notificationType || "new_interest";
@@ -129,6 +130,8 @@ exports.testEmailNotification = async (req, res) => {
 				? "Your request for 'Test Property' was approved!"
 				: type === "ambassador_request"
 				? "Test User requested an ambassador viewing for 'Test Property'."
+				: type === "new_property_listing"
+				? "New property posted: A listing in Test Neighborhood."
 				: `This is a test ${type} notification.`;
 
 		const testNotification = new Notification({

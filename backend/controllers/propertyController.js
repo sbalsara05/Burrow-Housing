@@ -214,6 +214,62 @@ exports.addNewProperty = async (req, res) => {
 		user.properties.push(savedProperty._id);
 		await user.save();
 
+		// Notify all other users about the new public listing (in-app + optional email)
+		try {
+			const recipients = await User.find({
+				_id: { $ne: userId },
+				isVerified: true,
+			})
+				.select("_id")
+				.lean();
+			if (recipients.length > 0) {
+				const neighborhood = overview?.neighborhood || "New listing";
+				const listingLabel = buildingName
+					? `${buildingName} in ${neighborhood}`
+					: `A listing in ${neighborhood}`;
+				let message = `New property posted: ${listingLabel}.`;
+				if (message.length > 500) {
+					message = message.slice(0, 497) + "...";
+				}
+				const link = `/listing_details/${savedProperty._id}`;
+				const notificationDocs = recipients.map((r) => ({
+					userId: r._id,
+					type: "new_property_listing",
+					message,
+					link,
+					metadata: {
+						propertyId: savedProperty._id,
+						listerId: userId,
+					},
+				}));
+				const BATCH = 500;
+				for (let i = 0; i < notificationDocs.length; i += BATCH) {
+					await Notification.insertMany(
+						notificationDocs.slice(i, i + BATCH),
+						{ ordered: false }
+					);
+				}
+				const recipientIds = recipients.map((r) => r._id.toString());
+				void queueBulkNotificationEmails(
+					recipientIds,
+					"new_property_listing",
+					{
+						message,
+						link,
+						metadata: {
+							propertyId: savedProperty._id.toString(),
+							listerId: userId.toString(),
+						},
+					}
+				);
+			}
+		} catch (notifyErr) {
+			console.error(
+				"[addNewProperty] Failed to create new-listing notifications:",
+				notifyErr
+			);
+		}
+
 		// Respond with success
 		res.status(201).json({
 			message: "Property added successfully",

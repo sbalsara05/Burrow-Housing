@@ -127,6 +127,7 @@ emailQueue.process("notification-email", async (job) => {
 			contract_completed: "contractCompleted",
 			contract_payment_received: "contractPaymentReceived",
 			contract_cancelled: "contractCancelled",
+			new_property_listing: "newPropertyListing",
 		};
 
 		const preferenceKey = preferenceMap[notificationType];

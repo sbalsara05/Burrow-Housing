@@ -229,6 +229,7 @@ const sendNotificationEmail = async (
 		contract_completed: process.env.BREVO_NOTIFICATION_TEMPLATE_ID,
 		contract_payment_received: process.env.BREVO_NOTIFICATION_TEMPLATE_ID,
 		contract_cancelled: process.env.BREVO_NOTIFICATION_TEMPLATE_ID,
+		new_property_listing: process.env.BREVO_NOTIFICATION_TEMPLATE_ID,
 	};
 
 	const templateId =

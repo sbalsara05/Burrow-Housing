@@ -53,6 +53,7 @@ const userSchema = new mongoose.Schema(
 			ambassadorRequest: { type: Boolean, default: true },
 			ambassadorRequestUpdate: { type: Boolean, default: true },
 			ambassadorRequestCancelled: { type: Boolean, default: true },
+			newPropertyListing: { type: Boolean, default: true },
 		},
 	},
 	{ timestamps: true }

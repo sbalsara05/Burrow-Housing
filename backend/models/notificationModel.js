@@ -27,6 +27,7 @@ const NotificationSchema = new mongoose.Schema(
 				"contract_completed",
 				"contract_payment_received",
 				"contract_cancelled",
+				"new_property_listing",
 			],
 			required: true,
 		},
