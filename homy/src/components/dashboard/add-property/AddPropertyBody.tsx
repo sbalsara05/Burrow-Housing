@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
 import { AppDispatch, RootState } from '../../../redux/slices/store';
 import { useSidebarCollapse } from '../../../hooks/useSidebarCollapse';
@@ -13,6 +13,14 @@ import {
     clearPropertyError,
     Property
 } from '../../../redux/slices/propertySlice';
+import {
+    fetchMyDrafts,
+    saveDraft,
+    deleteDraft,
+    selectDrafts,
+    selectDraftSaving,
+    PropertyDraft,
+} from '../../../redux/slices/draftSlice';
 import Overview from "./Overview";
 import ListingDetails from "./ListingDetails";
 import SelectAmenities from "./SelectAmenities";
@@ -106,6 +114,7 @@ const initialFormData: FormDataShape = {
 const AddPropertyBody: React.FC<AddPropertyBodyProps> = ({ isEditMode = false, propertyToEdit }) => {
     const dispatch = useDispatch<AppDispatch>();
     const navigate = useNavigate();
+    const routerLocation = useLocation();
     const isCollapsed = useSidebarCollapse();
     const isSubmitting = useSelector(selectIsAddingProperty);
     const error = useSelector(selectPropertyError);
@@ -114,6 +123,12 @@ const AddPropertyBody: React.FC<AddPropertyBodyProps> = ({ isEditMode = false, p
     const [location, setLocation] = useState({ lat: 0, lng: 0 });
     const [filesToUpload, setFilesToUpload] = useState<File[]>([]);
     const [existingImageUrls, setExistingImageUrls] = useState<string[]>([]);
+
+    // Draft state (add mode only)
+    const drafts = useSelector(selectDrafts);
+    const isSavingDraft = useSelector(selectDraftSaving);
+    const [activeDraftId, setActiveDraftId] = useState<string | null>(null);
+    const [showResumeBanner, setShowResumeBanner] = useState(false);
 
     useEffect(() => {
         if (isEditMode && propertyToEdit) {
@@ -152,6 +167,32 @@ const AddPropertyBody: React.FC<AddPropertyBodyProps> = ({ isEditMode = false, p
     useEffect(() => {
         dispatch(clearPropertyError());
     }, [dispatch]);
+
+    // On mount in add mode: load existing drafts and show resume banner if any exist
+    useEffect(() => {
+        if (!isEditMode) {
+            dispatch(fetchMyDrafts());
+        }
+    }, [isEditMode, dispatch]);
+
+    // If navigated from My Properties with a specific resumeDraftId, auto-load it
+    useEffect(() => {
+        const resumeId = (routerLocation.state as any)?.resumeDraftId;
+        if (!isEditMode && resumeId && drafts.length > 0) {
+            const target = drafts.find(d => d._id === resumeId);
+            if (target) {
+                loadDraft(target);
+            }
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [drafts, isEditMode, routerLocation.state]);
+
+    useEffect(() => {
+        if (!isEditMode && drafts.length > 0 && !activeDraftId) {
+            setShowResumeBanner(true);
+        }
+    }, [drafts, isEditMode, activeDraftId]);
+
 
     const handleNestedChange = (section: keyof FormDataShape, field: string, value: any) => {
         setFormData(prev => ({ ...prev, [section]: { ...(prev[section] as object), [field]: value } }));
@@ -316,15 +357,77 @@ const AddPropertyBody: React.FC<AddPropertyBodyProps> = ({ isEditMode = false, p
             const resultAction = await dispatch(addNewProperty({ propertyData, files: filesToUpload }));
 
             if (addNewProperty.fulfilled.match(resultAction)) {
+                if (activeDraftId) {
+                    dispatch(deleteDraft(activeDraftId));
+                }
                 toast.success("Property added successfully!");
                 setFormData(initialFormData);
                 setFilesToUpload([]);
                 setLocation({ lat: 0, lng: 0 });
                 setExistingImageUrls([]);
+                setActiveDraftId(null);
                 navigate('/dashboard/properties-list');
             } else {
                 toast.error(resultAction.payload as string || "Failed to add property.");
             }
+        }
+    };
+
+    const handleSaveDraft = async () => {
+        const resultAction = await dispatch(
+            saveDraft({ draftId: activeDraftId ?? undefined, formData, location })
+        );
+        if (saveDraft.fulfilled.match(resultAction)) {
+            if (!activeDraftId) setActiveDraftId(resultAction.payload._id);
+            toast.success("Draft saved! You can resume it from My Properties.", { autoClose: 4000 });
+        } else {
+            toast.error("Couldn't save draft. Please try again.");
+        }
+    };
+
+    const loadDraft = (draft: PropertyDraft) => {
+        setActiveDraftId(draft._id);
+        setShowResumeBanner(false);
+        setFormData({
+            propertyType: draft.propertyType || 'Apartment',
+            overview: {
+                title: draft.overview?.title || '',
+                category: draft.overview?.category || 'Apartment',
+                roomType: draft.overview?.roomType || 'Single Room',
+                neighborhood: draft.overview?.neighborhood || 'Any',
+                rent: draft.overview?.rent ?? '',
+            },
+            listingDetails: {
+                bedrooms: draft.listingDetails?.bedrooms ?? 1,
+                bathrooms: draft.listingDetails?.bathrooms ?? 1,
+                floorNo: draft.listingDetails?.floorNo ?? 1,
+                size: draft.listingDetails?.size ?? '',
+            },
+            amenities: draft.amenities || [],
+            addressAndLocation: {
+                address: draft.addressAndLocation?.address || '',
+                line1: draft.addressAndLocation?.line1 || '',
+                line2: draft.addressAndLocation?.line2 || '',
+                city: draft.addressAndLocation?.city || '',
+                state: draft.addressAndLocation?.state || '',
+                zip: draft.addressAndLocation?.zip || '',
+            },
+            buildingName: draft.buildingName || '',
+            leaseLength: draft.leaseLength || '',
+            description: draft.description || '',
+        });
+        if (draft.addressAndLocation?.location?.lat) {
+            setLocation(draft.addressAndLocation.location as { lat: number; lng: number });
+        }
+    };
+
+    const discardDraft = (draftId: string) => {
+        dispatch(deleteDraft(draftId));
+        setShowResumeBanner(false);
+        if (activeDraftId === draftId) {
+            setActiveDraftId(null);
+            setFormData(initialFormData);
+            setLocation({ lat: 0, lng: 0 });
         }
     };
 
@@ -338,6 +441,47 @@ const AddPropertyBody: React.FC<AddPropertyBodyProps> = ({ isEditMode = false, p
                 <DashboardHeaderTwo title={pageTitle} />
                 <h2 className="main-title d-block d-lg-none">{pageTitle}</h2>
                 {error && <div className="alert alert-danger mt-3">{error}</div>}
+
+                {/* Resume draft banner — shown in add mode when unfinished drafts exist */}
+                {!isEditMode && showResumeBanner && drafts.length > 0 && (
+                    <div className="alert alert-warning mt-3 d-flex flex-column gap-2">
+                        <div className="d-flex align-items-center justify-content-between">
+                            <strong>You have {drafts.length} unfinished {drafts.length === 1 ? 'draft' : 'drafts'}</strong>
+                            <button
+                                type="button"
+                                className="btn-close btn-close-sm"
+                                aria-label="Dismiss"
+                                onClick={() => setShowResumeBanner(false)}
+                            />
+                        </div>
+                        <div className="d-flex flex-column gap-1">
+                            {drafts.map((draft) => (
+                                <div key={draft._id} className="d-flex align-items-center gap-2 flex-wrap">
+                                    <span className="text-muted small">
+                                        {draft.overview?.neighborhood
+                                            ? `${draft.overview.neighborhood} · `
+                                            : ''}
+                                        Last edited {new Date(draft.updatedAt).toLocaleDateString()}
+                                    </span>
+                                    <button
+                                        type="button"
+                                        className="draft-pill-btn draft-pill-btn--resume"
+                                        onClick={() => loadDraft(draft)}
+                                    >
+                                        Resume
+                                    </button>
+                                    <button
+                                        type="button"
+                                        className="draft-pill-btn draft-pill-btn--discard"
+                                        onClick={() => discardDraft(draft._id)}
+                                    >
+                                        Discard
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
 
                 <form onSubmit={handleSubmit} autoComplete="off">
                     <div className="bg-white card-box border-20">
@@ -548,12 +692,22 @@ const AddPropertyBody: React.FC<AddPropertyBodyProps> = ({ isEditMode = false, p
                         </div>
                     </div>
 
-                    {/* Save Button */}
-                    <div className="button-group d-inline-flex align-items-center mt-30">
-                        <button type="submit" className="dash-btn-two tran3s me-3" disabled={isSubmitting}>
+                    {/* Action Buttons */}
+                    <div className="button-group d-inline-flex align-items-center mt-30 flex-wrap gap-2">
+                        <button type="submit" className="draft-pill-btn draft-pill-btn--primary me-2" disabled={isSubmitting}>
                             {isSubmitting ? "Saving..." : "Save Listing"}
                         </button>
-                        <Link to="/dashboard/properties-list" className="dash-cancel-btn tran3s">Cancel</Link>
+                        {!isEditMode && (
+                            <button
+                                type="button"
+                                className="draft-pill-btn draft-pill-btn--resume me-2"
+                                onClick={handleSaveDraft}
+                                disabled={isSavingDraft}
+                            >
+                                {isSavingDraft ? "Saving..." : "Save as Draft"}
+                            </button>
+                        )}
+                        <Link to="/dashboard/properties-list" className="draft-pill-btn draft-pill-btn--danger">Cancel</Link>
                     </div>
                 </form>
             </div>

@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "../../../redux/slices/store.ts";
 import DashboardHeaderTwo from "../../../layouts/headers/dashboard/DashboardHeaderTwo";
@@ -18,12 +18,22 @@ import {
     selectUserPropertiesSort,
     deleteUserProperty
 } from "../../../redux/slices/propertySlice";
+import {
+    fetchMyDrafts,
+    deleteDraft,
+    selectDrafts,
+    selectDraftsLoading,
+    PropertyDraft,
+} from "../../../redux/slices/draftSlice";
 
 const PropertyListBody = () => {
     const dispatch = useDispatch<AppDispatch>();
+    const navigate = useNavigate();
     const isCollapsed = useSidebarCollapse();
 
     const { userProperties, isLoading, error, userPropertiesSort } = useSelector((state: RootState) => state.properties);
+    const drafts = useSelector(selectDrafts);
+    const isDraftsLoading = useSelector(selectDraftsLoading);
 
     // State for the modal now lives in this parent component
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -49,10 +59,21 @@ const PropertyListBody = () => {
 
     useEffect(() => {
         dispatch(fetchUserProperties());
+        dispatch(fetchMyDrafts());
         return () => {
             dispatch(clearPropertyError());
         };
     }, [dispatch]);
+
+    const handleDiscardDraft = async (draftId: string) => {
+        await dispatch(deleteDraft(draftId));
+        toast.success("Draft discarded.");
+    };
+
+    const handleResumeDraft = (draft: PropertyDraft) => {
+        // Navigate to add-property; the page will pick up the draft via Redux
+        navigate('/dashboard/add-property', { state: { resumeDraftId: draft._id } });
+    };
 
     // Modal handling functions live here
     const openDeleteModal = (id: string) => {
@@ -82,6 +103,59 @@ const PropertyListBody = () => {
             <div className="position-relative">
                 <DashboardHeaderTwo title="My Properties" />
                 <h2 className="main-title d-block d-lg-none">My Properties</h2>
+
+                {/* Drafts section */}
+                {!isDraftsLoading && drafts.length > 0 && (
+                    <div className="bg-white card-box border-20 mb-25 p-4">
+                        <h6 className="mb-3" style={{ fontWeight: 600 }}>
+                            Unfinished Drafts
+                            <span
+                                className="ms-2 draft-pill-btn draft-pill-btn--resume"
+                                style={{ padding: '2px 10px', fontSize: '0.72rem', fontWeight: 600, verticalAlign: 'middle', cursor: 'default' }}
+                            >
+                                {drafts.length}
+                            </span>
+                        </h6>
+                        <div className="d-flex flex-column gap-2">
+                            {drafts.map((draft) => (
+                                <div
+                                    key={draft._id}
+                                    className="d-flex align-items-center justify-content-between flex-wrap gap-2 py-2"
+                                    style={{ borderBottom: '1px solid #f0f0f0' }}
+                                >
+                                    <div>
+                                        <span className="fw-500 me-2">
+                                            {draft.overview?.neighborhood && draft.overview.neighborhood !== 'Any'
+                                                ? draft.overview.neighborhood
+                                                : 'Untitled listing'}
+                                            {draft.overview?.rent ? ` · $${draft.overview.rent}/mo` : ''}
+                                        </span>
+                                        <span className="text-muted small">
+                                            Last edited {new Date(draft.updatedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                                        </span>
+                                    </div>
+                                    <div className="d-flex gap-2">
+                                        <button
+                                            type="button"
+                                            className="draft-pill-btn draft-pill-btn--resume"
+                                            onClick={() => handleResumeDraft(draft)}
+                                        >
+                                            Resume
+                                        </button>
+                                        <button
+                                            type="button"
+                                            className="draft-pill-btn draft-pill-btn--discard"
+                                            onClick={() => handleDiscardDraft(draft._id)}
+                                        >
+                                            Discard
+                                        </button>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
                 <div className="d-sm-flex align-items-center justify-content-between mb-25">
                     <div className="fs-16">Showing <span className="color-dark fw-500">{sortedProperties.length}</span> properties</div>
                     <div className="d-flex ms-auto xs-mt-30">
