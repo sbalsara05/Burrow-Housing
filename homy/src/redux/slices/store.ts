@@ -10,6 +10,7 @@ import favoritesReducer from './favoritesSlice';
 import notificationReducer from './notificationSlice';
 import interestsReducer from './interestsSlice';
 import contractReducer from './contractSlice';
+import draftReducer from './draftSlice';
 
 
 // --- Redux Persist Configuration ---
@@ -34,6 +35,7 @@ const rootReducer = combineReducers({
     notifications: notificationReducer,
     interests: interestsReducer,
     contract: contractReducer,
+    drafts: draftReducer,
 });
 
 // Create the persisted reducer

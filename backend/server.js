@@ -19,6 +19,9 @@ const ambassadorRequestRoutes = require("./routes/ambassadorRequestRoutes");
 const ambassadorDashboardRoutes = require("./routes/ambassadorDashboardRoutes");
 const contractRoutes = require("./routes/contractRoutes");
 const stripeRoutes = require("./routes/stripeRoutes");
+const draftRoutes = require("./routes/draftRoutes");
+// Import draft reminder queue so its worker process is registered on startup
+require("./queues/draftReminderQueue");
 const { handleWebhook } = require("./controllers/stripeController");
 const { handleStreamWebhook } = require("./controllers/streamWebhookController");
 
@@ -238,6 +241,7 @@ app.use("/api", ambassadorRequestRoutes); // Ambassador request management route
 app.use("/api/ambassador", ambassadorDashboardRoutes); // Ambassador dashboard routes
 app.use("/api/contracts", contractRoutes); //Contract management routes
 app.use("/api/stripe", stripeRoutes); // Stripe payment intents (create-payment-intent)
+app.use("/api", draftRoutes); // Property draft management
 
 // Global error handler: always return JSON (never HTML) so frontend never sees proxy HTML
 app.use((err, req, res, next) => {
