@@ -45,11 +45,22 @@ exports.register = async (req, res) => {
 				});
 		}
 
-		// Check if the phone number is already in use (if provided)
+		// Normalize phone number to E.164-compatible digits-only format
+		let sanitizedPhone = undefined;
 		if (whatsappNumber) {
-			const existingUserByPhone = await User.findOne({
-				phone: whatsappNumber,
-			});
+			// Strip all non-digit characters except a leading '+'
+			sanitizedPhone = whatsappNumber.replace(/[^\d]/g, '');
+			// If it's a 10-digit US number, prepend country code
+			if (sanitizedPhone.length === 10) {
+				sanitizedPhone = '1' + sanitizedPhone;
+			}
+
+			// Validate the cleaned number
+			if (!/^[1-9]\d{1,14}$/.test(sanitizedPhone)) {
+				return res.status(422).json({ message: "Please enter a valid phone number." });
+			}
+
+			const existingUserByPhone = await User.findOne({ phone: sanitizedPhone });
 			if (existingUserByPhone) {
 				return res
 					.status(400)
@@ -76,8 +87,8 @@ exports.register = async (req, res) => {
 			name,
 			email,
 			password: hashedPassword,
-			phone: whatsappNumber,
-			isVerified: false, // User starts as unverified
+			phone: sanitizedPhone,
+			isVerified: false,
 		});
 
 		await user.save();
@@ -105,6 +116,12 @@ exports.register = async (req, res) => {
 			res.setHeader("Content-Type", "application/json");
 			res.status(status).json(body);
 		};
+
+		// Handle Mongoose validation errors
+		if (error.name === "ValidationError") {
+			const messages = Object.values(error.errors).map(e => e.message);
+			return sendJson(422, { message: messages[0] || "Validation error." });
+		}
 
 		// Handle duplicate key errors more gracefully
 		if (
